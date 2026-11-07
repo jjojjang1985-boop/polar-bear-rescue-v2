@@ -14,6 +14,7 @@ interface MissionCeremonyProps {
   rank: number;
   onShowLeaderboard: () => void;
   onGoMap: () => void;
+  onComplete: () => void;
 }
 
 export function MissionCeremony({
@@ -25,10 +26,12 @@ export function MissionCeremony({
   pledges,
   rank,
   onShowLeaderboard,
-  onGoMap
+  onGoMap,
+  onComplete
 }: MissionCeremonyProps) {
   const [certUrl, setCertUrl] = useState<string>('');
   const [downloadMsg, setDownloadMsg] = useState<string>('');
+  const [saving, setSaving] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -246,8 +249,7 @@ export function MissionCeremony({
         지구레인저 임명식
       </h2>
       <p className="guide">
-        {name} 대원의 총점은 <b>{totalScore.toLocaleString()}점</b>, 이 기기 순위{' '}
-        <b>{rank > 0 ? `${rank}위` : '1위'}</b>입니다!
+        {name} 레인저의 총점은 <b>{totalScore.toLocaleString()}점</b>! 임명장을 저장한 뒤 <b>임무 완료</b>를 눌러 명예의 전당에 기록하세요.
       </p>
 
       {certUrl ? (
@@ -275,11 +277,19 @@ export function MissionCeremony({
         <button className="big blue" type="button" onClick={handleDownloadPDF}>
           PDF로 저장
         </button>
-        <button className="big ghost" type="button" onClick={onShowLeaderboard}>
-          최우수 순위표
-        </button>
-        <button className="big ghost" type="button" onClick={onGoMap}>
-          작전 지도로
+      </div>
+
+      <div className="flex justify-center mt-4">
+        <button
+          className="big green mission-complete-btn"
+          type="button"
+          disabled={saving}
+          onClick={() => {
+            setSaving(true);
+            onComplete();
+          }}
+        >
+          {saving ? '명예의 전당에 기록하는 중…' : '🌏 임무 완료!'}
         </button>
       </div>
     </div>

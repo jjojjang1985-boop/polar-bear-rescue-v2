@@ -51,6 +51,7 @@ import { MissionPledge } from './components/missions/MissionPledge';
 import { MissionCeremony } from './components/missions/MissionCeremony';
 import { MissionBoss } from './components/missions/MissionBoss';
 import { MissionShoot } from './components/missions/MissionShoot';
+import { MissionEnding } from './components/missions/MissionEnding';
 import { SkillArt, SkillBookModal, SkillPickModal } from './components/Skills';
 import { SKILLS, STAGE_PICKS } from './skills';
 import { QuizComponent } from './components/missions/QuizComponent';
@@ -389,9 +390,10 @@ export default function App() {
     }
   };
 
-  const saveToLeaderboard = async () => {
+  /** 명예의 전당 저장. 이 기기 순위와 온라인 저장 결과를 돌려준다. */
+  const saveToLeaderboard = async (scoreOverride?: number): Promise<{ rank: number; online: boolean }> => {
     const starTotal = [1, 2, 3, 4, 5].reduce((a, i) => a + (game.stars[i] || 0), 0);
-    const currentTotalScore = totalScore;
+    const currentTotalScore = scoreOverride ?? totalScore;
     const entryName = game.name || '북극대원';
     const entryCode = game.code || '얼음별';
     const entryAvatar = game.avatar || 'a';
@@ -415,21 +417,29 @@ export default function App() {
     } catch {
       // Ignore
     }
+    const rank = list.findIndex(x => x.name === entryName && x.code === entryCode) + 1;
 
     // 2. Realtime Firebase Firestore save
     try {
-      await saveScoreToFirestore({
+      // 인터넷이 느리거나 끊겨도 엔딩이 멈추지 않도록 5초까지만 기다린다.
+      // (그 뒤에도 Firebase가 연결되면 기록은 자동으로 올라간다)
+      const timeout = new Promise<never>((_, rej) => window.setTimeout(() => rej(new Error('timeout')), 5000));
+      await Promise.race([saveScoreToFirestore({
         name: entryName,
         code: entryCode,
         score: currentTotalScore,
         stars: starTotal,
         avatar: entryAvatar
-      });
-      triggerToast('🌟 파이어베이스 실시간 명예의 전당에 등록되었습니다!');
+      }), timeout]);
+      triggerToast('🌟 실시간 명예의 전당에 등록되었습니다!');
+      return { rank, online: true };
     } catch (e) {
       console.error('Failed to save score to Firebase:', e);
+      triggerToast('이 기기 순위표에 저장했어요. 온라인 기록은 연결되면 올라가요.');
+      return { rank, online: false };
     }
   };
+  const [endResult, setEndResult] = useState<{ rank: number; online: boolean } | null>(null);
 
   const handleSignInGoogle = async () => {
     try {
@@ -626,9 +636,7 @@ export default function App() {
     }));
 
     if (stageIdx === STAGES.length - 1) {
-      // Epilogue finished
-      saveToLeaderboard();
-      setViewScreen('map');
+      // 엔딩 화면에서 끝나므로 결과 창은 띄우지 않는다 (점수 저장은 '임무 완료'에서 이미 함)
       return;
     }
 
@@ -890,9 +898,33 @@ export default function App() {
             rank={myRank > 0 ? myRank : 1}
             onShowLeaderboard={() => setShowLeaderboard(true)}
             onGoMap={() => setViewScreen('map')}
+            onComplete={async () => {
+              // 에필로그 점수까지 더한 최종 총점으로 기록한다 (finishStage와 같은 계산)
+              const epi = Math.max(game.scores[game.cur] || 0, game.pts + game.blocks * 10);
+              const finalTotal =
+                Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) + epi;
+              const r = await saveToLeaderboard(finalTotal);
+              setEndResult(r);
+              advanceStep();
+            }}
           />
         );
       }
+
+      case 'ending':
+        return (
+          <MissionEnding
+            name={game.name}
+            pledges={game.pledge}
+            totalScore={totalScore}
+            stars={game.stars}
+            result={endResult}
+            onMount={() => finishStage(game.cur)}
+            onShowLeaderboard={() => setShowLeaderboard(true)}
+            onGoTitle={() => setViewScreen('title')}
+            onGoMap={() => setViewScreen('map')}
+          />
+        );
 
       default:
         return null;

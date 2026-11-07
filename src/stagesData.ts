@@ -41,7 +41,8 @@ export interface StageStepMission {
     | 'pledge'
     | 'ceremony'
     | 'boss'
-    | 'shoot';
+    | 'shoot'
+    | 'ending';
   options?: any;
 }
 
@@ -340,12 +341,16 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'thermo', text: '삐빅! 수련생, 한 가지가 남았어. 빙하는 한 번 얼렸다고 영원히 지켜지지 않아.', mood: 'alert' },
       { type: 'say', who: 'danbi', text: '지구레인저의 진짜 임무는 지금부터야. 일주일 동안 지킬 실천 목표 세 가지를 정해 줘.', mood: 'smile' },
       { type: 'mission', id: 'pledge' },
-      { type: 'say', who: 'pori', text: '대원님, 다음에 또 놀러 와요! 그때는 얼음이 더 두껍고 단단했으면 좋겠어요.', mood: 'joy' },
-      { type: 'say', who: 'luka', text: '나도 오토바이 대신 자전거 탈 거야. 일주일 뒤에 누가 더 잘 지켰는지 대결하자!', mood: 'grin' },
       { type: 'say', who: 'danbi', text: '{name} 수련생, 앞으로. 지구수비대장으로서 너를 정식 지구레인저로 임명한다!', mood: 'smile' },
       { type: 'reward', gear: 'badge' },
       { type: 'fx', name: 'winFlash' },
-      { type: 'mission', id: 'ceremony' }
+      { type: 'mission', id: 'ceremony' },
+      { type: 'bg', bg: 'reunion' },
+      { type: 'say', who: 'pori', text: '{name} 레인저님 덕분에 엄마랑 다시 만났어요. 다음에 또 놀러 와요! 그때는 얼음이 더 두껍고 단단했으면 좋겠어요.', mood: 'joy' },
+      { type: 'say', who: 'luka', text: '나도 이제 가까운 곳은 오토바이 대신 자전거 탈 거야. 일주일 뒤에 누가 더 잘 지켰는지 대결하자!', mood: 'grin' },
+      { type: 'say', who: 'thermo', text: '삐빅! 오늘 배운 것: 기후변화는 사람들의 활동 때문에 빨라졌고, 작은 실천이 모이면 막을 수 있어!', mood: 'happy' },
+      { type: 'say', who: 'danbi', text: '지구레인저의 진짜 임무는 오늘부터야. 교실에서, 집에서, 네가 고른 약속을 꼭 지켜 줘. 지구수비대는 언제나 너를 응원한다!', mood: 'smile' },
+      { type: 'mission', id: 'ending' }
     ]
   }
 ];
