@@ -106,11 +106,11 @@ export function MissionCeremony({
       ctx.font = `40px ${D}`;
       ctx.fillStyle = '#f2735a';
       ctx.textAlign = 'center';
-      ctx.fillText('북극곰 구조대 정식 대원', W / 2, 300);
+      ctx.fillText('지구수비대 정식 지구레인저', W / 2, 300);
 
       ctx.font = `72px ${D}`;
       ctx.fillStyle = '#12407a';
-      ctx.fillText(`${name} 대원`, W / 2, 420);
+      ctx.fillText(`${name} 레인저`, W / 2, 420);
 
       ctx.font = `34px ${B}`;
       ctx.fillStyle = '#7a5a43';
@@ -119,9 +119,9 @@ export function MissionCeremony({
       ctx.font = `bold 38px ${B}`;
       ctx.fillStyle = '#3b2414';
       [
-        '위 대원은 기후변화의 원인을 밝히고 탄소 저울을 맞추어,',
-        '녹아내리던 북극의 빙하를 되찾고 아기 북극곰 포리를',
-        '엄마 곁으로 돌려보냈기에 북극곰 구조대 정식 대원으로 임명합니다.'
+        '위 수련생은 기후변화의 원인을 밝히고 기후 마법을 익혀',
+        '탄소 대마왕을 물리치고 아기 북극곰 포리의 빙하를 지켜 냈기에',
+        '지구수비대의 정식 지구레인저로 임명합니다.'
       ].forEach((line, i) => {
         ctx.fillText(line, W / 2, 570 + i * 58);
       });
@@ -150,14 +150,14 @@ export function MissionCeremony({
       ctx.fillText('작전 기록', 300, 825);
 
       ctx.font = `bold 30px ${B}`;
-      ['지구 이상 신호', '범인 찾기', '탄소 저울', '빙하 되찾기'].forEach((t, i) => {
+      ['지구 이상 신호', '범인 찾기', '탄소 저울', '빙하 되찾기', '최종 결전'].forEach((t, i) => {
         ctx.fillStyle = '#3b2414';
-        ctx.fillText(`작전 ${i + 1}  ${t}`, 300, 875 + i * 42);
+        ctx.fillText(i < 4 ? `작전 ${i + 1}  ${t}` : `★ ${t}`, 300, 870 + i * 38);
         ctx.fillStyle = '#f0a500';
         ctx.fillText(
           '★'.repeat(stars[i + 1] || 0) + '☆'.repeat(3 - (stars[i + 1] || 0)),
           650,
-          875 + i * 42
+          870 + i * 38
         );
       });
 
@@ -192,7 +192,7 @@ export function MissionCeremony({
       ctx.textAlign = 'right';
       ctx.font = `38px ${D}`;
       ctx.fillStyle = '#3b2414';
-      ctx.fillText('북극곰 구조대장  단비', W - 170, 1120);
+      ctx.fillText('지구수비대장  단비', W - 170, 1120);
 
       ctx.beginPath();
       ctx.arc(W - 140, 1105, 52, 0, Math.PI * 2);
@@ -203,7 +203,7 @@ export function MissionCeremony({
       ctx.font = `30px ${D}`;
       ctx.fillStyle = '#d23a2a';
       ctx.textAlign = 'center';
-      ctx.fillText('구조대', W - 140, 1100);
+      ctx.fillText('수비대', W - 140, 1100);
       ctx.fillText('인', W - 140, 1132);
 
       // Draw character illustrations around the certificate
@@ -233,7 +233,7 @@ export function MissionCeremony({
     try {
       const a = document.createElement('a');
       a.href = canvasRef.current.toDataURL('image/png');
-      a.download = `북극곰구조대_임명장_${name || '대원'}.png`;
+      a.download = `지구레인저_임명장_${name || '레인저'}.png`;
       a.click();
       setDownloadMsg('임명장을 이미지(PNG)로 저장했습니다!');
     } catch {
@@ -251,7 +251,7 @@ export function MissionCeremony({
       });
       const imgData = canvasRef.current.toDataURL('image/jpeg', 0.95);
       doc.addImage(imgData, 'JPEG', 0, 0, 297, 210);
-      doc.save(`북극곰구조대_임명장_${name || '대원'}.pdf`);
+      doc.save(`지구레인저_임명장_${name || '레인저'}.pdf`);
       setDownloadMsg('임명장을 PDF 문서로 저장했습니다!');
     } catch {
       setDownloadMsg('PDF 생성 오류가 발생했습니다. PNG 저장을 이용해 주세요.');
@@ -262,7 +262,7 @@ export function MissionCeremony({
     <div className="panel max-w-4xl text-center">
       <h2>
         <span className="tag">🎉 축하합니다!</span>
-        북극곰 구조대 임명식
+        지구레인저 임명식
       </h2>
       <p className="guide">
         {name} 대원의 총점은 <b>{totalScore.toLocaleString()}점</b>, 이 기기 순위{' '}
@@ -273,7 +273,7 @@ export function MissionCeremony({
         <div className="my-3">
           <img
             src={certUrl}
-            alt={`${name} 대원의 북극곰 구조대 정식 임명장`}
+            alt={`${name} 레인저의 지구레인저 임명장`}
             className="w-full rounded-2xl border-4 border-amber-950 shadow-xl"
           />
         </div>

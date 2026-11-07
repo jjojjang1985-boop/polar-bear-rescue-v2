@@ -9,7 +9,8 @@ export type SceneFxName =
   | 'goggle'
   | 'twist'
   | 'crack'
-  | 'win';
+  | 'win'
+  | 'bossRise';
 
 export interface SceneFxState {
   name: SceneFxName;
@@ -177,6 +178,23 @@ export function SceneFx({ fx }: { fx: SceneFxState | null }) {
               </g>
             ))}
           </svg>
+        </div>
+      );
+
+    case 'bossRise':
+      return (
+        <div className="fx" key={fx.id}>
+          <div className="fx-stormsky" />
+          <div className="fx-boss-rise">{HOODED}</div>
+          {Array.from({ length: 12 }, (_, i) => (
+            <b
+              key={i}
+              className="fx-co2"
+              style={{ left: `${6 + ((i * 41) % 88)}%`, animationDelay: `${0.4 + (i % 6) * 0.35}s` }}
+            >
+              CO₂
+            </b>
+          ))}
         </div>
       );
 

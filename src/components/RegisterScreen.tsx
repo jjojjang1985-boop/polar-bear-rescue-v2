@@ -31,7 +31,7 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
     <div className="screen register-screen">
       <img className="screen-art register-art" src={SCENE_IMAGES.hq} alt="" draggable={false} />
       <div className="register-wrap">
-        <h1 className="logo register-logo">구조대 등록</h1>
+        <h1 className="logo register-logo">지구수비대 수련생 등록</h1>
 
         <form
           onSubmit={handleSubmit}
@@ -130,7 +130,7 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
 
           <div className="flex justify-center">
             <button className="big w-full py-3" type="submit">
-              구조대 입대하기! 🎖️
+              수련생으로 입단하기! 🎖️
             </button>
           </div>
         </form>

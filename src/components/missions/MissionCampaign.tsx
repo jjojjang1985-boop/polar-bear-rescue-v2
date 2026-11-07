@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { shuffle } from '../../shuffle';
 import type { PosterData } from '../../types';
 import { sfx } from '../../audio';
 
@@ -42,6 +43,7 @@ export function MissionCampaign({
 
   // Market state
   const [marketSelected, setMarketSelected] = useState<Record<number, boolean>>({});
+  const [marketItems] = useState(() => shuffle(MARKET_ITEMS));
 
   const handleFinishPoster = () => {
     const posterData = {
@@ -128,7 +130,7 @@ export function MissionCampaign({
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4">
-          {MARKET_ITEMS.map((item, i) => {
+          {marketItems.map((item, i) => {
             const isPicked = !!marketSelected[i];
             return (
               <button

@@ -16,25 +16,27 @@ interface MapScreenProps {
 }
 
 const STAGE_INFOS = [
-  ['프롤로그', '구조 요청이 도착했다', '아기 북극곰 포리의 SOS를 받아요.'],
+  ['프롤로그', '구조 요청이 도착했다', '포리의 SOS를 받고 수련생이 되어요.'],
   ['작전 1', '지구 이상 신호를 추적하라', '날씨와 기후, 기후변화 현상과 피해'],
   ['작전 2', '빙하를 녹인 범인을 찾아라', '기후변화의 원인과 지구 온난화'],
   ['작전 3', '탄소 저울을 맞춰라', '이산화 탄소와 탄소 중립'],
   ['작전 4', '포리의 빙하를 되찾아라', '생활 속 실천과 알리기'],
-  ['에필로그', '임명식', '정식 임명장 발급과 최우수 대원 기록']
+  ['최종 결전', '탄소 대마왕을 막아라', '기후 마법으로 보스 대결 (총정리)'],
+  ['에필로그', '임명식', '지구레인저 임명장 발급']
 ];
 
-// map.webp 위 빙하 섬의 위치(가로 %, 세로 %). 마지막은 깃발이 꽂힌 꼭대기.
+// map.webp 위 빙하 섬의 위치(가로 %, 세로 %). 최종 결전은 깃발이 꽂힌 꼭대기.
 const NODE_POS: [number, number][] = [
   [11, 80],
   [27, 54],
   [43, 36],
   [62, 58],
   [76, 36],
-  [85.5, 13]
+  [85.5, 13],
+  [88, 78]
 ];
 
-const NODE_ICON = ['📡', '🌍', '🔍', '⚖️', '🧊', '🎖️'];
+const NODE_ICON = ['📡', '🌍', '🔍', '⚖️', '🧊', '👹', '🎖️'];
 
 export function MapScreen({
   name,
@@ -69,7 +71,7 @@ export function MapScreen({
     const st = statusOf(i);
     if (st === 'done') {
       const n = stars[i] || 0;
-      return i > 0 && i < 5 ? '★'.repeat(n) + '☆'.repeat(3 - n) : '✓ 완료';
+      return i > 0 && i < STAGE_INFOS.length - 1 ? '★'.repeat(n) + '☆'.repeat(3 - n) : '✓ 완료';
     }
     if (st === 'lock') return '🔒 잠김';
     return '출동 ▶';
@@ -82,7 +84,7 @@ export function MapScreen({
       <header className="map-head">
         <h1 className="logo map-logo">작전 지도</h1>
         <div className="pill map-pill">
-          {name} 대원 · {code} · 총점 {totalScore.toLocaleString()}점
+          {name} 수련생 · {code} · 총점 {totalScore.toLocaleString()}점
         </div>
       </header>
 

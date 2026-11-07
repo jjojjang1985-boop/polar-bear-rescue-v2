@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { shuffle } from '../../shuffle';
 
 interface DayChallenge {
   day: string;
@@ -80,14 +81,25 @@ export function MissionWeek({
   onReact: (who: any, text: string, mood?: any) => void;
 }) {
   const [dayIdx, setDayIdx] = useState(0);
+  const [locked, setLocked] = useState(false);
   const cur = DAYS[dayIdx];
+  // 날마다 좋은 선택이 왼쪽/오른쪽 어디에 나올지 무작위로 정한다
+  const choices = useMemo(
+    () => shuffle([{ text: cur.good, good: true }, { text: cur.bad, good: false }]),
+    [dayIdx]
+  );
 
   const handlePick = (isGood: boolean) => {
+    if (locked) return;
     if (isGood) {
+      setLocked(true);
       onCorrect();
       onReact('thermo', cur.ok, 'happy');
       if (dayIdx < DAYS.length - 1) {
-        setTimeout(() => setDayIdx(dayIdx + 1), 1200);
+        setTimeout(() => {
+          setDayIdx(dayIdx + 1);
+          setLocked(false);
+        }, 1200);
       } else {
         setTimeout(onFinish, 1500);
       }
@@ -113,20 +125,16 @@ export function MissionWeek({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-        <button
-          type="button"
-          className="opt text-center p-4 text-lg font-bold border-2 hover:bg-emerald-50"
-          onClick={() => handlePick(true)}
-        >
-          {cur.good}
-        </button>
-        <button
-          type="button"
-          className="opt text-center p-4 text-lg font-bold border-2 hover:bg-rose-50"
-          onClick={() => handlePick(false)}
-        >
-          {cur.bad}
-        </button>
+        {choices.map(c => (
+          <button
+            key={`${dayIdx}-${c.text}`}
+            type="button"
+            className="opt text-center p-4 text-lg font-bold border-2"
+            onClick={() => handlePick(c.good)}
+          >
+            {c.text}
+          </button>
+        ))}
       </div>
     </div>
   );

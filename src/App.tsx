@@ -49,6 +49,9 @@ import { MissionCampaign } from './components/missions/MissionCampaign';
 import { MissionRush } from './components/missions/MissionRush';
 import { MissionPledge } from './components/missions/MissionPledge';
 import { MissionCeremony } from './components/missions/MissionCeremony';
+import { MissionBoss } from './components/missions/MissionBoss';
+import { SkillArt, SkillBookModal, SkillPickModal } from './components/Skills';
+import { SKILLS, STAGE_PICKS } from './skills';
 import { QuizComponent } from './components/missions/QuizComponent';
 
 const SAVE_KEY = 'pbr-save-v1';
@@ -152,6 +155,9 @@ export default function App() {
   const [showNotes, setShowNotes] = useState(false);
   const [showClueCheck, setShowClueCheck] = useState(false);
   const [showReward, setShowReward] = useState<string | null>(null);
+  const [showPick, setShowPick] = useState<number | null>(null);
+  const [showBook, setShowBook] = useState(false);
+  const [newSkill, setNewSkill] = useState<string | null>(null);
   const [showStageResult, setShowStageResult] = useState<{
     title: string;
     stars: number;
@@ -380,7 +386,7 @@ export default function App() {
   };
 
   const saveToLeaderboard = async () => {
-    const starTotal = [1, 2, 3, 4].reduce((a, i) => a + (game.stars[i] || 0), 0);
+    const starTotal = [1, 2, 3, 4, 5].reduce((a, i) => a + (game.stars[i] || 0), 0);
     const currentTotalScore = totalScore;
     const entryName = game.name || '북극대원';
     const entryCode = game.code || '얼음별';
@@ -456,7 +462,7 @@ export default function App() {
 
   // 대사에 맞춰 화면 효과와 음악을 함께 재생한다.
   // 이어지는 대사 동안 유지되는 효과(빛·경보·고글)는 다음으로 넘어갈 때 꺼진다.
-  const STICKY_FX: SceneFxName[] = ['bookGlow', 'alarm', 'goggle'];
+  const STICKY_FX: SceneFxName[] = ['bookGlow', 'alarm', 'goggle', 'bossRise'];
   const showSceneFx = (name: SceneFxName, ms?: number) => {
     window.clearTimeout(sceneFxTimerRef.current);
     sceneFxIdRef.current += 1;
@@ -499,6 +505,11 @@ export default function App() {
       case 'towerOn':
         cue.tower();
         break;
+      case 'bossRise':
+        cue.bossRise();
+        triggerShake();
+        showSceneFx('bossRise');
+        break;
       case 'winFlash':
         cue.fanfare();
         showSceneFx('win', 2300);
@@ -539,6 +550,13 @@ export default function App() {
         idx++;
         continue;
       }
+      if (step.type === 'pick') {
+        // 후보 기술 중 하나를 고르면 handlePickSkill → advanceStep 으로 이어진다
+        cue.tower();
+        setShowPick(step.stage);
+        setStepIdx(idx);
+        return;
+      }
       if (step.type === 'reward') {
         // 보상 창을 닫으면 advanceStep이 다시 호출되어 다음 단계로 진행된다
         sfx.win();
@@ -559,6 +577,21 @@ export default function App() {
     finishStage(game.cur);
   };
 
+  /** 작전 보상 기술 고르기: 같은 작전에서 예전에 고른 기술은 바꿔 끼운다 */
+  const handlePickSkill = (id: string) => {
+    const sameStage = STAGE_PICKS[showPick ?? 0] || [];
+    setGame(g => ({
+      ...g,
+      gear: [...g.gear.filter(x => !sameStage.includes(x)), id]
+    }));
+    setShowPick(null);
+    setNewSkill(id);
+    window.setTimeout(() => setNewSkill(null), 2200);
+    sfx.win();
+    triggerToast(`${SKILLS[id].ic} ${SKILLS[id].name} 획득!`);
+    advanceStep();
+  };
+
   const finishStage = (stageIdx: number) => {
     const st = game.mist <= 2 ? 3 : game.mist <= 5 ? 2 : 1;
     const bonus = game.blocks * 10;
@@ -576,7 +609,7 @@ export default function App() {
       scores: newScores
     }));
 
-    if (stageIdx === 5) {
+    if (stageIdx === STAGES.length - 1) {
       // Epilogue finished
       saveToLeaderboard();
       setViewScreen('map');
@@ -590,7 +623,7 @@ export default function App() {
       blocks: game.blocks,
       mist: game.mist,
       clues: Object.keys(game.clues).length,
-      hasNext: stageIdx < 5
+      hasNext: stageIdx < STAGES.length - 1
     });
   };
 
@@ -784,6 +817,18 @@ export default function App() {
           />
         );
 
+      case 'boss':
+        return (
+          <MissionBoss
+            owned={game.gear}
+            onHeal={(n: number) => addBlock(n)}
+            onCorrect={() => handleCorrect()}
+            onWrong={handleWrong}
+            onFinish={advanceStep}
+            onReact={handleReact}
+          />
+        );
+
       case 'rush':
         return (
           <MissionRush
@@ -829,8 +874,13 @@ export default function App() {
   };
 
   const sceneImage = SCENE_IMAGES[currentBg];
+  // 지금까지 얻은 점수: 끝낸 작전 점수 + 지금 하는 작전에서 얻고 있는 점수
+  const liveScore =
+    Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) +
+    Math.max(game.scores[game.cur] || 0, game.pts);
+  const hudSkills = game.gear.filter(id => SKILLS[id] && SKILLS[id].kind !== 'item');
   const showDialogue = viewScreen === 'game' && !stageIntroActive && (!!reaction || curStep?.type === 'say');
-  const STAGE_LABELS = ['프롤로그', '작전 1', '작전 2', '작전 3', '작전 4', '에필로그'];
+  const STAGE_LABELS = ['프롤로그', '작전 1', '작전 2', '작전 3', '작전 4', '최종 결전', '에필로그'];
 
   return (
     <div className="app">
@@ -901,7 +951,7 @@ export default function App() {
           onShowLeaderboard={() => setShowLeaderboard(true)}
           onGoTitle={() => setViewScreen('title')}
           onUnlockAll={() => {
-            setGame(g => ({ ...g, unlocked: 5 }));
+            setGame(g => ({ ...g, unlocked: STAGES.length - 1 }));
             triggerToast('모든 작전이 열렸습니다! (선생님 모드)');
           }}
         />
@@ -925,7 +975,7 @@ export default function App() {
       {/* Top Header Bar */}
       <header id="top" className="topbar">
         <button type="button" id="brand" className="brand" onClick={() => setViewScreen('map')}>
-          🐻‍❄️ <span>북극곰 구조대</span>
+          🌏 <span>지구수비대</span>
         </button>
 
         <ol id="pips" className="pips" aria-label="진행 단계">
@@ -940,6 +990,32 @@ export default function App() {
             </li>
           ))}
         </ol>
+
+        <div className="hud">
+          <div className="hud-score" title="지금까지 얻은 점수">
+            ⭐ <b>{liveScore.toLocaleString()}</b>
+            <span className="hud-unit">점</span>
+          </div>
+          <button
+            type="button"
+            className="hud-skills"
+            onClick={() => setShowBook(true)}
+            title="나의 기술 도감 보기"
+            aria-label={`익힌 기술 ${hudSkills.length}개, 기술 도감 열기`}
+          >
+            <span className="hud-skills-label">기술</span>
+            <span className="hud-count">✨ {hudSkills.length}</span>
+            {hudSkills.length === 0 ? (
+              <span className="hud-empty">없음</span>
+            ) : (
+              hudSkills.map(id => (
+                <span key={id} className={`hud-skill ${newSkill === id ? 'new' : ''}`} title={SKILLS[id].name}>
+                  <SkillArt id={id} />
+                </span>
+              ))
+            )}
+          </button>
+        </div>
 
         <div className="topbar-btns">
           <button
@@ -1069,6 +1145,10 @@ export default function App() {
           }}
         />
       )}
+
+      {showPick !== null && <SkillPickModal stage={showPick} onPick={handlePickSkill} />}
+
+      {showBook && <SkillBookModal owned={game.gear} onClose={() => setShowBook(false)} />}
 
       {showReward && (
         <RewardModal

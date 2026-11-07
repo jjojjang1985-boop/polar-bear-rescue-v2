@@ -1,4 +1,5 @@
 import type { MoodType, QuizItem, SpeakerId } from './types';
+import { SKILLS } from './skills';
 
 export interface StageStepSay {
   type: 'say';
@@ -15,7 +16,7 @@ export interface StageStepBg {
 
 export interface StageStepFx {
   type: 'fx';
-  name: 'flash' | 'towerOn' | 'twist' | 'shadowPeek' | 'stageCrack' | 'winFlash' | 'bookGlow' | 'alarm' | 'goggle';
+  name: 'flash' | 'towerOn' | 'twist' | 'shadowPeek' | 'stageCrack' | 'winFlash' | 'bookGlow' | 'alarm' | 'goggle' | 'bossRise';
 }
 
 export interface StageStepMission {
@@ -38,13 +39,20 @@ export interface StageStepMission {
     | 'campaign'
     | 'rush'
     | 'pledge'
-    | 'ceremony';
+    | 'ceremony'
+    | 'boss';
   options?: any;
 }
 
 export interface StageStepQuiz {
   type: 'quiz';
   items: QuizItem[];
+}
+
+/** 후보 기술 중 하나를 골라 익히는 단계 */
+export interface StageStepPick {
+  type: 'pick';
+  stage: number;
 }
 
 export interface StageStepReward {
@@ -58,7 +66,8 @@ export type StageStep =
   | StageStepFx
   | StageStepMission
   | StageStepQuiz
-  | StageStepReward;
+  | StageStepReward
+  | StageStepPick;
 
 export interface StageDefinition {
   label: string;
@@ -69,20 +78,15 @@ export interface StageDefinition {
   steps: StageStep[];
 }
 
-export const GEAR_INFO: Record<string, { ic: string; name: string }> = {
-  watch: { ic: '⌚', name: '구조대 손목 통신기' },
-  goggle: { ic: '🥽', name: '기후 관측 고글' },
-  detector: { ic: '🔍', name: '단서 탐지기' },
-  scale: { ic: '⚖️', name: '탄소 저울' },
-  badge: { ic: '🏅', name: '북극곰 구조대 정식 배지' }
-};
+/** 장비·기술 정보 (skills.ts). 저장 데이터와 맞추기 위해 예전 이름(GEAR_INFO)으로도 내보낸다. */
+export const GEAR_INFO = SKILLS;
 
 export const STAGES: StageDefinition[] = [
   // ---------- 프롤로그 ----------
   {
     label: '프롤로그',
     title: '구조 요청이 도착했다',
-    goal: '아기 북극곰 포리의 SOS를 받고 북극곰 구조대에 합류해요.',
+    goal: '아기 북극곰 포리의 SOS를 받고 지구수비대 수련생이 되어요.',
     bg: 'classroom',
     clues: ['빙하'],
     steps: [
@@ -93,22 +97,22 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'narr', text: '그때, 책 속 북극곰 사진이 파랗게 빛나기 시작했어요.' },
       { type: 'fx', name: 'flash' },
       { type: 'bg', bg: 'hq' },
-      { type: 'say', who: 'thermo', text: '삐빅! 신입 대원 도착 확인. 북극곰 구조대 본부에 온 걸 환영해.', mood: 'happy' },
+      { type: 'say', who: 'thermo', text: '삐빅! 수련생 도착 확인. 지구수비대 본부에 온 걸 환영해.', mood: 'happy' },
       { type: 'say', who: 'luka', text: '와, 진짜 왔다! 반가워, 나는 선배 대원 루카야. 너 이름이 뭐야?', mood: 'grin' },
       { type: 'say', who: 'me', text: '나는 {name}! 코드네임은 {code}야.', mood: 'happy' },
-      { type: 'say', who: 'danbi', text: '반갑다, {name} 대원. 나는 구조대장 단비야. 방금 너에게 온 빛은 우리가 보낸 호출 신호였어. 기후를 궁금해하는 사람에게만 보이는 빛이지.', mood: 'smile' },
-      { type: 'say', who: 'danbi', text: '지금 우리에겐 급한 구조 요청이 하나 있어. 써모, 통신 연결해 줘.', mood: 'serious' },
+      { type: 'say', who: 'danbi', text: '반갑다, {name} 수련생. 나는 지구수비대장 단비야. 방금 너에게 온 빛은 우리가 보낸 호출 신호였어. 기후를 궁금해하는 사람에게만 보이는 빛이지.', mood: 'smile' },
+      { type: 'say', who: 'danbi', text: '수련생의 첫 실전 임무가 도착했어. 써모, 통신 연결해 줘.', mood: 'serious' },
       { type: 'bg', bg: 'arctic' },
       { type: 'fx', name: 'stageCrack' },
-      { type: 'say', who: 'pori', text: '구조대님, 들리세요? 저는 포리예요. 엄마랑 사냥하러 나왔는데, 밟고 있던 얼음이 갑자기 갈라졌어요.', mood: 'scared' },
+      { type: 'say', who: 'pori', text: '지구수비대님, 들리세요? 저는 포리예요. 엄마랑 사냥하러 나왔는데, 밟고 있던 얼음이 갑자기 갈라졌어요.', mood: 'scared' },
       { type: 'say', who: 'pori', text: '얼음이 자꾸 녹아서 엄마한테 돌아갈 수가 없어요. 도와주세요!', mood: 'sad' },
       { type: 'say', who: 'luka', text: '대장님, 당장 헬기 타고 가서 포리를 구해 오면 되잖아요!', mood: 'o' },
       { type: 'say', who: 'danbi', text: '그러면 오늘은 포리를 구하겠지. 하지만 내일도, 다음 달에도 빙하는 계속 녹을 거야. 포리가 엄마와 다시 살려면, 빙하가 녹는 걸 멈춰야 해.', mood: 'serious' },
       { type: 'fx', name: 'towerOn' },
       { type: 'say', who: 'thermo', text: '삐빅! 포리 주변에 빙하 블록 탑을 설치했어. 화면 오른쪽을 봐. 우리가 올바른 선택을 할 때마다 블록이 단단해지고, 틀리면 블록 하나가 녹아내려.', mood: 'happy' },
-      { type: 'say', who: 'danbi', text: '{name} 대원, 이것을 받아. 구조대 손목 통신기야. 대사 속에서 반짝이는 단어를 누르면 단서 수첩에 저장돼. 지금 **빙하**를 눌러 봐.', mood: 'smile', must: '빙하' },
+      { type: 'say', who: 'danbi', text: '{name} 수련생, 이것을 받아. 수련생 손목 통신기야. 대사 속에서 반짝이는 단어를 누르면 단서 수첩에 저장돼. 지금 **빙하**를 눌러 봐.', mood: 'smile', must: '빙하' },
       { type: 'say', who: 'thermo', text: '삐빅! 잘했어. 단서를 모두 모아야 작전 끝의 확인 퀴즈가 열려. 정답을 맞힐수록, 연속으로 맞힐수록 점수가 올라가.', mood: 'happy' },
-      { type: 'say', who: 'danbi', text: '네 번의 작전이 기다리고 있다. 북극곰 구조대, 출동!', mood: 'smile' },
+      { type: 'say', who: 'danbi', text: '수련 작전을 하나 마칠 때마다 기후 마법과 무기 중 하나를 골라 익히게 될 거야. 무엇을 고르느냐가 마지막 결전의 승패를 가른다. 지구수비대, 출동!', mood: 'smile' },
       { type: 'reward', gear: 'watch' }
     ]
   },
@@ -160,8 +164,8 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'thermo', text: '삐빅! 그런데 대장님, 이상한 게 있어요. 지구의 평균 기온이 계속 올라가고 있어요. 누군가 지구를 데우고 있는 것 같아요.', mood: 'alert' },
       { type: 'fx', name: 'shadowPeek' },
       { type: 'say', who: 'luka', text: '방금 봤어? 저 그림자가 범인일지도 몰라!', mood: 'o' },
-      { type: 'say', who: 'danbi', text: '그렇다면 다음 작전은 하나야. 빙하를 녹인 범인을 찾는다. {name} 대원, 수고했어. 이것을 받아.', mood: 'serious' },
-      { type: 'reward', gear: 'goggle' }
+      { type: 'say', who: 'danbi', text: '그렇다면 다음 작전은 하나야. 빙하를 녹인 범인을 찾는다. {name} 수련생, 수고했어. 이것을 받아.', mood: 'serious' },
+      { type: 'pick', stage: 1 }
     ]
   },
   // ---------- 작전 2 ----------
@@ -211,7 +215,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'danbi', text: '대장의 한마디. 공장에서 물건을 많이 만들고, 숲을 훼손하고, 교통수단을 많이 이용하고, 물과 에너지를 낭비하는 것. 이런 인간의 활동이 온실가스를 늘려 지구 온난화를 일으키고, 그 결과 기후변화가 심해지고 있어.', mood: 'smile' },
       { type: 'say', who: 'thermo', text: '삐빅! 다음 작전에서는 온실가스 중에서 가장 많이 나오는 기체를 자세히 조사할게요.', mood: 'happy' },
       { type: 'say', who: 'pori', text: '대원님, 범인을 찾았다는 소식 들었어요! 그럼 이제 얼음을 되돌릴 수 있는 거죠?', mood: 'happy' },
-      { type: 'reward', gear: 'detector' }
+      { type: 'pick', stage: 2 }
     ]
   },
   // ---------- 작전 3 ----------
@@ -240,7 +244,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'mission', id: 'seaforest' },
       { type: 'say', who: 'danbi', text: '바다 숲이 되살아나면 이산화 탄소를 더 많이 흡수해서 지구의 평균 기온이 높아지는 것을 막을 수 있어. 우리나라는 매년 5월 10일을 **바다 식목일**로 정해 바다 숲을 지키고 있지.', mood: 'smile' },
       { type: 'bg', bg: 'hq' },
-      { type: 'say', who: 'danbi', text: '이번엔 세계 구조대 연합 회의다. 여러 나라가 기후변화에 어떻게 대응하는지 들어 보자.', mood: 'serious' },
+      { type: 'say', who: 'danbi', text: '이번엔 세계 지구수비대 연합 회의다. 여러 나라가 기후변화에 어떻게 대응하는지 들어 보자.', mood: 'serious' },
       { type: 'mission', id: 'council' },
       {
         type: 'quiz',
@@ -253,7 +257,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'danbi', text: '대장의 한마디. 내보내는 이산화 탄소는 줄이고, 숲과 바다 숲으로 흡수는 늘리고. 저울을 맞추는 것이 탄소 중립이야. 여러 나라가 자연을 지키고, 친환경 기술을 만들고, 힘을 합치고 있지.', mood: 'smile' },
       { type: 'say', who: 'luka', text: '그럼 이제 나라들이 다 해 주는 거죠? 끝!', mood: 'grin' },
       { type: 'say', who: 'danbi', text: '아직이야. 저울을 끝까지 맞추려면 한 사람 한 사람의 힘이 필요해. 마지막 작전의 무대는 바로 너희들의 하루야.', mood: 'serious' },
-      { type: 'reward', gear: 'scale' }
+      { type: 'pick', stage: 3 }
     ]
   },
   // ---------- 작전 4 ----------
@@ -267,7 +271,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'narr', text: '포리가 선 빙하가 사방에서 갈라지는 소리가 들립니다.' },
       { type: 'fx', name: 'stageCrack' },
       { type: 'say', who: 'pori', text: '대원님! 얼음이 너무 작아졌어요. 엄마가 저 멀리서 저를 부르고 있는데, 갈 수가 없어요!', mood: 'scared' },
-      { type: 'say', who: 'danbi', text: '최종 작전을 시작한다. 이번 작전의 무대는 북극이 아니라, {name} 대원의 일주일이야.', mood: 'serious' },
+      { type: 'say', who: 'danbi', text: '최종 작전을 시작한다. 이번 작전의 무대는 북극이 아니라, {name} 수련생의 일주일이야.', mood: 'serious' },
       { type: 'say', who: 'thermo', text: '삐빅! 기후변화에 대응하려면 **작은 행동부터** 실천해야 해. 가까운 거리는 **걷거나 자전거**를 타고, **전기를 아끼고**, **일회용품과 비닐**을 적게 쓰고, 재활용품을 **분리배출**하는 것처럼.', mood: 'happy' },
       { type: 'say', who: 'thermo', text: '이런 행동은 모두 내보내는 이산화 탄소를 줄여서, 탄소 저울을 맞추고 지구 온난화를 늦추는 데 도움이 돼.', mood: 'happy' },
       { type: 'say', who: 'luka', text: '에이, 그건 너무 작은 일 아니야? 나 한 명 바뀐다고 뭐가 달라져?', mood: 'o' },
@@ -277,11 +281,11 @@ export const STAGES: StageDefinition[] = [
       { type: 'mission', id: 'campaign' },
       { type: 'say', who: 'luka', text: '우와, 본부 앞에 사람들이 모였어! 다들 텀블러를 들고 있어!', mood: 'grin' },
       { type: 'say', who: 'danbi', text: '기억해. 기후변화에 대응하는 활동은 한 번이 아니라 **꾸준히** 실천해야 해. 그래야 빙하가 계속 단단하게 유지돼.', mood: 'smile' },
-      { type: 'say', who: 'thermo', text: '삐빅! 포리의 빙하가 무너지기 직전이야! 지금까지 모은 장비를 모두 가동한다!', mood: 'alert' },
+      { type: 'say', who: 'thermo', text: '삐빅! 포리의 빙하가 무너지기 직전이야! 지금까지 익힌 힘을 모두 모은다!', mood: 'alert' },
       { type: 'mission', id: 'rush' },
       { type: 'say', who: 'narr', text: '얼음 다리가 반짝이며 이어지고, 포리가 달려가 엄마 품에 안깁니다.' },
       { type: 'fx', name: 'winFlash' },
-      { type: 'say', who: 'pori', text: '엄마! 대원님들이 얼음을 돌려주셨어요! {name} 대원님, 고마워요!', mood: 'joy' },
+      { type: 'say', who: 'pori', text: '엄마! 대원님들이 얼음을 돌려주셨어요! {name} 수련생님, 고마워요!', mood: 'joy' },
       {
         type: 'quiz',
         items: [
@@ -290,24 +294,45 @@ export const STAGES: StageDefinition[] = [
           { q: '다음 중 기후변화에 대응하는 방법이 아닌 것은? ( )', a: '일회용품 자주 쓰기', opts: ['일회용품 자주 쓰기', '에너지 사용 줄이기', '자연환경 보존하기', '분리배출하기'] }
         ]
       },
-      { type: 'say', who: 'danbi', text: '작전 성공이다. 이제 임명식을 준비하자.', mood: 'smile' },
-      { type: 'reward', gear: 'badge' }
+      { type: 'say', who: 'danbi', text: '수련 작전 성공이다. 마지막 기술을 고를 시간이다. 지금까지 고른 기술과 겹치지 않게, 대마왕의 공격을 떠올리며 골라 봐.', mood: 'smile' },
+      { type: 'pick', stage: 4 }
+    ]
+  },
+  // ---------- 최종 결전 ----------
+  {
+    label: '최종 결전',
+    title: '탄소 대마왕을 막아라',
+    goal: '지금까지 익힌 기후 마법으로 탄소 대마왕의 온실가스 공격을 막아요. (총정리)',
+    bg: 'arctic',
+    clues: [],
+    steps: [
+      { type: 'say', who: 'thermo', text: '삐빅! 비상, 비상! 흩어졌던 그림자들이 다시 한곳으로 모이고 있어!', mood: 'alert' },
+      { type: 'fx', name: 'bossRise' },
+      { type: 'say', who: 'narr', text: '버려진 연기와 매연을 먹고, 그림자가 거대한 탄소 대마왕이 되어 나타났어요.' },
+      { type: 'say', who: 'luka', text: '저, 저게 뭐야! 포리네 빙하 쪽으로 가고 있어!', mood: 'o' },
+      { type: 'say', who: 'danbi', text: '{name} 수련생, 마지막 시험이다. 대마왕의 공격을 잘 보고, 알맞은 기후 마법으로 막아 내!', mood: 'serious' },
+      { type: 'say', who: 'thermo', text: '삐빅! 공격마다 막을 수 있는 기술이 정해져 있어. 네가 고른 기술로 막을 수 없는 공격이 오면 🧱 버티기로 피해를 줄여!', mood: 'happy' },
+      { type: 'mission', id: 'boss' },
+      { type: 'say', who: 'narr', text: '탄소 대마왕이 빛 속에서 작은 그림자들로 흩어졌어요. 그림자들은 이제 텀블러와 자전거를 든 사람들의 모습이에요.' },
+      { type: 'say', who: 'pori', text: '대원님 최고예요! 이제 빙하가 더 단단해질 거예요!', mood: 'joy' },
+      { type: 'say', who: 'danbi', text: '잘했다. 혼자 싸운 게 아니야. 작은 실천을 함께한 모두의 힘이었어. 이제 임명식을 준비하자.', mood: 'smile' }
     ]
   },
   // ---------- 에필로그 ----------
   {
     label: '에필로그',
     title: '임명식',
-    goal: '실천 약속을 정하고 북극곰 구조대 임명장을 받아요.',
+    goal: '실천 약속을 정하고 지구레인저 임명장을 받아요.',
     bg: 'arctic',
     clues: [],
     steps: [
-      { type: 'say', who: 'thermo', text: '삐빅! 대원, 한 가지가 남았어. 빙하는 한 번 얼렸다고 영원히 지켜지지 않아.', mood: 'alert' },
-      { type: 'say', who: 'danbi', text: '구조대원의 진짜 임무는 지금부터야. 일주일 동안 지킬 실천 목표 세 가지를 정해 줘.', mood: 'smile' },
+      { type: 'say', who: 'thermo', text: '삐빅! 수련생, 한 가지가 남았어. 빙하는 한 번 얼렸다고 영원히 지켜지지 않아.', mood: 'alert' },
+      { type: 'say', who: 'danbi', text: '지구레인저의 진짜 임무는 지금부터야. 일주일 동안 지킬 실천 목표 세 가지를 정해 줘.', mood: 'smile' },
       { type: 'mission', id: 'pledge' },
       { type: 'say', who: 'pori', text: '대원님, 다음에 또 놀러 와요! 그때는 얼음이 더 두껍고 단단했으면 좋겠어요.', mood: 'joy' },
       { type: 'say', who: 'luka', text: '나도 오토바이 대신 자전거 탈 거야. 일주일 뒤에 누가 더 잘 지켰는지 대결하자!', mood: 'grin' },
-      { type: 'say', who: 'danbi', text: '{name} 대원, 앞으로. 북극곰 구조대장으로서 너를 정식 대원으로 임명한다!', mood: 'smile' },
+      { type: 'say', who: 'danbi', text: '{name} 수련생, 앞으로. 지구수비대장으로서 너를 정식 지구레인저로 임명한다!', mood: 'smile' },
+      { type: 'reward', gear: 'badge' },
       { type: 'fx', name: 'winFlash' },
       { type: 'mission', id: 'ceremony' }
     ]

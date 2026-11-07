@@ -75,7 +75,7 @@ export function MissionCouncil({
     <div className="panel max-w-2xl">
       <h2>
         <span className="tag">미션 3-3</span>
-        세계 구조대 연합 회의 ({curIdx + 1} / {ITEMS.length})
+        세계 지구수비대 연합 회의 ({curIdx + 1} / {ITEMS.length})
       </h2>
       <p className="guide">
         각국 대표의 발표를 읽고 알맞은 기후변화 대응 방법 이름표를 붙이세요.

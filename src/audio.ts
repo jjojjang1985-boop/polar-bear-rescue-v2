@@ -233,6 +233,42 @@ export const cue = {
     [1319, 1568, 2093, 2637].forEach((f, i) => tone(f, 0.7, 'sine', 0.045, i * 0.09));
     pad(659, 1.4, 'triangle', 0.025, 0.1);
   },
+  /** 탄소 대마왕 등장 */
+  bossRise() {
+    pad(55, 3, 'sawtooth', 0.04);
+    pad(58.3, 3, 'sawtooth', 0.035);
+    noise(2.6, 0.06, 150, 900, 'lowpass', 0, 1.2);
+    [147, 175, 208].forEach((f, i) => pad(f, 2.2, 'triangle', 0.035, 0.6 + i * 0.05));
+    tone(110, 0.5, 'square', 0.04, 1.6);
+    tone(104, 0.9, 'square', 0.04, 2.0);
+  },
+  /** 보스가 공격을 날림 */
+  bossAttack() {
+    noise(0.8, 0.06, 2000, 300, 'lowpass', 0, 0.1);
+    sweep(600, 150, 0.7, 'sawtooth', 0.035);
+    tone(98, 0.4, 'square', 0.03, 0.55);
+  },
+  /** 기후 마법 명중 */
+  skillHit() {
+    sweep(500, 2000, 0.25, 'triangle', 0.05);
+    [1047, 1319, 1568].forEach((f, i) => tone(f, 0.3, 'sine', 0.06, 0.22 + i * 0.07));
+    noise(0.3, 0.05, 3000, 800, 'bandpass', 0.25, 0.01);
+    tone(80, 0.3, 'sine', 0.1, 0.25);
+  },
+  /** 막지 못해서 공격을 맞음 */
+  bossHurtsYou() {
+    noise(0.5, 0.09, 1200, 200, 'lowpass', 0, 0.01);
+    tone(70, 0.5, 'sine', 0.12);
+    tone(196, 0.25, 'square', 0.03, 0.1);
+    tone(185, 0.4, 'square', 0.03, 0.3);
+  },
+  /** 대마왕 쓰러짐 */
+  bossDefeat() {
+    noise(1.4, 0.07, 400, 6000, 'lowpass', 0, 0.3);
+    sweep(150, 1200, 1.2, 'triangle', 0.04);
+    for (let i = 0; i < 12; i++) tone(1000 + Math.random() * 1500, 0.08, 'triangle', 0.03, 0.4 + i * 0.07);
+    cue.fanfare();
+  },
   /** 성공: 팡파르 */
   fanfare() {
     const n: [number, number, number][] = [

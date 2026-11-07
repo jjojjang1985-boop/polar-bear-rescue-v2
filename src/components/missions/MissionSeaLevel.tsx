@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { shuffle } from '../../shuffle';
 import { OL } from '../../svgs';
 import { sfx } from '../../audio';
 
@@ -17,6 +18,13 @@ export function MissionSeaLevel({
 }) {
   const [pourStep, setPourStep] = useState(0);
   const [showQuestion, setShowQuestion] = useState(false);
+  const [questionChoices] = useState(() =>
+    shuffle([
+      '사람과 동식물이 살 수 있는 육지가 줄어든다',
+      '육지가 더 넓어진다',
+      '아무런 변화가 없다'
+    ])
+  );
 
   const handlePour = () => {
     const next = pourStep + 1;
@@ -124,11 +132,7 @@ export function MissionSeaLevel({
             Q. 바닷물의 높이(해수면)가 올라가면 어떤 일이 생기나요?
           </p>
           <div className="grid gap-2">
-            {[
-              '사람과 동식물이 살 수 있는 육지가 줄어든다',
-              '육지가 더 넓어진다',
-              '아무런 변화가 없다'
-            ].map(choice => (
+            {questionChoices.map(choice => (
               <button
                 key={choice}
                 type="button"

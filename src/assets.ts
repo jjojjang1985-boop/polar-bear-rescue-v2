@@ -61,3 +61,18 @@ export function preloadImages() {
     }
   );
 }
+
+/**
+ * 기술 효과 그림. 선생님이 그림을 올리면 파일 이름(skill-<id>.webp)을 이 목록에 추가한다.
+ * 목록에 없는 기술은 이모지로 보여 준다.
+ */
+export const SKILL_ART_READY: string[] = [
+  'goggle', 'heal', 'clock',
+  'saver', 'bike', 'guard',
+  'tree', 'seaforest', 'solar',
+  'recycle', 'bag', 'plate'
+];
+
+export function getSkillArt(id: string): string | null {
+  return SKILL_ART_READY.includes(id) ? img(`skill-${id}`) : null;
+}

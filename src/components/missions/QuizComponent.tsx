@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { shuffle } from '../../shuffle';
 import type { QuizItem } from '../../types';
 
 export function QuizComponent({
@@ -16,6 +17,7 @@ export function QuizComponent({
 }) {
   const [qIdx, setQIdx] = useState(0);
   const cur = items[qIdx];
+  const opts = useMemo(() => shuffle(cur.opts), [qIdx, items]);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
   const handleChoice = (opt: string) => {
@@ -63,7 +65,7 @@ export function QuizComponent({
       </div>
 
       <div className="grid grid-cols-2 gap-3 mt-4">
-        {cur.opts.map(opt => (
+        {opts.map(opt => (
           <button
             key={opt}
             type="button"

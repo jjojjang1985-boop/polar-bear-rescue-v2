@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { shuffle } from '../../shuffle';
 import { OL } from '../../svgs';
 
 const vals = [7.7, 10.4, 11.1, 14];
@@ -33,6 +34,7 @@ export function MissionGraph({
   ];
 
   const currentQ = questions[step];
+  const opts = useMemo(() => shuffle(currentQ.opts), [step]);
 
   const handleChoice = (opt: string) => {
     if (opt === currentQ.a) {
@@ -125,7 +127,7 @@ export function MissionGraph({
       <div className="mt-2">
         <p className="text-lg font-bold mb-3">{currentQ.q}</p>
         <div className="flex gap-2 flex-wrap">
-          {currentQ.opts.map(opt => (
+          {opts.map(opt => (
             <button
               key={opt}
               type="button"

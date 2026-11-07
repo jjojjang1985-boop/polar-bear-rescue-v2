@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { shuffle } from '../../shuffle';
 
 export function MissionEvidenceBoard({
   evidences,
@@ -13,11 +14,13 @@ export function MissionEvidenceBoard({
   onFinish: () => void;
   onReact: (who: any, text: string, mood?: any) => void;
 }) {
-  const options = [
-    '정체불명의 그림자',
-    '갑자기 뜨거워진 태양',
-    '편리한 생활을 위해 늘어난 사람들의 활동'
-  ];
+  const [options] = useState(() =>
+    shuffle([
+      '정체불명의 그림자',
+      '갑자기 뜨거워진 태양',
+      '편리한 생활을 위해 늘어난 사람들의 활동'
+    ])
+  );
 
   const handleChoice = (opt: string) => {
     if (opt === '편리한 생활을 위해 늘어난 사람들의 활동') {

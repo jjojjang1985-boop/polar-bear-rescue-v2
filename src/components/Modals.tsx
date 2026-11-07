@@ -126,18 +126,19 @@ export function RewardModal({
   gearId: string;
   onClose: () => void;
 }) {
-  const g = GEAR_INFO[gearId] || { ic: '🎁', name: '새 장비' };
+  const g = GEAR_INFO[gearId] || { ic: '🎁', name: '새 장비', desc: '', kind: 'item' as const };
   return (
     <div className="fixed inset-0 z-50 bg-[rgba(4,12,30,0.66)] flex items-center justify-center p-4">
       <div className="panel max-w-md text-center">
-        <h2 className="justify-center">장비 획득!</h2>
+        <h2 className="justify-center">{g.kind === 'item' ? '새 장비 획득!' : '✨ 새 기술 획득!'}</h2>
         <div className="my-5">
           <span className="gear">
             <span className="ic">{g.ic}</span>
             <span className="text-xl font-bold">{g.name}</span>
           </span>
         </div>
-        <p className="guide">새로운 장비로 북극곰과 지구를 지키는 힘이 더 강해졌어요!</p>
+        <p className="guide">{g.desc}</p>
+        {g.kind !== 'item' && <p className="guide text-sm">최종 결전에서 탄소 대마왕과 싸울 때 쓸 수 있어요.</p>}
         <div className="flex justify-center mt-4">
           <button className="big" type="button" onClick={onClose}>
             좋아요!

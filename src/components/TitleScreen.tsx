@@ -48,7 +48,7 @@ export function TitleScreen({
 
       <div className="title-copy">
         <h1 className="logo">
-          북극곰 구조대
+          지구레인저
           <span className="block">빙하를 지켜라!</span>
         </h1>
         <div className="pill">4학년 과학 · 기후변화와 우리 생활</div>
@@ -65,7 +65,7 @@ export function TitleScreen({
             </>
           ) : (
             <button className="big title-start" type="button" onClick={() => handleStart(false)}>
-              구조대 출동하기! 🚀
+              수련 시작하기! 🚀
             </button>
           )}
         </div>
