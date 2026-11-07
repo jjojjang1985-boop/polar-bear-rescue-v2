@@ -8,6 +8,7 @@ const img = (name: string) => `${BASE}assets/img/${name}.webp`;
 export const TITLE_IMAGE = img('title');
 export const MAP_IMAGE = img('map');
 export const SHADOW_IMAGE = img('shadow');
+export const SOS_MAP_IMAGE = img('sos-map');
 
 /** 대사 장면 배경 (stagesData의 bg 값과 같은 이름) */
 export const SCENE_IMAGES: Record<string, string> = {

@@ -134,7 +134,7 @@ h1, h2, h3, h4 {
   to { transform: translateX(8%) rotate(4deg); }
 }
 
-@keyframes ping {
+@keyframes sosPing {
   0% { box-shadow: 0 0 0 0 rgba(239, 79, 79, 0.7); }
   70% { box-shadow: 0 0 0 16px rgba(239, 79, 79, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 79, 79, 0); }
@@ -558,7 +558,7 @@ h1, h2, h3, h4 {
   background: var(--bad);
   border: 2px solid var(--line);
   box-shadow: 0 0 0 0 rgba(239, 79, 79, 0.7);
-  animation: ping 1.4s infinite;
+  animation: sosPing 1.4s infinite;
   display: block;
 }
 
@@ -1561,7 +1561,7 @@ h1, h2, h3, h4 {
 }
 .map-node.cur .map-node-icon {
   background: var(--sun);
-  animation: ping 1.4s infinite;
+  animation: sosPing 1.4s infinite;
 }
 .map-node.cur .map-node-card {
   background: #fff3c4;
@@ -2937,4 +2937,19 @@ h1, h2, h3, h4 {
 }
 .skill-blast .skill-art.has-img img {
   mix-blend-mode: normal;
+}
+
+/* 세계 이상 신호 지도 (그림) */
+.sos-map {
+  aspect-ratio: 1600 / 893;
+  width: 100%;
+  background: #2f5f9e;
+}
+.sos-map img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.sos-map .pin span {
+  font-size: clamp(11px, 1.4vw, 14px);
 }
