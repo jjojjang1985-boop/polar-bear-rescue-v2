@@ -9,6 +9,8 @@ export const TITLE_IMAGE = img('title');
 export const MAP_IMAGE = img('map');
 export const SHADOW_IMAGE = img('shadow');
 export const SOS_MAP_IMAGE = img('sos-map');
+export const BADGE_IMAGE = img('badge');
+export const CERT_BG_IMAGE = img('cert-bg');
 export const SHOOT_IMAGES = {
   pori: img('shoot-pori'),
   heat: img('shoot-heat'),

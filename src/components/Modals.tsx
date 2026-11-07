@@ -1,6 +1,7 @@
 import React from 'react';
 import type { LeaderboardEntry } from '../types';
 import { GEAR_INFO } from '../stagesData';
+import { BADGE_IMAGE } from '../assets';
 
 export function NotesModal({
   clues,
@@ -127,6 +128,25 @@ export function RewardModal({
   onClose: () => void;
 }) {
   const g = GEAR_INFO[gearId] || { ic: '🎁', name: '새 장비', desc: '', kind: 'item' as const };
+  if (gearId === 'badge') {
+    return (
+      <div className="modal-back badge-modal">
+        <div className="badge-rays" />
+        <div className="badge-stage">
+          <div className="badge-wrap">
+            <img src={BADGE_IMAGE} alt="지구레인저 배지" draggable={false} />
+            <span className="badge-ribbon">지구레인저</span>
+            <i className="badge-shine" />
+          </div>
+          <h2 className="badge-title">지구레인저 배지 수여!</h2>
+          <p className="badge-desc">{g.desc}</p>
+          <button className="big" type="button" onClick={onClose}>
+            배지 달기! 🏅
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="fixed inset-0 z-50 bg-[rgba(4,12,30,0.66)] flex items-center justify-center p-4">
       <div className="panel max-w-md text-center">
@@ -138,7 +158,6 @@ export function RewardModal({
           </span>
         </div>
         <p className="guide">{g.desc}</p>
-        {g.kind !== 'item' && <p className="guide text-sm">최종 결전에서 탄소 대마왕과 싸울 때 쓸 수 있어요.</p>}
         <div className="flex justify-center mt-4">
           <button className="big" type="button" onClick={onClose}>
             좋아요!

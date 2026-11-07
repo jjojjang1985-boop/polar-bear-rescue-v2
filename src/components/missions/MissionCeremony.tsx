@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { jsPDF } from 'jspdf';
 import type { AvatarType } from '../../types';
-import { danbiSVG, heroSVG, lukaSVG, poriSVG, thermoSVG } from '../../svgs';
+import { BADGE_IMAGE, CERT_BG_IMAGE } from '../../assets';
 
 interface MissionCeremonyProps {
   name: string;
@@ -14,15 +14,6 @@ interface MissionCeremonyProps {
   rank: number;
   onShowLeaderboard: () => void;
   onGoMap: () => void;
-}
-
-function svgToImage(svg: string): Promise<HTMLImageElement | null> {
-  return new Promise(res => {
-    const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = () => res(null);
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-  });
 }
 
 export function MissionCeremony({
@@ -62,8 +53,17 @@ export function MissionCeremony({
         // Font loading fallback
       }
 
+      const loadImg = (src: string) =>
+        new Promise<HTMLImageElement | null>(res => {
+          const im = new Image();
+          im.onload = () => res(im);
+          im.onerror = () => res(null);
+          im.src = src;
+        });
+      const [bg, badge] = await Promise.all([loadImg(CERT_BG_IMAGE), loadImg(BADGE_IMAGE)]);
+
       const W = 1754;
-      const H = 1240;
+      const H = 1177; // cert-bg 그림과 같은 비율
       const canvas = document.createElement('canvas');
       canvas.width = W;
       canvas.height = H;
@@ -71,155 +71,132 @@ export function MissionCeremony({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Background Gradient
-      const grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, '#fffdf3');
-      grad.addColorStop(1, '#fff1cc');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, H);
-
-      // Border frames
-      ctx.strokeStyle = '#4a2a12';
-      ctx.lineWidth = 14;
-      ctx.strokeRect(36, 36, W - 72, H - 72);
-
-      ctx.strokeStyle = '#e0b400';
-      ctx.lineWidth = 6;
-      ctx.strokeRect(64, 64, W - 128, H - 128);
+      if (bg) ctx.drawImage(bg, 0, 0, W, H);
+      else {
+        ctx.fillStyle = '#fffaf0';
+        ctx.fillRect(0, 0, W, H);
+      }
 
       const D = "Jua, 'Gowun Dodum', sans-serif";
       const B = "'Gowun Dodum', sans-serif";
-
-      const drawOutlinedText = (text: string, x: number, y: number, size: number, fill: string) => {
+      const CX = W / 2;
+      const outlined = (text: string, x: number, y: number, size: number, fill: string, stroke = '#5a3424', sw = size / 7) => {
         ctx.font = `${size}px ${D}`;
         ctx.textAlign = 'center';
         ctx.lineJoin = 'round';
-        ctx.lineWidth = size / 6;
-        ctx.strokeStyle = '#4a2a12';
+        ctx.lineWidth = sw;
+        ctx.strokeStyle = stroke;
         ctx.strokeText(text, x, y);
         ctx.fillStyle = fill;
         ctx.fillText(text, x, y);
       };
 
-      drawOutlinedText('임 명 장', W / 2, 230, 130, '#ffe14d');
+      // 배지 (위 가운데) + 리본 글자
+      if (badge) {
+        const bw = 200;
+        const bh = (badge.height / badge.width) * bw;
+        ctx.save();
+        ctx.shadowColor = 'rgba(255, 200, 60, 0.7)';
+        ctx.shadowBlur = 30;
+        ctx.drawImage(badge, CX - bw / 2, 62, bw, bh);
+        ctx.restore();
+        ctx.font = `21px ${D}`;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#7a4a10';
+        ctx.fillText('지구레인저', CX, 62 + bh * 0.885);
+      }
 
-      ctx.font = `40px ${D}`;
-      ctx.fillStyle = '#f2735a';
+      // 제목
+      outlined('임 명 장', CX, 345, 92, '#ffd84d', '#5a3424', 14);
+      ctx.font = `34px ${D}`;
+      ctx.fillStyle = '#d0603f';
       ctx.textAlign = 'center';
-      ctx.fillText('지구수비대 정식 지구레인저', W / 2, 300);
+      ctx.fillText('지구수비대 정식 지구레인저', CX, 398);
 
-      ctx.font = `72px ${D}`;
-      ctx.fillStyle = '#12407a';
-      ctx.fillText(`${name} 레인저`, W / 2, 420);
+      // 이름
+      ctx.font = `76px ${D}`;
+      ctx.fillStyle = '#1d4f8a';
+      ctx.fillText(`${name} 레인저`, CX, 492);
+      ctx.strokeStyle = '#e0b400';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(CX - 260, 512);
+      ctx.lineTo(CX + 260, 512);
+      ctx.stroke();
+      ctx.font = `28px ${B}`;
+      ctx.fillStyle = '#8a6a55';
+      ctx.fillText(`코드네임  ${code}`, CX, 552);
 
-      ctx.font = `34px ${B}`;
-      ctx.fillStyle = '#7a5a43';
-      ctx.fillText(`코드네임  ${code}`, W / 2, 475);
-
-      ctx.font = `bold 38px ${B}`;
+      // 임명 문구
+      ctx.font = `bold 31px ${B}`;
       ctx.fillStyle = '#3b2414';
       [
         '위 수련생은 기후변화의 원인을 밝히고 기후 마법을 익혀',
-        '탄소 대마왕을 물리치고 아기 북극곰 포리의 빙하를 지켜 냈기에',
+        '탄소 대마왕을 물리치고 아기 북극곰 포리를 엄마 품으로 돌려보냈기에',
         '지구수비대의 정식 지구레인저로 임명합니다.'
-      ].forEach((line, i) => {
-        ctx.fillText(line, W / 2, 570 + i * 58);
-      });
+      ].forEach((line, k) => ctx.fillText(line, CX, 615 + k * 46));
 
-      // Left Box: Operations Log
-      const drawBox = (x: number, y: number, w: number, h: number) => {
-        ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = '#4a2a12';
-        ctx.lineWidth = 5;
+      // 작전 기록 · 실천 약속 상자
+      const box = (x: number, y: number, w: number, h: number) => {
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+        ctx.strokeStyle = '#c9a24a';
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(x, y, w, h, 26);
-        } else {
-          ctx.rect(x, y, w, h);
-        }
+        if (ctx.roundRect) ctx.roundRect(x, y, w, h, 22);
+        else ctx.rect(x, y, w, h);
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
       };
-
-      drawBox(260, 770, 560, 270);
-      drawBox(934, 770, 560, 270);
+      const BY = 765;
+      const BH = 165;
+      box(560, BY, 300, BH);
+      box(880, BY, 420, BH);
 
       ctx.textAlign = 'left';
-      ctx.font = `38px ${D}`;
-      ctx.fillStyle = '#4a2a12';
-      ctx.fillText('작전 기록', 300, 825);
-
-      ctx.font = `bold 30px ${B}`;
-      ['지구 이상 신호', '범인 찾기', '탄소 저울', '빙하 되찾기', '최종 결전'].forEach((t, i) => {
+      ctx.font = `27px ${D}`;
+      ctx.fillStyle = '#a0522d';
+      ctx.fillText('작전 기록', 584, BY + 38);
+      ctx.font = `bold 21px ${B}`;
+      ['이상 신호', '범인 찾기', '탄소 저울', '빙하 되찾기', '최종 결전'].forEach((t, k) => {
+        const n = stars[k + 1] || 0;
+        const yy = BY + 66 + k * 22;
         ctx.fillStyle = '#3b2414';
-        ctx.fillText(i < 4 ? `작전 ${i + 1}  ${t}` : `★ ${t}`, 300, 870 + i * 38);
+        ctx.fillText(t, 584, yy);
         ctx.fillStyle = '#f0a500';
-        ctx.fillText(
-          '★'.repeat(stars[i + 1] || 0) + '☆'.repeat(3 - (stars[i + 1] || 0)),
-          650,
-          870 + i * 38
-        );
+        ctx.fillText('★'.repeat(n) + '☆'.repeat(3 - n), 740, yy);
       });
 
-      // Right Box: Pledges
-      ctx.font = `38px ${D}`;
-      ctx.fillStyle = '#4a2a12';
-      ctx.fillText('나의 실천 약속', 974, 825);
-
-      ctx.font = `bold 30px ${B}`;
+      ctx.font = `27px ${D}`;
+      ctx.fillStyle = '#2e7d4f';
+      ctx.fillText('나의 실천 약속', 904, BY + 38);
+      ctx.font = `bold 22px ${B}`;
       ctx.fillStyle = '#3b2414';
-      (pledges.length > 0 ? pledges : ['지구와 북극곰을 꾸준히 지키기']).forEach((p, i) => {
-        ctx.fillText(`${i + 1}. ${p}`, 974, 875 + i * 48);
+      (pledges.length > 0 ? pledges : ['지구와 북극곰을 꾸준히 지키기']).slice(0, 3).forEach((pl, k) => {
+        ctx.fillText(`${k + 1}. ${pl}`, 904, BY + 76 + k * 32);
       });
 
-      // Total Score
+      // 총점 · 날짜 · 서명
       ctx.textAlign = 'center';
-      drawOutlinedText(`총점 ${totalScore.toLocaleString()}점`, W / 2, 1110, 56, '#ffffff');
-
-      ctx.font = `30px ${B}`;
+      outlined(`총점 ${totalScore.toLocaleString()}점`, 930, 1000, 44, '#ffffff', '#d0603f', 8);
+      ctx.font = `24px ${B}`;
       ctx.fillStyle = '#7a5a43';
       ctx.fillText(
-        new Date().toLocaleDateString('ko-KR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        W / 2,
-        1165
+        new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }),
+        930,
+        1040
       );
-
-      // Signature & Seal
-      ctx.textAlign = 'right';
-      ctx.font = `38px ${D}`;
-      ctx.fillStyle = '#3b2414';
-      ctx.fillText('지구수비대장  단비', W - 170, 1120);
-
-      ctx.beginPath();
-      ctx.arc(W - 140, 1105, 52, 0, Math.PI * 2);
-      ctx.strokeStyle = '#d23a2a';
-      ctx.lineWidth = 6;
-      ctx.stroke();
-
       ctx.font = `30px ${D}`;
-      ctx.fillStyle = '#d23a2a';
-      ctx.textAlign = 'center';
-      ctx.fillText('수비대', W - 140, 1100);
-      ctx.fillText('인', W - 140, 1132);
-
-      // Draw character illustrations around the certificate
-      const imgs = await Promise.all([
-        svgToImage(heroSVG('happy', avatar)),
-        svgToImage(poriSVG('joy')),
-        svgToImage(danbiSVG('smile')),
-        svgToImage(thermoSVG('happy')),
-        svgToImage(lukaSVG('grin'))
-      ]);
-
-      if (imgs[0]) ctx.drawImage(imgs[0], 96, 90, 230, 230);
-      if (imgs[1]) ctx.drawImage(imgs[1], W - 330, 90, 240, 240);
-      if (imgs[2]) ctx.drawImage(imgs[2], 80, 340, 190, 190);
-      if (imgs[3]) ctx.drawImage(imgs[3], W - 260, 340, 180, 180);
-      if (imgs[4]) ctx.drawImage(imgs[4], 80, 560, 175, 175);
+      ctx.fillStyle = '#3b2414';
+      ctx.fillText('지구수비대장  단비', 930, 1085);
+      // 도장 (배지)
+      if (badge) {
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.drawImage(badge, 1075, 1030, 80, (badge.height / badge.width) * 80);
+        ctx.restore();
+      }
 
       const dataUrl = canvas.toDataURL('image/png');
       setCertUrl(dataUrl);
@@ -250,7 +227,11 @@ export function MissionCeremony({
         format: 'a4'
       });
       const imgData = canvasRef.current.toDataURL('image/jpeg', 0.95);
-      doc.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+      // A4 가로(297×210mm) 가운데에 그림 비율 그대로 놓는다
+      const ph = (297 * 1177) / 1754;
+      doc.setFillColor(255, 250, 240);
+      doc.rect(0, 0, 297, 210, 'F');
+      doc.addImage(imgData, 'JPEG', 0, (210 - ph) / 2, 297, ph);
       doc.save(`지구레인저_임명장_${name || '레인저'}.pdf`);
       setDownloadMsg('임명장을 PDF 문서로 저장했습니다!');
     } catch {

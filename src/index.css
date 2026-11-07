@@ -4104,3 +4104,101 @@ h1, h2, h3, h4 {
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
 }
+
+/* =========================================================================
+   지구레인저 배지 수여
+   ========================================================================= */
+.badge-modal {
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, rgba(60, 50, 120, 0.85), rgba(8, 12, 40, 0.92));
+}
+.badge-rays {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 1600px;
+  height: 1600px;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg, rgba(255, 220, 120, 0.35) 0deg 7deg, transparent 7deg 20deg);
+  -webkit-mask-image: radial-gradient(circle, #000 8%, transparent 50%);
+  mask-image: radial-gradient(circle, #000 8%, transparent 50%);
+  animation: spinRays 20s linear infinite;
+}
+.badge-stage {
+  position: relative;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+@keyframes badgeSpin {
+  0% { transform: perspective(800px) rotateY(-540deg) scale(0.2); opacity: 0; }
+  60% { transform: perspective(800px) rotateY(20deg) scale(1.08); opacity: 1; }
+  80% { transform: perspective(800px) rotateY(-8deg) scale(1); }
+  100% { transform: perspective(800px) rotateY(0) scale(1); opacity: 1; }
+}
+@keyframes badgeFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+.badge-wrap {
+  position: relative;
+  width: min(62vw, 300px);
+  animation: badgeSpin 1.4s cubic-bezier(0.2, 0.8, 0.3, 1) both, badgeFloat 2.4s 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(255, 210, 90, 0.85)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.4));
+}
+.badge-wrap img {
+  width: 100%;
+  display: block;
+}
+.badge-ribbon {
+  position: absolute;
+  left: 50%;
+  top: 88.5%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: min(5.6vw, 27px);
+  color: #7a4a10;
+  white-space: nowrap;
+  letter-spacing: 2px;
+}
+@keyframes shineSweep {
+  0%, 60% { transform: translateX(-130%) rotate(20deg); }
+  100% { transform: translateX(130%) rotate(20deg); }
+}
+.badge-shine {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 45%;
+  pointer-events: none;
+}
+.badge-shine::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 0;
+  width: 35%;
+  height: 140%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  animation: shineSweep 2.6s 1.4s ease-in-out infinite;
+}
+.badge-title {
+  margin-top: 6px;
+  font-size: clamp(30px, 5vw, 44px);
+  color: #ffd84d;
+  -webkit-text-stroke: 6px #5a3424;
+  paint-order: stroke fill;
+  animation: titleIn 0.6s 1s ease-out both;
+}
+.badge-desc {
+  color: #fff;
+  font-weight: 700;
+  max-width: 420px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  animation: rise 0.4s 1.3s ease-out both;
+}
+.badge-stage .big {
+  animation: rise 0.4s 1.5s ease-out both;
+}
