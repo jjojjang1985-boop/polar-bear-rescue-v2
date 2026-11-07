@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>북극곰 구조대</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* 노을빛 북극 만화 세계. 굵은 갈색 테두리 + 노란 제목 + 산호색 버튼. 한 화면 게임: 위 상태바 / 가운데 무대+빙하 탑 / 아래 대사 창 */
+  --night:#2a5d9c;
+  --deep:#1d4478;
+  --ice:#e8f7ff;
+  --aurora:#7be0c8;
+  --coral:#f2735a;
+  --sun:#ffe14d;
+  --ink:#3b2414;
+  --line:#4a2a12;
+  --paper:#fffaf0;
+  --ok:#2fbf71;
+  --bad:#ef4f4f;
+  --font-display:'Jua','Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --font-body:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:linear-gradient(180deg,#b9a6e6 0%,#f4b8b0 45%,#ffd58a 100%);color:var(--ink);font-family:var(--font-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+h1,h2,h3{font-family:var(--font-display);font-weight:400;text-wrap:balance;margin:0}
+
+#app{height:100%;display:grid;grid-template-rows:auto 1fr auto;max-width:1320px;margin:0 auto}
+
+/* 상단 바 */
+#top{display:flex;align-items:center;gap:12px;padding:10px 16px}
+#brand{font-family:var(--font-display);font-size:26px;letter-spacing:.5px;display:flex;align-items:center;gap:8px;color:var(--sun);-webkit-text-stroke:6px var(--line);paint-order:stroke fill;text-shadow:0 3px 0 var(--line)}
+#brand .dot{display:none}
+#pips{display:flex;gap:6px;margin-left:8px}
+.pip{font-family:var(--font-display);font-size:14px;padding:4px 12px;border-radius:999px;background:#fff;color:#9a8574;border:2.5px solid var(--line)}
+.pip.on{background:var(--sun);color:var(--line)}
+.pip.done{background:#c9f3e3;color:#1f6b4f}
+#top .sp{flex:1}
+.tbtn{border:2.5px solid var(--line);border-radius:999px;padding:6px 14px;font-family:var(--font-display);font-size:16px;background:#fff;color:var(--line);display:flex;align-items:center;gap:6px;box-shadow:0 3px 0 var(--line)}
+.tbtn:hover{background:#fff6d6}
+#noteCount{background:var(--sun);color:#4a3400;border-radius:999px;padding:0 8px;font-size:14px}
+#noteBtn.bump{animation:bump .5s}
+
+/* 가운데 */
+#main{display:grid;grid-template-columns:1fr 150px;gap:12px;padding:0 16px;min-height:0}
+#stage{position:relative;border-radius:26px;overflow:hidden;min-height:0;border:4px solid var(--line);box-shadow:0 6px 0 var(--line),0 14px 30px rgba(74,42,18,.25)}
+#bg{position:absolute;inset:0;transition:opacity .4s}
+#bg svg{width:100%;height:100%;display:block}
+#layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
+#fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#stage.shake{animation:shake .4s}
+.flash{position:absolute;inset:0;background:#cfefff;animation:flash .9s forwards}
+
+.panel{background:rgba(255,252,244,.97);color:var(--ink);border-radius:26px;border:3.5px solid var(--line);box-shadow:0 6px 0 var(--line),0 16px 34px rgba(74,42,18,.3);padding:18px 22px;width:100%;max-width:820px;max-height:100%;overflow:auto;animation:pop .35s ease-out}
+.panel h2{font-size:27px;color:var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.panel .tag{font-family:var(--font-display);font-size:14px;background:var(--coral);color:#fff;padding:3px 12px;border-radius:999px;border:2.5px solid var(--line)}
+.panel .guide{margin:6px 0 14px;font-size:17px;color:#6b4a33;line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.center{justify-content:center}
+
+.big{border:3px solid var(--line);border-radius:999px;padding:11px 26px;font-family:var(--font-display);font-size:21px;background:linear-gradient(180deg,#ff917a,#f0644a);color:#fff;box-shadow:0 5px 0 var(--line);transition:transform .08s;text-shadow:0 2px 0 rgba(74,42,18,.35)}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
+.big.blue{background:linear-gradient(180deg,#7fd3ff,#3a9be6)}
+.big.green{background:linear-gradient(180deg,#7be6b0,#2fbf71)}
+.big.ghost{background:#fff;color:var(--line);text-shadow:none}
+.big:disabled{opacity:.45;cursor:default}
+
+.opt{border:2.5px solid var(--line);border-radius:16px;padding:12px 16px;font-size:18px;font-family:var(--font-body);font-weight:700;background:#fff;color:var(--ink);box-shadow:0 4px 0 var(--line);text-align:left;line-height:1.4;transition:transform .08s}
+.opt:hover{transform:translateY(-2px);background:#fff8dc}
+.opt.ok{background:#d4f7e3}
+.opt.no{background:#ffdcdc;animation:wob .4s}
+.opt:disabled{cursor:default}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* 대사 창 */
+#dlg{margin:12px 16px 14px;display:grid;grid-template-columns:128px 1fr;gap:16px;align-items:center;background:#fffaf0;color:var(--ink);border-radius:28px;min-height:156px;padding:12px 20px 12px 12px;border:4px solid var(--line);box-shadow:0 6px 0 var(--line),0 14px 26px rgba(74,42,18,.25);cursor:pointer;position:relative;user-select:none}
+#dlg.hidden{visibility:hidden}
+#portrait{width:128px;height:128px;border-radius:28px;background:radial-gradient(circle at 40% 30%,#fffdf5,#ffe3b8);display:grid;place-items:center;overflow:hidden;border:3px solid var(--line)}
+#portrait svg{width:118%;height:118%;margin-top:14%}
+#portrait.talk svg{animation:talk .5s ease-out}
+#who{font-family:var(--font-display);font-size:20px;color:var(--line);background:var(--sun);display:inline-block;padding:2px 16px;border-radius:999px;margin-bottom:6px;border:2.5px solid var(--line)}
+#text{font-size:21px;line-height:1.65;min-height:3.3em;word-break:keep-all;font-weight:700}
+#text .c{opacity:0}
+#text .c.on{opacity:1}
+#text.narr{font-weight:400;color:#7a5a43}
+#next{position:absolute;right:18px;bottom:10px;font-family:var(--font-display);font-size:15px;color:var(--coral);opacity:0;transition:opacity .2s}
+#dlg.ready #next{opacity:1;animation:nudge 1s infinite}
+.kw{font:inherit;color:#0a4f9c;font-weight:700;background:linear-gradient(transparent 58%,#ffe27a 58%);border:0;border-bottom:3px dashed #f0a500;padding:0 2px;margin:0 1px;border-radius:4px;cursor:pointer;animation:glint 1.4s infinite}
+.kw.got{animation:none;background:linear-gradient(transparent 58%,#bff0d6 58%);border-bottom:3px solid var(--ok);color:#13693d}
+.kw.got::after{content:" ✓";font-size:.8em}
+.hint-tip{position:absolute;right:20px;top:-18px;background:var(--sun);color:#4a3400;font-family:var(--font-display);padding:5px 12px;border-radius:12px;font-size:15px;animation:nudge 1s infinite}
+
+/* 빙하 탑 */
+#tower{position:relative;border-radius:26px;background:linear-gradient(180deg,#c3b2ee 0%,#f6c2b6 55%,#ffe0a6 100%);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:8px 8px 44px;border:4px solid var(--line);box-shadow:0 6px 0 var(--line)}
+#tower.off{opacity:.35;filter:grayscale(.6)}
+#tower h3{position:absolute;top:10px;left:0;right:0;text-align:center;font-size:16px;color:var(--sun);-webkit-text-stroke:4px var(--line);paint-order:stroke fill}
+#tcount{position:absolute;top:34px;left:0;right:0;text-align:center;font-family:var(--font-display);font-size:14px;color:var(--line)}
+#poriTop{width:96px;height:96px;transition:transform .4s;margin-bottom:-6px;z-index:2}
+#poriTop.wobble{animation:wob .5s 2}
+#poriTop.happy{animation:hop .6s 2}
+#blocks{display:flex;flex-direction:column-reverse;align-items:center;gap:4px}
+.ice{width:112px;height:20px;border-radius:8px;background:linear-gradient(180deg,#ffffff 0%,#d9f2ff 40%,#9fd2f1 100%);border:2.5px solid #2c5a86;box-shadow:inset 0 -4px 0 rgba(60,130,190,.35),inset 0 2px 0 #fff;animation:drop .35s ease-out}
+.ice:nth-child(even){width:100px}
+.ice.melt{animation:melt .5s forwards}
+#sea{position:absolute;left:0;right:0;bottom:0;height:44px;background:linear-gradient(180deg,#4fb0e8,#2a7cc4);border-top:3px solid #2c5a86}
+#sea::before{content:"";position:absolute;left:-20%;right:-20%;top:-8px;height:16px;background:radial-gradient(circle at 10px 8px,#4fb0e8 9px,transparent 10px) 0 0/20px 16px repeat-x;animation:wave 3s linear infinite}
+
+/* 오버레이 화면 */
+.screen{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto;background:linear-gradient(180deg,#a99be6 0%,#f2a9b4 40%,#ffc98a 72%,#ffe7a8 100%)}
+.screen .aur{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.screen .aur i{position:absolute;width:140%;height:40%;left:-20%;border-radius:50%;filter:blur(40px);opacity:.5;animation:aur 12s ease-in-out infinite alternate}
+.screen .scard{position:relative;max-width:920px;width:100%;text-align:center}
+.logo{font-family:var(--font-display);font-size:clamp(48px,9vw,104px);color:var(--sun);-webkit-text-stroke:clamp(10px,1.6vw,18px) var(--line);paint-order:stroke fill;text-shadow:0 8px 0 var(--line);line-height:1.08;letter-spacing:1px;transform:rotate(-2deg)}
+.logo .l2{display:block}
+.pill{display:inline-block;font-family:var(--font-display);font-size:clamp(20px,2.6vw,30px);background:#fff;color:var(--line);border:4px solid var(--line);border-radius:999px;padding:6px 28px;margin-top:14px;box-shadow:0 5px 0 var(--line)}
+.lineup{display:flex;justify-content:center;align-items:flex-end;gap:4px;margin:18px 0 14px;flex-wrap:nowrap}
+.lineup .ch.hero{width:clamp(96px,15vw,190px)}
+.lineup .ch{width:clamp(70px,11vw,140px);text-align:center;animation:float 3s ease-in-out infinite}
+.lineup .ch:nth-child(2){animation-delay:.4s}.lineup .ch:nth-child(3){animation-delay:.8s}.lineup .ch:nth-child(4){animation-delay:1.2s}
+.lineup .ch span{font-family:var(--font-display);font-size:16px;color:var(--line);background:#fff;border:2.5px solid var(--line);border-radius:999px;padding:1px 12px;display:inline-block;margin-top:-6px}
+.sub{color:#5b3a22;font-size:18px;margin:6px 0 18px;font-weight:700}
+.form{background:#fffaf0;color:var(--ink);border-radius:26px;padding:22px;max-width:660px;margin:0 auto;text-align:left;border:4px solid var(--line);box-shadow:0 6px 0 var(--line)}
+.form label{font-family:var(--font-display);font-size:19px;display:block;margin:12px 0 6px;color:var(--line)}
+.form input[type=text]{width:100%;font-size:20px;padding:12px 14px;border-radius:14px;border:3px solid var(--line);font-family:var(--font-body);font-weight:700}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:2.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:17px;font-family:var(--font-display);color:var(--line);box-shadow:0 3px 0 var(--line)}
+.chip.sel{background:var(--sun)}
+.avs{display:flex;gap:12px}
+.av{border:3px solid var(--line);border-radius:22px;background:radial-gradient(circle at 40% 30%,#fff,#ffe3b8);width:120px;height:120px;padding:0;overflow:hidden}
+.av.sel{background:radial-gradient(circle at 40% 30%,#fff,#ffd25a);box-shadow:0 0 0 4px var(--coral)}
+.av svg{width:120%;height:120%;margin:12% 0 0 -10%}
+
+/* 작전 지도 */
+.map{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.node{border:3.5px solid var(--line);border-radius:24px;padding:16px;text-align:left;background:#fffaf0;color:var(--ink);box-shadow:0 6px 0 var(--line);min-height:150px;display:flex;flex-direction:column;gap:6px;position:relative}
+.node .n{font-family:var(--font-display);font-size:14px;color:var(--line);background:var(--sun);border:2.5px solid var(--line);align-self:flex-start;padding:1px 12px;border-radius:999px}
+.node h3{font-size:22px;color:var(--line)}
+.node p{margin:0;font-size:15px;color:#7a5a43;line-height:1.4;font-weight:700}
+.node .st{margin-top:auto;font-size:22px;color:#f0a500;letter-spacing:2px;-webkit-text-stroke:1px var(--line)}
+.node.lock{filter:grayscale(.9);opacity:.6;cursor:not-allowed}
+.node.lock::after{content:"잠김";position:absolute;right:14px;top:14px;font-family:var(--font-display);font-size:14px;background:#7a6a5e;color:#fff;padding:2px 10px;border-radius:999px}
+.node.cur{background:#fff3c4;box-shadow:0 6px 0 var(--line),0 0 0 5px var(--coral);animation:float 2.4s ease-in-out infinite}
+.teacher{background:none;border:0;color:#6b4a33;text-decoration:underline;margin-top:16px;font-size:14px;font-weight:700}
+.lb{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:17px;font-variant-numeric:tabular-nums}
+.lb td{background:#fff;padding:8px 12px;border-top:2.5px solid var(--line);border-bottom:2.5px solid var(--line)}
+.lb td:first-child{border-left:2.5px solid var(--line);border-radius:14px 0 0 14px;font-family:var(--font-display);width:52px;text-align:center}
+.lb td:last-child{border-right:2.5px solid var(--line);border-radius:0 14px 14px 0;text-align:right;font-family:var(--font-display)}
+.lb tr.me td{background:#fff3c4}
+.lb tr.r1 td:first-child{background:var(--sun)}
+.score-big{font-family:var(--font-display);font-size:44px;color:var(--coral);-webkit-text-stroke:2px var(--line);paint-order:stroke fill}
+
+/* 모달 */
+#modal{position:fixed;inset:0;z-index:60;background:rgba(4,12,30,.66);display:none;align-items:center;justify-content:center;padding:18px}
+#modal.on{display:flex}
+#modal .panel{max-width:640px}
+.notes{display:grid;gap:8px;margin-top:8px}
+.note{background:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 3px 0 #d3e2f1;font-size:16px;line-height:1.5}
+.note b{font-family:var(--font-display);font-weight:400;font-size:18px;color:#0a4f9c;margin-right:6px}
+.note.miss{opacity:.5}
+.stars{font-size:46px;color:#f0a500;letter-spacing:6px;text-shadow:0 3px 0 #c98400}
+.stars .e{color:#cfd9e6;text-shadow:0 3px 0 #a9b6c6}
+.gear{display:inline-flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border-radius:18px;padding:12px 16px;box-shadow:0 4px 0 #d3e2f1;font-family:var(--font-display);color:#12407a}
+.gear .ic{font-size:40px;animation:hop .8s 2}
+
+/* 미션 공통 요소 */
+.bins{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-top:8px}
+.bin{border:0;border-radius:22px;min-height:120px;padding:14px;font-family:var(--font-display);font-size:22px;color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.22)}
+.bin.a{background:linear-gradient(180deg,#ffb36b,#ff8a3d)}
+.bin.b{background:linear-gradient(180deg,#6fc2ff,#3b8fe8)}
+.bin small{display:block;font-family:var(--font-body);font-size:14px;opacity:.9;margin-top:4px}
+.card{width:min(300px,42vw);min-height:150px;border-radius:22px;background:#fff;box-shadow:0 8px 0 #c6d6e8,0 14px 26px rgba(20,50,90,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px;font-size:19px;line-height:1.45;text-align:center;animation:pop .3s}
+.card .em{font-size:44px}
+.card.no{animation:wob .4s}
+.combo{font-family:var(--font-display);color:var(--coral);font-size:20px;min-height:28px;text-align:center}
+.meter{height:16px;border-radius:999px;background:#dbe7f3;overflow:hidden;box-shadow:inset 0 2px 3px rgba(0,0,0,.12)}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#46e3c3,#2a8ee0);transition:width .3s;border-radius:999px}
+.timer{font-family:var(--font-display);font-size:20px;color:#c43d1f;background:#ffe9e2;padding:3px 12px;border-radius:999px}
+
+.mapwrap{position:relative;border-radius:18px;overflow:hidden;background:#123b6b}
+.pin{position:absolute;transform:translate(-50%,-100%);border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center}
+.pin i{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--bad);box-shadow:0 0 0 0 rgba(239,79,79,.7);animation:ping 1.4s infinite;display:block}
+.pin span{font-family:var(--font-display);font-size:14px;background:#fff;color:var(--ink);padding:2px 8px;border-radius:999px;margin-top:6px;white-space:nowrap}
+.pin.done i{background:var(--ok);animation:none}
+
+.hunt{position:relative;border-radius:18px;overflow:hidden;height:300px;touch-action:none}
+.hunt .obj{position:absolute;transform:translate(-50%,-50%);font-size:46px;border:0;background:none;padding:4px;line-height:1;transition:transform .15s}
+.hunt .obj:hover{transform:translate(-50%,-50%) scale(1.12)}
+.hunt .obj.found{filter:drop-shadow(0 0 10px #ff4b4b)}
+.hunt .obj.found::after{content:"!";position:absolute;right:-4px;top:-6px;font-family:var(--font-display);font-size:18px;background:var(--bad);color:#fff;border-radius:50%;width:24px;height:24px;display:grid;place-items:center}
+.heat{position:absolute;inset:0;pointer-events:none;background:rgba(20,0,40,.18);-webkit-mask-image:radial-gradient(circle 80px at var(--x,50%) var(--y,50%),#000 97%,transparent 100%);mask-image:radial-gradient(circle 80px at var(--x,50%) var(--y,50%),#000 97%,transparent 100%)}
+.heat.all{-webkit-mask-image:none;mask-image:none}
+.heat b{position:absolute;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(255,60,60,.85),rgba(255,120,60,.35) 50%,transparent 70%);animation:pulse 1s infinite}
+.lens{position:absolute;width:160px;height:160px;border-radius:50%;border:5px solid #ffd25a;box-shadow:0 0 0 3px rgba(0,0,0,.25),inset 0 0 20px rgba(255,210,90,.4);transform:translate(-50%,-50%);pointer-events:none;left:var(--x,50%);top:var(--y,50%)}
+.evid{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.evid .e{background:#fff7d6;border:2px dashed #e0b400;border-radius:12px;padding:6px 10px;font-size:15px}
+
+.scale svg{width:100%;max-height:300px;display:block}
+.wcard{border:0;border-radius:16px;padding:10px 12px;background:#fff;box-shadow:0 4px 0 #c6d6e8;font-size:16px;display:flex;align-items:center;gap:8px;text-align:left}
+.wcard .w{font-family:var(--font-display);background:#2a5fa8;color:#fff;border-radius:10px;padding:2px 8px;font-size:16px}
+.wcard.used{opacity:.35}
+
+.fall{position:absolute;transform:translateX(-50%);border:0;border-radius:16px;padding:10px 14px;font-size:17px;font-family:var(--font-display);background:#fff;color:var(--ink);box-shadow:0 5px 0 #b9cbe0,0 8px 16px rgba(0,0,0,.25);white-space:nowrap}
+.fall.pop{animation:popout .3s forwards}
+
+.poster{width:min(420px,80vw);aspect-ratio:3/4;margin:0 auto;border-radius:16px;background:linear-gradient(180deg,#bfe9ff,#ffffff);box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:20px;text-align:center;border:8px solid #fff}
+.poster .pt{font-family:var(--font-display);font-size:32px;color:#12407a;line-height:1.2}
+.poster .pe{font-size:110px}
+.poster .pp{font-family:var(--font-display);font-size:22px;background:var(--coral);color:#fff;padding:8px 16px;border-radius:14px}
+
+.cert{background:linear-gradient(180deg,#fffdf4,#fff6d8);border:6px double #e0b400;border-radius:22px;padding:22px;text-align:center;color:var(--ink)}
+.cert h2{font-size:32px;color:#8a5a00;justify-content:center}
+.cert .nm{font-family:var(--font-display);font-size:36px;color:#12407a;margin:8px 0}
+.cert ul{text-align:left;display:inline-block;font-size:18px;line-height:1.7}
+
+.sparkle{position:absolute;font-size:22px;pointer-events:none;animation:fly .8s ease-in forwards;z-index:70}
+.toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--sun);color:#4a3400;font-family:var(--font-display);font-size:18px;padding:8px 18px;border-radius:999px;z-index:80;animation:toast 1.8s forwards;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+@keyframes popout{to{transform:translateX(-50%) scale(1.4);opacity:0}}
+@keyframes wob{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px) rotate(-3deg)}75%{transform:translateX(8px) rotate(3deg)}}
+@keyframes shake{0%,100%{transform:none}20%{transform:translate(-8px,3px)}40%{transform:translate(7px,-3px)}60%{transform:translate(-5px,2px)}80%{transform:translate(4px,-1px)}}
+@keyframes flash{from{opacity:1}to{opacity:0}}
+@keyframes glint{0%,100%{box-shadow:0 0 0 rgba(255,210,90,0)}50%{box-shadow:0 0 12px rgba(255,190,40,.9)}}
+@keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes talk{0%{transform:translateY(0)}30%{transform:translateY(-6px) scale(1.03)}100%{transform:none}}
+@keyframes bump{0%,100%{transform:scale(1)}40%{transform:scale(1.25)}}
+@keyframes drop{from{transform:translateY(-40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes melt{to{transform:scaleY(.1) translateY(30px);opacity:0}}
+@keyframes wave{to{transform:translateX(20px)}}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes aur{from{transform:translateX(-8%) rotate(-4deg)}to{transform:translateX(8%) rotate(4deg)}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(239,79,79,.7)}70%{box-shadow:0 0 0 16px rgba(239,79,79,0)}100%{box-shadow:0 0 0 0 rgba(239,79,79,0)}}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.15)}}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-10px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+@keyframes rise{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+@keyframes swim{from{transform:translateX(-60px)}to{transform:translateX(60px)}}
+@keyframes scatter{to{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:.9}}
+
+@media (max-width:780px){
+  #main{grid-template-columns:1fr 86px;gap:8px;padding:0 10px}
+  .ice{width:66px;height:13px}.ice:nth-child(even){width:58px}
+  #poriTop{width:66px;height:66px}
+  #tower h3{font-size:12px}
+  #dlg{grid-template-columns:76px 1fr;min-height:124px;margin:8px 10px 10px;gap:10px}
+  #portrait{width:76px;height:76px;border-radius:20px}
+  #text{font-size:17px}
+  #pips{display:none}
+  .map{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+  .hunt{height:240px}
+  .hunt .obj{font-size:36px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}
+}
+
+/* 만화풍 외곽선 통일 */
+.wcard,.note,.card,.fall,.evid .e,.gear{border:2.5px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.wcard{font-weight:700;color:var(--ink)}
+.wcard .w{background:var(--coral);border:2px solid var(--line)}
+.card{box-shadow:0 6px 0 var(--line)}
+.timer{border:2.5px solid var(--line)}
+.meter{border:2.5px solid var(--line)}
+.bin{border:3px solid var(--line);box-shadow:0 5px 0 var(--line)}
+.scale svg{max-height:250px}
+
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<script>
+// ===== 캐릭터 SVG (만화풍: 굵은 갈색 외곽선, 반짝이는 큰 눈, 입체 그라데이션) =====
+const OL = '#4a2a12';
+let _u = 0;
+function eye(cx, cy, s, iris, u, look) {
+  s = s || 1; const id = 'ir' + u + '_' + Math.round(cx);
+  const dx = look || 0;
+  return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1e120a"/><stop offset=".55" stop-color="${iris}"/><stop offset="1" stop-color="#e9b26a"/></linearGradient></defs>
+  <ellipse cx="${cx}" cy="${cy}" rx="${12.5 * s}" ry="${16 * s}" fill="url(#${id})" stroke="${OL}" stroke-width="3"/>
+  <ellipse cx="${cx + dx + 4 * s}" cy="${cy - 6 * s}" rx="${5 * s}" ry="${6 * s}" fill="#fff"/>
+  <circle cx="${cx + dx - 4.5 * s}" cy="${cy + 6 * s}" r="${2.4 * s}" fill="#fff"/>
+  <circle cx="${cx + dx + 6 * s}" cy="${cy + 4 * s}" r="${1.3 * s}" fill="#fff" opacity=".9"/>`;
+}
+function closedEye(cx, cy) { return `<path d="M${cx - 12} ${cy + 2} Q${cx} ${cy - 10} ${cx + 12} ${cy + 2}" fill="none" stroke="${OL}" stroke-width="4" stroke-linecap="round"/>`; }
+function mouth(kind, x, y) {
+  x = x || 100; y = y || 140;
+  switch (kind) {
+    case 'sad': return `<path d="M${x - 10} ${y + 4} Q${x} ${y - 5} ${x + 10} ${y + 4}" fill="none" stroke="${OL}" stroke-width="4" stroke-linecap="round"/>`;
+    case 'o': return `<ellipse cx="${x}" cy="${y}" rx="7" ry="9" fill="#b8323f" stroke="${OL}" stroke-width="3"/>`;
+    case 'smile': return `<path d="M${x - 11} ${y - 2} Q${x} ${y + 9} ${x + 11} ${y - 2}" fill="none" stroke="${OL}" stroke-width="4" stroke-linecap="round"/>`;
+    case 'grin': return `<path d="M${x - 16} ${y - 4} Q${x} ${y + 20} ${x + 16} ${y - 4} Z" fill="#b8323f" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/><path d="M${x - 9} ${y + 6} Q${x} ${y + 1} ${x + 9} ${y + 6} Q${x} ${y + 12} ${x - 9} ${y + 6}" fill="#ff8f9a"/><path d="M${x - 12} ${y - 3} L${x + 12} ${y - 3} L${x + 9} ${y + 1} L${x - 9} ${y + 1} Z" fill="#fff"/>`;
+    default: return `<path d="M${x - 13} ${y - 4} Q${x} ${y + 16} ${x + 13} ${y - 4} Z" fill="#b8323f" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/><path d="M${x - 7} ${y + 4} Q${x} ${y} ${x + 7} ${y + 4} Q${x} ${y + 9} ${x - 7} ${y + 4}" fill="#ff8f9a"/>`;
+  }
+}
+function blush(x1, x2, y) { return `<ellipse cx="${x1}" cy="${y}" rx="11" ry="6.5" fill="#ff9aa8" opacity=".75"/><ellipse cx="${x2}" cy="${y}" rx="11" ry="6.5" fill="#ff9aa8" opacity=".75"/>`; }
+function shadow() { return `<ellipse cx="100" cy="193" rx="58" ry="7" fill="rgba(74,42,18,.22)"/>`; }
+function wrap(inner) { return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round">${inner}</svg>`; }
+
+// 아기 북극곰 포리
+function poriSVG(mood) {
+  const u = ++_u; mood = mood || 'happy';
+  const fur = `pf${u}`;
+  let eyes = eye(72, 100, 1.05, '#5a3a22', u) + eye(128, 100, 1.05, '#5a3a22', u);
+  if (mood === 'joy') eyes = closedEye(72, 100) + closedEye(128, 100);
+  let brows = '';
+  if (mood === 'sad' || mood === 'scared') brows = `<path d="M58 78 L82 84" stroke="${OL}" stroke-width="4" stroke-linecap="round"/><path d="M142 78 L118 84" stroke="${OL}" stroke-width="4" stroke-linecap="round"/>`;
+  const tear = mood === 'sad' ? `<path d="M56 112 Q50 124 56 128 Q62 124 56 112Z" fill="#7cc8ff" stroke="${OL}" stroke-width="2"/>` : '';
+  const m = { happy: 'open', joy: 'open', sad: 'sad', scared: 'o' }[mood] || 'open';
+  return wrap(`<defs><radialGradient id="${fur}" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".65" stop-color="#f1f6fc"/><stop offset="1" stop-color="#cfdcec"/></radialGradient></defs>
+  ${shadow()}
+  <ellipse cx="100" cy="166" rx="52" ry="30" fill="url(#${fur})" stroke="${OL}" stroke-width="4"/>
+  <ellipse cx="70" cy="182" rx="15" ry="10" fill="url(#${fur})" stroke="${OL}" stroke-width="4"/><ellipse cx="130" cy="182" rx="15" ry="10" fill="url(#${fur})" stroke="${OL}" stroke-width="4"/>
+  <path d="M60 150 Q100 172 140 150 L136 162 Q100 180 64 162Z" fill="#ff6b4a" stroke="${OL}" stroke-width="3.5"/>
+  <path d="M120 160 L132 186 L118 184Z" fill="#ff6b4a" stroke="${OL}" stroke-width="3"/>
+  <circle cx="48" cy="50" r="21" fill="url(#${fur})" stroke="${OL}" stroke-width="4"/><circle cx="48" cy="52" r="10" fill="#ffc2cf"/>
+  <circle cx="152" cy="50" r="21" fill="url(#${fur})" stroke="${OL}" stroke-width="4"/><circle cx="152" cy="52" r="10" fill="#ffc2cf"/>
+  <ellipse cx="100" cy="98" rx="74" ry="62" fill="url(#${fur})" stroke="${OL}" stroke-width="4"/>
+  <ellipse cx="100" cy="128" rx="28" ry="19" fill="#fffdf8" stroke="#c9b8a6" stroke-width="2"/>
+  <path d="M90 116 Q100 110 110 116 Q106 126 100 127 Q94 126 90 116Z" fill="#2b1a10" stroke="${OL}" stroke-width="2"/>
+  <ellipse cx="96" cy="116" rx="3.5" ry="2" fill="#fff"/>
+  ${brows}${eyes}${blush(55, 145, 120)}${tear}${mouth(m, 100, 140)}`);
+}
+
+// 체온계 로봇 써모
+function thermoSVG(mood) {
+  const u = ++_u; const alert = mood === 'alert';
+  const eyeC = alert ? '#ff5a5a' : '#5ff2ff';
+  return wrap(`<defs>
+  <linearGradient id="gl${u}" x1="0" x2="1"><stop offset="0" stop-color="#d9f1ff"/><stop offset=".45" stop-color="#ffffff"/><stop offset="1" stop-color="#a9d4f0"/></linearGradient>
+  <radialGradient id="bl${u}" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#ffb3a6"/><stop offset=".5" stop-color="#f0503b"/><stop offset="1" stop-color="#b3261e"/></radialGradient>
+  <linearGradient id="sc${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b4d78"/><stop offset="1" stop-color="#14263f"/></linearGradient></defs>
+  ${shadow()}
+  <path d="M62 112 Q38 118 36 134" fill="none" stroke="${OL}" stroke-width="5" stroke-linecap="round"/><circle cx="36" cy="138" r="9" fill="#ffd25a" stroke="${OL}" stroke-width="3.5"/>
+  <path d="M138 112 Q164 104 168 88" fill="none" stroke="${OL}" stroke-width="5" stroke-linecap="round"/><circle cx="168" cy="84" r="9" fill="#ffd25a" stroke="${OL}" stroke-width="3.5"/>
+  <line x1="100" y1="26" x2="100" y2="10" stroke="${OL}" stroke-width="4"/><circle cx="100" cy="9" r="8" fill="#ffd25a" stroke="${OL}" stroke-width="3.5"/>
+  <rect x="62" y="24" width="76" height="132" rx="38" fill="url(#gl${u})" stroke="${OL}" stroke-width="4"/>
+  <rect x="91" y="96" width="18" height="62" rx="9" fill="#f0503b" stroke="${OL}" stroke-width="2.5"/>
+  <circle cx="100" cy="164" r="26" fill="url(#bl${u})" stroke="${OL}" stroke-width="4"/>
+  <ellipse cx="91" cy="155" rx="7" ry="5" fill="#fff" opacity=".7"/>
+  <rect x="72" y="40" width="56" height="44" rx="16" fill="url(#sc${u})" stroke="${OL}" stroke-width="3.5"/>
+  <ellipse cx="89" cy="60" rx="7" ry="9" fill="${eyeC}"/><ellipse cx="111" cy="60" rx="7" ry="9" fill="${eyeC}"/>
+  <circle cx="91" cy="56" r="2.5" fill="#fff"/><circle cx="113" cy="56" r="2.5" fill="#fff"/>
+  <path d="M92 73 Q100 ${alert ? 69 : 78} 108 73" fill="none" stroke="${eyeC}" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="80" cy="76" rx="5" ry="3" fill="#ff9aa8" opacity=".7"/><ellipse cx="120" cy="76" rx="5" ry="3" fill="#ff9aa8" opacity=".7"/>
+  <g stroke="${OL}" stroke-width="2.5" stroke-linecap="round"><line x1="118" y1="98" x2="126" y2="98"/><line x1="118" y1="110" x2="124" y2="110"/><line x1="118" y1="122" x2="126" y2="122"/><line x1="118" y1="134" x2="124" y2="134"/></g>
+  <rect x="70" y="92" width="7" height="44" rx="3.5" fill="#fff" opacity=".8"/>`);
+}
+
+// 사람 공통 얼굴
+function humanBase(o) {
+  const u = ++_u;
+  const skin = `sk${u}`, hair = `hr${u}`, suit = `su${u}`;
+  const defs = `<defs>
+  <radialGradient id="${skin}" cx="42%" cy="35%" r="70%"><stop offset="0" stop-color="#fff1e4"/><stop offset=".7" stop-color="#ffd9bf"/><stop offset="1" stop-color="#f3b994"/></radialGradient>
+  <linearGradient id="${hair}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${o.hair2 || o.hair}"/><stop offset="1" stop-color="${o.hair}"/></linearGradient>
+  <linearGradient id="${suit}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${o.suit2 || o.suit}"/><stop offset="1" stop-color="${o.suit}"/></linearGradient></defs>`;
+  return { u, defs, skin: `url(#${skin})`, hair: `url(#${hair})`, suit: `url(#${suit})` };
+}
+function body(b, o) {
+  return `<path d="M44 200 Q46 160 76 152 L124 152 Q154 160 156 200Z" fill="${b.suit}" stroke="${OL}" stroke-width="4"/>
+  ${o.stripe ? `<path d="M52 186 L148 186" stroke="${o.stripe}" stroke-width="7"/>` : ''}
+  <path d="M80 152 L100 172 L120 152" fill="${o.collar || '#fff'}" stroke="${OL}" stroke-width="3.5"/>
+  ${o.badge ? `<path d="M128 168 l4 8 9 1 -7 6 2 9 -8 -5 -8 5 2 -9 -7 -6 9 -1Z" fill="#ffd25a" stroke="${OL}" stroke-width="2.5"/>` : ''}`;
+}
+function faceCore(b, mood, opt) {
+  opt = opt || {};
+  const pal = { lash: !!opt.lash, c1: opt.c1 || '#7a3e1c', c2: opt.c2 || '#ffcf7a' };
+  return animeFace(b.u, mood || 'happy', 78, 122, pal.c1, pal.c2, pal.lash, opt.ey || 108);
+}
+
+// 단비 대장
+function danbiSVG(mood) {
+  const o = { hair: '#3b2214', hair2: '#6b3e22', suit: '#1f3f73', suit2: '#2f5ea6', stripe: '#ff8a3d', collar: '#ffd25a', badge: 1 };
+  const b = humanBase(o);
+  return wrap(b.defs + shadow() + body(b, o) + `
+  <path d="M150 70 Q186 92 172 140 Q162 120 150 112Z" fill="${b.hair}" stroke="${OL}" stroke-width="4"/>
+  <ellipse cx="100" cy="92" rx="66" ry="64" fill="${b.hair}" stroke="${OL}" stroke-width="4"/>
+  <ellipse cx="100" cy="108" rx="54" ry="50" fill="${b.skin}" stroke="${OL}" stroke-width="4"/>
+  <path d="M44 96 Q48 40 100 36 Q152 40 156 96 Q140 70 112 68 Q118 80 108 86 Q100 66 76 70 Q60 76 44 96Z" fill="${b.hair}" stroke="${OL}" stroke-width="4"/>
+  <path d="M40 98 Q36 46 100 30 Q164 46 160 98" fill="none" stroke="#ff7a59" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="42" cy="104" r="13" fill="#ff7a59" stroke="${OL}" stroke-width="3.5"/>
+  <path d="M46 114 Q58 140 82 138" fill="none" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/><circle cx="84" cy="138" r="4.5" fill="#333" stroke="${OL}" stroke-width="2"/>
+  ` + faceCore(b, mood || 'smile', { lash: true, c1: '#6b2f12', c2: '#ffb36b', ey: 106, brow: `<path d="M66 86 L88 83" stroke="${OL}" stroke-width="4" stroke-linecap="round"/><path d="M134 86 L112 83" stroke="${OL}" stroke-width="4" stroke-linecap="round"/>` }));
+}
+
+// 루카 선배
+function lukaSVG(mood) {
+  const o = { hair: '#b8541a', hair2: '#f08a3a', suit: '#138a78', suit2: '#24c2a5', stripe: '#ffe14d', collar: '#fff' };
+  const b = humanBase(o);
+  return wrap(b.defs + shadow() + body(b, o) + `
+  <ellipse cx="100" cy="110" rx="54" ry="50" fill="${b.skin}" stroke="${OL}" stroke-width="4"/>
+  <path d="M42 96 L48 54 L62 66 L70 34 L86 56 L100 26 L112 54 L130 34 L136 62 L154 52 L158 96 Q140 72 100 74 Q62 72 42 96Z" fill="${b.hair}" stroke="${OL}" stroke-width="4"/>
+  <rect x="50" y="66" width="100" height="10" rx="5" fill="#3a3a48" stroke="${OL}" stroke-width="3"/>
+  <circle cx="80" cy="68" r="15" fill="#9fe3ff" stroke="${OL}" stroke-width="4"/><circle cx="120" cy="68" r="15" fill="#9fe3ff" stroke="${OL}" stroke-width="4"/>
+  <ellipse cx="75" cy="63" rx="5" ry="3.5" fill="#fff"/><ellipse cx="115" cy="63" rx="5" ry="3.5" fill="#fff"/>
+  <rect x="124" y="124" width="18" height="9" rx="3" fill="#ffe0b3" stroke="${OL}" stroke-width="2.5" transform="rotate(-20 133 128)"/>
+  ` + faceCore(b, mood || 'grin', { c1: '#1d7a5a', c2: '#8ff0c8', ey: 110 }));
+}
+
+// 주민 등 조연
+function npcSVG(o) {
+  o = Object.assign({ hair: '#4a3020', suit: '#6aa3d8', hat: null, mood: 'happy', old: false }, o || {});
+  if (o.kind === 'squirrel') return squirrelSVG();
+  const b = humanBase(o);
+  const hat = o.hat ? `<path d="M48 82 Q50 40 100 38 Q150 40 152 82Z" fill="${o.hat}" stroke="${OL}" stroke-width="4"/><path d="M40 84 L160 84" stroke="${OL}" stroke-width="9" stroke-linecap="round"/><path d="M40 84 L160 84" stroke="${o.hat}" stroke-width="4" stroke-linecap="round"/>` : '';
+  const hair = o.old ? `<path d="M48 104 Q42 52 100 50 Q158 52 152 104 Q146 80 128 74 Q100 84 72 74 Q54 80 48 104Z" fill="#e6e6ea" stroke="${OL}" stroke-width="4"/><circle cx="100" cy="46" r="16" fill="#e6e6ea" stroke="${OL}" stroke-width="4"/>`
+    : `<path d="M48 104 Q42 52 100 48 Q158 52 152 104 Q140 76 100 74 Q62 76 48 104Z" fill="${b.hair}" stroke="${OL}" stroke-width="4"/>`;
+  const glasses = o.old ? `<circle cx="78" cy="110" r="15" fill="none" stroke="${OL}" stroke-width="3"/><circle cx="122" cy="110" r="15" fill="none" stroke="${OL}" stroke-width="3"/><path d="M93 110h14" stroke="${OL}" stroke-width="3"/>` : '';
+  return wrap(b.defs + shadow() + body(b, o) + `<ellipse cx="100" cy="112" rx="52" ry="48" fill="${b.skin}" stroke="${OL}" stroke-width="4"/>${hair}${hat}` + faceCore(b, o.mood, { ey: 110 }) + glasses);
+}
+function squirrelSVG() {
+  const u = ++_u;
+  return wrap(`<defs><radialGradient id="sq${u}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#e7a46a"/><stop offset="1" stop-color="#b8692e"/></radialGradient></defs>${shadow()}
+  <path d="M150 190 Q196 150 168 90 Q150 60 170 40 Q130 50 140 100 Q150 140 120 170Z" fill="url(#sq${u})" stroke="${OL}" stroke-width="4"/>
+  <ellipse cx="100" cy="166" rx="40" ry="28" fill="url(#sq${u})" stroke="${OL}" stroke-width="4"/>
+  <path d="M58 64 L64 30 L84 56Z" fill="url(#sq${u})" stroke="${OL}" stroke-width="4"/><path d="M142 64 L136 30 L116 56Z" fill="url(#sq${u})" stroke="${OL}" stroke-width="4"/>
+  <ellipse cx="100" cy="104" rx="56" ry="50" fill="url(#sq${u})" stroke="${OL}" stroke-width="4"/>
+  <ellipse cx="100" cy="126" rx="28" ry="20" fill="#fff1dc"/>
+  ${eye(78, 100, .9, '#3a2216', u)}${eye(122, 100, .9, '#3a2216', u)}
+  <ellipse cx="100" cy="118" rx="6" ry="4.5" fill="#2b1a10"/>${blush(62, 138, 120)}${mouth('sad', 100, 134)}`);
+}
+function shadowSVG() {
+  return wrap(`<ellipse cx="100" cy="193" rx="50" ry="7" fill="rgba(0,0,0,.25)"/>
+  <path d="M40 190 Q30 100 60 60 Q100 10 140 60 Q170 100 160 190 Q140 175 125 190 Q110 175 100 190 Q90 175 75 190 Q60 175 40 190Z" fill="#2d2240" stroke="#120b1c" stroke-width="4"/>
+  <ellipse cx="80" cy="92" rx="9" ry="12" fill="#ff5a5a"/><ellipse cx="120" cy="92" rx="9" ry="12" fill="#ff5a5a"/>
+  <text x="100" y="150" text-anchor="middle" font-size="44" fill="#ffe14d" font-family="Jua">?</text>`);
+}
+
+const PEOPLE = {
+  pori: { name: '포리', svg: m => poriSVG(m), bg: '#dff3ff' },
+  thermo: { name: '써모', svg: m => thermoSVG(m), bg: '#e0f7ff' },
+  danbi: { name: '단비 대장', svg: m => danbiSVG(m), bg: '#ffe7d6' },
+  luka: { name: '루카', svg: m => lukaSVG(m), bg: '#d9fbef' },
+  me: { name: '{name}', svg: m => heroSVG(m, G.avatar), bg: '#fff3c4' },
+  friend: { name: '친구', svg: m => heroSVG(m, 'c', false), bg: '#ece6ff' },
+  shadow: { name: '???', svg: () => shadowSVG(), bg: '#3a2c4f' },
+  factory: { name: '공장장', svg: () => npcSVG({ hat: '#ffd23f', suit: '#5a7da8', hair: '#3a2a20' }), bg: '#e8eef6' },
+  squirrel: { name: '다람쥐', svg: () => squirrelSVG(), bg: '#e9f8d9' },
+  police: { name: '교통경찰', svg: () => npcSVG({ hat: '#2a4f8c', suit: '#2a4f8c', suit2: '#4a7cc4', collar: '#ffe14d' }), bg: '#e3ecfb' },
+  grandma: { name: '이웃 할머니', svg: () => npcSVG({ old: true, suit: '#d77fa1', suit2: '#f2a6c2' }), bg: '#ffe9f2' },
+  janitor: { name: '미화원 아저씨', svg: () => npcSVG({ hat: '#2fbf71', suit: '#2fa36a', suit2: '#55cf8f', hair: '#2b2b2b' }), bg: '#e2f7ea' },
+  villager: { name: '마을 주민', svg: m => npcSVG({ mood: m || 'sad', suit: '#d98a4a', suit2: '#f2ad6f' }), bg: '#fff0de' },
+  rep: { name: '대표', svg: m => npcSVG({ suit: '#7a5ac8', suit2: '#a589f0' }), bg: '#f0eaff' },
+  narr: { name: '', svg: () => '', bg: 'transparent' }
+};
+
+// ===== 애니메이션풍 얼굴 부품 =====
+function animeEye(cx, cy, col, col2, u, side, lash) {
+  const id = `ae${u}_${side}`;
+  const o = side === 'L' ? -1 : 1; // 바깥쪽 방향
+  return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140a06"/><stop offset=".35" stop-color="${col}"/><stop offset="1" stop-color="${col2}"/></linearGradient></defs>
+  <path d="M${cx - 15} ${cy - 6} Q${cx} ${cy - 22} ${cx + 15} ${cy - 6} L${cx + 14} ${cy + 10} Q${cx} ${cy + 22} ${cx - 14} ${cy + 10}Z" fill="#fff"/>
+  <ellipse cx="${cx}" cy="${cy + 2}" rx="12" ry="17" fill="url(#${id})"/>
+  <ellipse cx="${cx}" cy="${cy + 4}" rx="5.5" ry="9" fill="#140a06"/>
+  <ellipse cx="${cx}" cy="${cy + 12}" rx="8" ry="4" fill="${col2}" opacity=".7"/>
+  <ellipse cx="${cx + 4.5}" cy="${cy - 6}" rx="5" ry="6.5" fill="#fff"/>
+  <circle cx="${cx - 5}" cy="${cy + 9}" r="2.6" fill="#fff"/>
+  <circle cx="${cx + 6}" cy="${cy + 10}" r="1.4" fill="#fff"/>
+  <path d="M${cx - 17} ${cy - 6} Q${cx} ${cy - 25} ${cx + 17} ${cy - 7}" fill="none" stroke="#1d0f08" stroke-width="5.5" stroke-linecap="round"/>
+  ${lash ? `<path d="M${cx + 15 * o} ${cy - 7} l${7 * o} -6 M${cx + 13 * o} ${cy - 11} l${5 * o} -8" stroke="#1d0f08" stroke-width="3" stroke-linecap="round"/>` : ''}
+  <path d="M${cx - 9} ${cy + 19} Q${cx} ${cy + 22} ${cx + 9} ${cy + 19}" fill="none" stroke="${OL}" stroke-width="2" stroke-linecap="round" opacity=".6"/>`;
+}
+function animeClosed(cx, cy) { return `<path d="M${cx - 15} ${cy + 2} Q${cx} ${cy - 13} ${cx + 15} ${cy + 2}" fill="none" stroke="#1d0f08" stroke-width="5" stroke-linecap="round"/>`; }
+function animeFace(u, mood, eyeL, eyeR, col, col2, lash, ey) {
+  ey = ey || 108;
+  let eyes = animeEye(eyeL, ey, col, col2, u, 'L', lash) + animeEye(eyeR, ey, col, col2, u, 'R', lash);
+  if (mood === 'joy') eyes = animeClosed(eyeL, ey) + animeClosed(eyeR, ey);
+  let brows = `<path d="M${eyeL - 14} ${ey - 38} Q${eyeL} ${ey - 44} ${eyeL + 13} ${ey - 38}" fill="none" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/><path d="M${eyeR - 13} ${ey - 38} Q${eyeR} ${ey - 44} ${eyeR + 14} ${ey - 38}" fill="none" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/>`;
+  if (mood === 'sad' || mood === 'o') brows = `<path d="M${eyeL - 14} ${ey - 36} L${eyeL + 12} ${ey - 42}" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/><path d="M${eyeR + 14} ${ey - 36} L${eyeR - 12} ${ey - 42}" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/>`;
+  if (mood === 'serious') brows = `<path d="M${eyeL - 14} ${ey - 42} L${eyeL + 12} ${ey - 35}" stroke="${OL}" stroke-width="4" stroke-linecap="round"/><path d="M${eyeR + 14} ${ey - 42} L${eyeR - 12} ${ey - 35}" stroke="${OL}" stroke-width="4" stroke-linecap="round"/>`;
+  const my = ey + 34;
+  const mouths = {
+    happy: `<path d="M88 ${my - 3} Q100 ${my + 15} 112 ${my - 3} Q100 ${my + 1} 88 ${my - 3}Z" fill="#b8323f" stroke="${OL}" stroke-width="2.5" stroke-linejoin="round"/><path d="M93 ${my + 4} Q100 ${my + 1} 107 ${my + 4} Q100 ${my + 9} 93 ${my + 4}Z" fill="#ff8f9a"/>`,
+    grin: `<path d="M86 ${my - 4} Q100 ${my + 16} 114 ${my - 4}Z" fill="#b8323f" stroke="${OL}" stroke-width="2.5" stroke-linejoin="round"/><path d="M88 ${my - 3} L112 ${my - 3} L110 ${my + 1} L90 ${my + 1}Z" fill="#fff"/><path d="M106 ${my - 3} l3 5 l2 -5" fill="#fff" stroke="${OL}" stroke-width="1.2"/>`,
+    sad: `<path d="M91 ${my + 4} Q100 ${my - 4} 109 ${my + 4}" fill="none" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/>`,
+    o: `<ellipse cx="100" cy="${my + 2}" rx="6" ry="7.5" fill="#b8323f" stroke="${OL}" stroke-width="2.5"/>`,
+    serious: `<path d="M92 ${my} Q100 ${my + 5} 108 ${my - 1}" fill="none" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/>`,
+    smile: `<path d="M90 ${my - 1} Q100 ${my + 8} 110 ${my - 1}" fill="none" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/>`
+  };
+  const m = mouths[mood] || mouths[mood === 'joy' ? 'happy' : 'happy'];
+  const blushL = `<ellipse cx="${eyeL - 4}" cy="${ey + 24}" rx="11" ry="5.5" fill="#ff8fa3" opacity=".55"/><path d="M${eyeL - 11} ${ey + 26} l4 -6 M${eyeL - 5} ${ey + 26} l4 -6 M${eyeL + 1} ${ey + 26} l4 -6" stroke="#e8667e" stroke-width="1.8" stroke-linecap="round"/>`;
+  const blushR = `<ellipse cx="${eyeR + 4}" cy="${ey + 24}" rx="11" ry="5.5" fill="#ff8fa3" opacity=".55"/><path d="M${eyeR - 3} ${ey + 26} l4 -6 M${eyeR + 3} ${ey + 26} l4 -6 M${eyeR + 9} ${ey + 26} l4 -6" stroke="#e8667e" stroke-width="1.8" stroke-linecap="round"/>`;
+  const nose = `<path d="M100 ${ey + 18} l-2 4" stroke="#d9906a" stroke-width="2.5" stroke-linecap="round"/>`;
+  return brows + eyes + blushL + blushR + nose + m;
+}
+const FACE_PATH = 'M50 100 Q48 146 100 168 Q152 146 150 100 Q150 52 100 50 Q50 52 50 100Z';
+
+// ===== 주인공(신입 대원) : a 소녀 / b 소년 / c 친구 =====
+function heroSVG(mood, v) {
+  v = v || 'a'; mood = mood || 'happy';
+  const u = ++_u;
+  const P = v === 'b' ? { h1: '#1b2340', h2: '#3d5a9e', hl: '#8fb3ff', eye: '#1e5bb8', eye2: '#8fd8ff', jac: '#f2735a', jac2: '#ff9f7a' }
+    : v === 'c' ? { h1: '#3b2466', h2: '#7b56c4', hl: '#c9b3ff', eye: '#6b3fb8', eye2: '#d8b8ff', jac: '#7d6ae0', jac2: '#a89bff' }
+      : { h1: '#5a2a14', h2: '#a8562a', hl: '#ffc48a', eye: '#b4501c', eye2: '#ffd27a', jac: '#f2735a', jac2: '#ff9f7a' };
+  const defs = `<defs>
+   <radialGradient id="hs${u}" cx="45%" cy="38%" r="70%"><stop offset="0" stop-color="#fff3e8"/><stop offset=".75" stop-color="#ffdcc4"/><stop offset="1" stop-color="#f4b896"/></radialGradient>
+   <linearGradient id="hh${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.h2}"/><stop offset="1" stop-color="${P.h1}"/></linearGradient>
+   <linearGradient id="hj${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.jac2}"/><stop offset="1" stop-color="${P.jac}"/></linearGradient></defs>`;
+  const H = `url(#hh${u})`, SK = `url(#hs${u})`, J = `url(#hj${u})`;
+  // 휘날리는 머플러 + 몸
+  const scarfTail = `<path d="M118 166 Q150 160 176 140 Q170 156 182 162 Q156 178 124 180Z" fill="#e8343f" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/>`;
+  const bodyP = `<path d="M46 200 Q50 172 78 166 L122 166 Q150 172 154 200Z" fill="${J}" stroke="${OL}" stroke-width="4"/>
+   <path d="M60 188 L140 188" stroke="#ffe14d" stroke-width="6"/><path d="M60 188 L140 188" stroke="${OL}" stroke-width="1.5" opacity=".4"/>
+   <path d="M74 160 Q100 178 126 160 L128 172 Q100 188 72 172Z" fill="#e8343f" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/>
+   <path d="M126 180 l4 8 9 1 -7 6 2 9 -8 -5 -8 5 2 -9 -7 -6 9 -1Z" fill="#ffe14d" stroke="${OL}" stroke-width="2.2" transform="translate(-4 -4) scale(.9) translate(14 14)"/>`;
+  let back = '', front = '', extra = '';
+  if (v === 'b') {
+    back = `<path d="M40 112 L30 92 L46 90 L34 64 L56 70 L52 42 L74 56 L82 30 L98 48 L112 26 L122 50 L142 34 L144 60 L166 54 L156 80 L172 88 L156 100 L162 116 Q150 70 100 66 Q50 70 40 112Z" fill="${H}" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>`;
+    front = `<path d="M50 104 Q54 66 100 62 Q146 66 150 104 L140 86 L132 94 L124 78 L114 92 L104 74 L94 92 L84 76 L76 94 L66 82 L58 96Z" fill="${H}" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>
+     <path d="M72 70 Q100 58 128 70" fill="none" stroke="${P.hl}" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+     <path d="M100 30 Q92 10 110 4 Q104 16 112 22" fill="${H}" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/>`;
+    extra = `<path d="M48 90 Q100 72 152 90 L152 100 Q100 82 48 100Z" fill="#e8343f" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/>
+     <path d="M150 92 Q172 84 186 70 Q182 88 190 94 Q170 102 152 100Z" fill="#e8343f" stroke="${OL}" stroke-width="3" stroke-linejoin="round"/>
+     <circle cx="100" cy="88" r="7" fill="#fff" stroke="${OL}" stroke-width="2.5"/><path d="M96 88h8M100 84v8" stroke="#e8343f" stroke-width="2.5"/>`;
+  } else {
+    back = `<path d="M38 160 Q26 110 40 76 Q60 34 100 34 Q140 34 160 76 Q174 110 162 160 Q150 168 140 160 L140 110 L60 110 L60 160 Q50 168 38 160Z" fill="${H}" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>
+     <path d="M156 70 Q192 74 190 120 Q186 146 170 156 Q178 128 166 100Z" fill="${H}" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>`;
+    front = `<path d="M48 112 Q46 58 100 52 Q154 58 152 112 L144 92 Q140 80 128 74 L126 86 L114 70 L106 88 L96 68 L86 86 L76 70 L70 86 Q58 88 56 112Z" fill="${H}" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>
+     <path d="M50 104 Q44 132 54 150 Q60 128 60 108Z M150 104 Q156 132 146 150 Q140 128 140 108Z" fill="${H}" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/>
+     <path d="M68 66 Q100 52 132 66" fill="none" stroke="${P.hl}" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+     <path d="M100 52 Q86 26 106 18 Q98 32 110 40" fill="${H}" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/>`;
+    extra = v === 'a' ? `<path d="M156 74 L172 60 L174 80Z M156 74 L176 78 L164 92Z" fill="#e8343f" stroke="${OL}" stroke-width="3" stroke-linejoin="round"/><circle cx="160" cy="76" r="5" fill="#e8343f" stroke="${OL}" stroke-width="2.5"/>
+     <path d="M58 84 l3 6 7 1 -5 5 1 7 -6 -3 -6 3 1 -7 -5 -5 7 -1Z" fill="#ffe14d" stroke="${OL}" stroke-width="2"/>` : '';
+  }
+  return wrap(defs + shadow() + scarfTail + back + bodyP +
+    `<path d="M86 156 L86 168 L114 168 L114 156Z" fill="${SK}"/>` +
+    `<path d="${FACE_PATH}" fill="${SK}" stroke="${OL}" stroke-width="4"/>` +
+    `<path d="M50 102 Q44 104 46 114 Q48 122 54 120" fill="${SK}" stroke="${OL}" stroke-width="3"/><path d="M150 102 Q156 104 154 114 Q152 122 146 120" fill="${SK}" stroke="${OL}" stroke-width="3"/>` +
+    animeFace(u, mood, 78, 122, P.eye, P.eye2, v !== 'b', 112) + front + extra);
+}
+
+// ===== 상태 · 저장 =====
+const $ = (s, el) => (el || document).querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const SAVE_KEY = 'pbr-save-v1', BOARD_KEY = 'pbr-board-v1';
+const MAX_BLOCKS = 12;
+const G = {
+  name: '', code: '얼음별', avatar: 'a', unlocked: 0, done: {}, blocks: 6, clues: {}, seen: {}, gear: [],
+  stars: {}, scores: {}, pledge: [], sound: true, cur: 0, mist: 0, pts: 0, combo: 0, towerOn: false, campaign: null, poster: null
+};
+function save() { try { const s = Object.assign({}, G); delete s.cur; delete s.mist; delete s.pts; delete s.combo; localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catch (e) { } }
+function load() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s) { Object.assign(G, s); return true; } } catch (e) { } return false; }
+function resetGame() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } location.reload(); }
+const nm = t => t.replace(/\{name\}/g, G.name || '대원').replace(/\{code\}/g, G.code);
+
+// ===== 소리 =====
+let AC = null;
+function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { } } return AC; }
+function tone(f, d, type, vol, when) {
+  if (!G.sound) return; const a = ac(); if (!a) return;
+  try {
+    const t = a.currentTime + (when || 0); const o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(vol || .08, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + d + .02);
+  } catch (e) { }
+}
+const sfx = {
+  ok() { tone(660, .12, 'triangle', .1); tone(990, .2, 'triangle', .09, .1); },
+  no() { tone(200, .18, 'square', .05); tone(140, .25, 'square', .05, .12); },
+  clue() { tone(880, .08, 'triangle', .08); tone(1320, .14, 'triangle', .07, .07); tone(1760, .16, 'sine', .05, .14); },
+  blip() { tone(560 + Math.random() * 90, .025, 'square', .012); },
+  win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, .25, 'triangle', .09, i * .11)); },
+  crack() { tone(110, .3, 'sawtooth', .05); tone(80, .35, 'sawtooth', .04, .08); },
+  tick() { tone(1000, .03, 'square', .02); },
+  splash() { tone(300, .2, 'sine', .07); tone(180, .3, 'sine', .06, .1); }
+};
+
+// ===== 화면 뼈대 =====
+function buildUI() {
+  document.body.insertAdjacentHTML('afterbegin', `
+  <div id="app">
+    <header id="top">
+      <div id="brand"><span class="dot"></span>북극곰 구조대</div>
+      <div id="pips"></div>
+      <div class="sp"></div>
+      <button class="tbtn" id="noteBtn" type="button">단서 수첩 <span id="noteCount">0</span></button>
+      <button class="tbtn" id="mapBtn" type="button">작전 지도</button>
+      <button class="tbtn" id="sndBtn" type="button" aria-label="소리 켜고 끄기">소리 켬</button>
+    </header>
+    <main id="main">
+      <section id="stage"><div id="bg"></div><div id="layer"></div><div id="fx"></div></section>
+      <aside id="tower" class="off"><h3>빙하 탑</h3><div id="tcount"></div><div id="poriTop"></div><div id="blocks"></div><div id="sea"></div></aside>
+    </main>
+    <footer id="dlg" class="hidden" tabindex="0">
+      <div id="portrait"></div>
+      <div><div id="who"></div><div id="text"></div></div>
+      <div id="next">눌러서 계속 ▶</div>
+    </footer>
+  </div>
+  <div id="modal"></div>`);
+  $('#noteBtn').onclick = openNotes;
+  $('#mapBtn').onclick = () => { if (!busyMap) showMap(); };
+  $('#sndBtn').onclick = () => { G.sound = !G.sound; $('#sndBtn').textContent = G.sound ? '소리 켬' : '소리 끔'; save(); };
+  $('#sndBtn').textContent = G.sound ? '소리 켬' : '소리 끔';
+  document.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && dlgAdvance && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'BUTTON') { e.preventDefault(); dlgAdvance(); } });
+  renderTower(); updateNoteCount();
+}
+let busyMap = false;
+function renderPips() {
+  const names = ['프롤로그', '작전 1', '작전 2', '작전 3', '작전 4', '에필로그'];
+  $('#pips').innerHTML = names.map((n, i) => `<span class="pip ${G.done[i] ? 'done' : ''} ${G.cur === i ? 'on' : ''}">${n}</span>`).join('');
+}
+function setBg(name) { $('#bg').innerHTML = (BGS[name] || BGS.hq)(); }
+function clearLayer() { $('#layer').innerHTML = ''; }
+function shakeStage() { const s = $('#stage'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake'); }
+function flash() { const f = document.createElement('div'); f.className = 'flash'; $('#fx').appendChild(f); setTimeout(() => f.remove(), 1000); }
+function toast(t) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 1900); }
+
+// ===== 빙하 탑 =====
+function renderTower(anim) {
+  const b = $('#blocks'); if (!b) return;
+  const cur = b.children.length;
+  if (cur < G.blocks) { for (let i = cur; i < G.blocks; i++) { const d = document.createElement('div'); d.className = 'ice'; b.appendChild(d); } }
+  else if (cur > G.blocks) { for (let i = cur; i > G.blocks; i--) { const el = b.children[i - 1]; el.classList.add('melt'); setTimeout(() => el.remove(), 480); } }
+  $('#tcount').textContent = `블록 ${G.blocks} / ${MAX_BLOCKS}`;
+  $('#poriTop').innerHTML = poriSVG(G.blocks <= 2 ? 'scared' : G.blocks >= 9 ? 'joy' : 'happy');
+  $('#tower').classList.toggle('off', !G.towerOn);
+}
+function addBlock(n) {
+  n = n || 1; if (!G.towerOn) return;
+  G.blocks = Math.min(MAX_BLOCKS, G.blocks + n); renderTower();
+  const p = $('#poriTop'); p.classList.remove('happy'); void p.offsetWidth; p.classList.add('happy');
+}
+function loseBlock() {
+  if (!G.towerOn) return;
+  G.blocks = Math.max(0, G.blocks - 1); sfx.crack(); renderTower();
+  const p = $('#poriTop'); p.classList.remove('wobble'); void p.offsetWidth; p.classList.add('wobble');
+  if (G.blocks === 0) {
+    sfx.splash(); toast('빙하가 다 녹을 뻔했어요! 써모가 비상 얼음 3개를 보냈어요.');
+    setTimeout(() => { G.blocks = 3; renderTower(); }, 900);
+  }
+}
+// 정답/오답 공통 처리 (점수·콤보·블록)
+function right(silent) {
+  G.combo++; const bonus = Math.min(G.combo - 1, 5) * 20; G.pts += 100 + bonus;
+  if (!silent) sfx.ok(); addBlock(1);
+  if (G.combo >= 3) toast(`${G.combo}연속 정답! +${100 + bonus}점`);
+}
+function wrong() { G.combo = 0; G.mist++; sfx.no(); loseBlock(); shakeStage(); }
+
+// ===== 대사 =====
+let dlgAdvance = null;
+function kwHTML(text) {
+  // **단어** → 단서 버튼, 글자마다 span(타자 효과)
+  const parts = nm(text).split(/(\*\*[^*]+\*\*)/);
+  let html = '', n = 0;
+  for (const p of parts) {
+    if (!p) continue;
+    if (p.startsWith('**')) {
+      const k = p.slice(2, -2);
+      html += `<button type="button" class="kw ${G.clues[k] ? 'got' : ''}" data-k="${k}">` + [...k].map(c => `<span class="c" data-i="${n++}">${c}</span>`).join('') + `</button>`;
+    } else html += [...p].map(c => `<span class="c" data-i="${n++}">${c === ' ' ? ' ' : c}</span>`).join('');
+  }
+  return { html, n };
+}
+function plain(t) { return nm(t).replace(/\*\*/g, ''); }
+function setSpeaker(who, mood) {
+  const P = PEOPLE[who] || PEOPLE.narr;
+  const nameEl = $('#who');
+  if (who === 'narr') { nameEl.style.display = 'none'; $('#portrait').style.visibility = 'hidden'; }
+  else { nameEl.style.display = ''; $('#portrait').style.visibility = ''; nameEl.textContent = nm(P.name); }
+  const pt = $('#portrait'); pt.innerHTML = P.svg(mood); pt.style.background = `radial-gradient(circle at 40% 30%,#fff,${P.bg})`;
+  pt.classList.remove('talk'); void pt.offsetWidth; pt.classList.add('talk');
+}
+function say(who, text, mood, opt) {
+  opt = opt || {};
+  return new Promise(res => {
+    const d = $('#dlg'); d.classList.remove('hidden', 'ready');
+    setSpeaker(who, mood);
+    const t = $('#text'); t.className = who === 'narr' ? 'narr' : '';
+    const { html, n } = kwHTML(text); t.innerHTML = html;
+    // 처음 본 단서 문장 기록
+    t.querySelectorAll('.kw').forEach(b => { const k = b.dataset.k; if (!G.seen[k]) G.seen[k] = plain(text); });
+    const spans = t.querySelectorAll('.c'); let i = 0, done = false, timer;
+    const finish = () => { clearInterval(timer); spans.forEach(s => s.classList.add('on')); done = true; d.classList.add('ready'); };
+    timer = setInterval(() => { if (i >= n) { finish(); return; } spans[i].classList.add('on'); if (i % 3 === 0) sfx.blip(); i++; }, 30);
+    t.querySelectorAll('.kw').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); collect(b.dataset.k, plain(text), b); if (!done) finish(); }));
+    let tip = null;
+    const advance = () => {
+      if (!done) { finish(); return; }
+      if (opt.must && !G.clues[opt.must]) {
+        if (!tip) { tip = document.createElement('div'); tip.className = 'hint-tip'; tip.textContent = '반짝이는 단어를 눌러 단서를 저장하세요!'; d.appendChild(tip); }
+        return;
+      }
+      if (tip) tip.remove();
+      d.onclick = null; dlgAdvance = null; sfx.tick(); res();
+    };
+    d.onclick = advance; dlgAdvance = advance;
+  });
+}
+// 미션 중 즉시 반응 대사 (기다리지 않음)
+function react(who, text, mood) {
+  const d = $('#dlg'); d.classList.remove('hidden'); d.classList.remove('ready'); d.onclick = null; dlgAdvance = null;
+  setSpeaker(who, mood); const t = $('#text'); t.className = ''; t.textContent = plain(text);
+}
+function hideDlg() { $('#dlg').classList.add('hidden'); }
+
+// ===== 단서 수첩 =====
+function collect(k, sentence, btn) {
+  if (G.clues[k]) { if (btn) { btn.classList.add('got'); } return; }
+  G.clues[k] = sentence; G.pts += 30; save();
+  sfx.clue(); updateNoteCount();
+  document.querySelectorAll(`.kw[data-k="${CSS.escape(k)}"]`).forEach(b => b.classList.add('got'));
+  if (btn) {
+    const r = btn.getBoundingClientRect(), t = $('#noteBtn').getBoundingClientRect();
+    const s = document.createElement('div'); s.className = 'sparkle'; s.textContent = '★';
+    s.style.left = r.left + r.width / 2 + 'px'; s.style.top = r.top + 'px'; s.style.color = '#f0a500';
+    s.style.setProperty('--dx', (t.left + t.width / 2 - r.left - r.width / 2) + 'px'); s.style.setProperty('--dy', (t.top - r.top) + 'px');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 850);
+  }
+  const nb = $('#noteBtn'); nb.classList.remove('bump'); void nb.offsetWidth; nb.classList.add('bump');
+}
+function updateNoteCount() { const c = $('#noteCount'); if (c) c.textContent = Object.keys(G.clues).length; }
+function openNotes() {
+  const ks = Object.keys(G.clues);
+  modal(`<div class="panel"><h2>단서 수첩 <span class="tag">${ks.length}개</span></h2>
+   <p class="guide">대사 속 반짝이는 단어를 누르면 여기에 저장돼요. 미션이 어려우면 수첩을 다시 읽어 보세요.</p>
+   <div class="notes">${ks.length ? ks.map(k => `<div class="note"><b>${k}</b>${G.clues[k]}</div>`).join('') : '<div class="note">아직 모은 단서가 없어요.</div>'}</div>
+   <div class="row center" style="margin-top:14px"><button class="big blue" type="button" data-close>닫기</button></div></div>`);
+}
+function modal(html) {
+  const m = $('#modal'); m.innerHTML = html; m.classList.add('on');
+  return new Promise(res => {
+    m.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { m.classList.remove('on'); m.innerHTML = ''; res(b.dataset.close); });
+  });
+}
+function closeModal() { const m = $('#modal'); m.classList.remove('on'); m.innerHTML = ''; }
+
+// 확인 퀴즈 전에 놓친 단서 복습
+async function clueCheck(list) {
+  let miss = list.filter(k => !G.clues[k]);
+  if (!miss.length) return;
+  await new Promise(res => {
+    const draw = () => {
+      miss = list.filter(k => !G.clues[k]);
+      const items = list.map(k => {
+        const s = G.seen[k] || ''; const got = !!G.clues[k];
+        const html = s ? s.replace(k, `<button type="button" class="kw ${got ? 'got' : ''}" data-k="${k}">${k}</button>`) : k;
+        return `<div class="note ${got ? '' : ''}">${html}</div>`;
+      }).join('');
+      $('#modal').innerHTML = `<div class="panel"><h2>단서 점검 <span class="tag">${list.length - miss.length} / ${list.length}</span></h2>
+        <p class="guide">${miss.length ? `아직 저장하지 않은 단서가 ${miss.length}개 있어요. 문장을 다시 읽고 반짝이는 단어를 눌러 모두 저장하면 확인 퀴즈가 열려요.` : '단서를 모두 모았어요! 확인 퀴즈를 시작해요.'}</p>
+        <div class="notes">${items}</div>
+        <div class="row center" style="margin-top:14px"><button class="big" type="button" id="goQuiz" ${miss.length ? 'disabled' : ''}>확인 퀴즈 시작</button></div></div>`;
+      $('#modal').classList.add('on');
+      $('#modal').querySelectorAll('.kw').forEach(b => b.onclick = () => { collect(b.dataset.k, G.seen[b.dataset.k], b); draw(); });
+      $('#goQuiz').onclick = () => { closeModal(); res(); };
+    };
+    draw();
+  });
+}
+
+// ===== 보상 · 작전 결과 =====
+const GEAR = {
+  watch: { ic: '⌚', name: '구조대 손목 통신기' }, goggle: { ic: '🥽', name: '기후 관측 고글' },
+  detector: { ic: '🔍', name: '단서 탐지기' }, scale: { ic: '⚖️', name: '탄소 저울' }, badge: { ic: '🏅', name: '북극곰 구조대 정식 배지' }
+};
+async function reward(id) {
+  if (!G.gear.includes(id)) G.gear.push(id); save(); sfx.win();
+  await modal(`<div class="panel" style="text-align:center"><h2 style="justify-content:center">장비 획득!</h2>
+  <div style="margin:16px 0"><span class="gear"><span class="ic">${GEAR[id].ic}</span>${GEAR[id].name}</span></div>
+  <button class="big" type="button" data-close>좋아요!</button></div>`);
+}
+function starsFor(m) { return m <= 2 ? 3 : m <= 5 ? 2 : 1; }
+function starHTML(n) { return [1, 2, 3].map(i => i <= n ? '★' : '<span class="e">★</span>').join(''); }
+async function stageResult(i) {
+  const st = starsFor(G.mist);
+  const bonus = G.blocks * 10;
+  const total = G.pts + bonus;
+  G.stars[i] = Math.max(G.stars[i] || 0, st);
+  G.scores[i] = Math.max(G.scores[i] || 0, total);
+  save(); sfx.win();
+  const r = await modal(`<div class="panel" style="text-align:center"><h2 style="justify-content:center">${STAGES[i].title} 완료!</h2>
+   <div class="stars" style="margin:10px 0">${starHTML(st)}</div>
+   <div class="score-big">${total.toLocaleString()}점</div>
+   <p class="guide">미션 점수 ${G.pts.toLocaleString()} + 빙하 블록 보너스 ${bonus} (블록 ${G.blocks}개)<br>실수 ${G.mist}번 · 모은 단서 ${Object.keys(G.clues).length}개</p>
+   <div class="row center"><button class="big ghost" type="button" data-close="map">작전 지도</button>${i < 5 ? '<button class="big" type="button" data-close="next">다음 작전으로</button>' : ''}</div></div>`);
+  return r;
+}
+const totalScore = () => Object.values(G.scores).reduce((a, b) => a + b, 0);
+
+// ===== 작전 실행기 =====
+async function run(s) {
+  switch (s.t) {
+    case 'say': return say(s.who, s.text, s.mood, s);
+    case 'bg': setBg(s.bg); return;
+    case 'fx': return s.fn();
+    case 'm': clearLayer(); { const r = await MISSIONS[s.id](s.o || {}); clearLayer(); return r; }
+    case 'quiz': return quiz(s.items, STAGES[G.cur].clues || []);
+    case 'reward': return reward(s.gear);
+    case 'wait': return sleep(s.ms);
+  }
+}
+async function playStage(i) {
+  G.cur = i; G.mist = 0; G.pts = 0; G.combo = 0; renderPips();
+  const st = STAGES[i]; clearLayer(); setBg(st.bg);
+  if (st.intro !== false) await stageTitle(st);
+  for (const s of st.steps) await run(s);
+  hideDlg(); clearLayer();
+  G.done[i] = true; G.unlocked = Math.max(G.unlocked, i + 1); save(); renderPips();
+  if (i === 5) { showMap(); return; } // 에필로그는 임명식으로 마무리
+  const r = await stageResult(i);
+  if (r === 'next') playStage(i + 1); else showMap();
+}
+async function stageTitle(st) {
+  hideDlg();
+  $('#layer').innerHTML = `<div class="panel" style="text-align:center;max-width:620px"><span class="tag">${st.label}</span>
+   <h2 style="justify-content:center;font-size:34px;margin:10px 0">${st.title}</h2><p class="guide">${st.goal}</p>
+   <button class="big" type="button" id="goSt">출동!</button></div>`;
+  await new Promise(r => $('#goSt').onclick = r); sfx.ok(); clearLayer();
+}
+
+// ===== 시작 화면 · 등록 · 지도 =====
+function screen(html) {
+  let s = $('#screen'); if (!s) { s = document.createElement('div'); s.id = 'screen'; s.className = 'screen'; document.body.appendChild(s); }
+  s.innerHTML = `<div class="aur"><i style="top:-6%;background:#fff3b0"></i><i style="top:18%;background:#ffd0e0;animation-delay:-4s"></i></div><div class="scard">${html}</div>`;
+  s.style.display = 'flex'; return s;
+}
+function hideScreen() { const s = $('#screen'); if (s) s.style.display = 'none'; }
+function showTitle() {
+  const has = !!G.name;
+  screen(`<h1 class="logo">북극곰 구조대<span class="l2">빙하를 지켜라!</span></h1>
+   <div class="pill">4학년 과학 · 기후변화와 우리 생활</div>
+   <div class="lineup">
+    <div class="ch">${danbiSVG('smile')}<span>단비 대장</span></div>
+    <div class="ch">${poriSVG('happy')}<span>포리</span></div>
+    <div class="ch hero">${heroSVG('happy','a')}<span>신입 대원</span></div>
+    <div class="ch hero">${heroSVG('grin','b')}<span>신입 대원</span></div>
+    <div class="ch">${thermoSVG()}<span>써모</span></div>
+    <div class="ch">${lukaSVG('grin')}<span>루카</span></div>
+   </div>
+   <div class="row center">${has ? `<button class="big" type="button" id="cont">${G.name} 대원, 이어서 하기</button><button class="big ghost" type="button" id="newg">새 대원으로 시작</button>` : `<button class="big" type="button" id="start">화면을 눌러 시작하기</button>`}</div>`);
+  if (has) { $('#cont').onclick = () => { ac(); sfx.ok(); showMap(); }; $('#newg').onclick = () => { resetGame(); }; }
+  else $('#start').onclick = () => { ac(); sfx.ok(); showRegister(); };
+}
+function showRegister() {
+  const codes = ['얼음별', '빙하수호자', '오로라', '눈보라', '북극성', '펭귄킥'];
+  screen(`<h1 class="logo" style="font-size:clamp(36px,6vw,64px)">구조대 등록</h1>
+   <form class="form" id="reg" style="margin-top:18px">
+    <label for="nmIn">이름</label><input type="text" id="nmIn" maxlength="8" placeholder="이름을 입력하세요" autocomplete="off">
+    <label>코드네임</label><div class="chips" id="codes">${codes.map((c, i) => `<button type="button" class="chip ${i === 0 ? 'sel' : ''}" data-c="${c}">${c}</button>`).join('')}</div>
+    <label>내 모습</label><div class="avs"><button type="button" class="av sel" data-v="a" aria-label="단발머리 대원">${heroSVG('happy', 'a')}</button><button type="button" class="av" data-v="b" aria-label="짧은 머리 대원">${heroSVG('happy', 'b')}</button></div>
+    <div class="row center" style="margin-top:18px"><button class="big" type="submit">구조대 입대하기</button></div>
+   </form>`);
+  let code = codes[0], av = 'a';
+  $('#codes').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; code = b.dataset.c; document.querySelectorAll('#codes .chip').forEach(x => x.classList.toggle('sel', x === b)); sfx.tick(); };
+  document.querySelectorAll('.av').forEach(b => b.onclick = () => { av = b.dataset.v; document.querySelectorAll('.av').forEach(x => x.classList.toggle('sel', x === b)); sfx.tick(); });
+  $('#reg').onsubmit = e => {
+    e.preventDefault(); const n = $('#nmIn').value.trim();
+    if (!n) { $('#nmIn').focus(); $('#nmIn').placeholder = '이름을 꼭 입력해 주세요!'; sfx.no(); return; }
+    G.name = n; G.code = code; G.avatar = av; save(); sfx.win(); hideScreen(); playStage(0);
+  };
+}
+function showMap() {
+  hideDlg(); closeModal();
+  const info = [
+    ['프롤로그', '구조 요청이 도착했다', '아기 북극곰 포리의 SOS를 받아요.'],
+    ['작전 1', '지구 이상 신호를 추적하라', '날씨와 기후, 기후변화 현상과 피해'],
+    ['작전 2', '빙하를 녹인 범인을 찾아라', '기후변화의 원인과 지구 온난화'],
+    ['작전 3', '탄소 저울을 맞춰라', '이산화 탄소와 탄소 중립'],
+    ['작전 4', '포리의 빙하를 되찾아라', '생활 속 실천과 알리기'],
+    ['에필로그', '임명식', '임명장 받기와 최우수 대원 순위표']
+  ];
+  const s = screen(`<h1 class="logo" style="font-size:clamp(34px,5.5vw,60px)">작전 지도</h1>
+   <div class="pill" style="font-size:20px">${G.name} 대원 · 코드네임 ${G.code} · 총점 ${totalScore().toLocaleString()}점</div>
+   <div class="map">${info.map((x, i) => {
+    const lock = i > G.unlocked, cur = i === G.unlocked && !G.done[i];
+    return `<button type="button" class="node ${lock ? 'lock' : ''} ${cur ? 'cur' : ''}" data-i="${i}" ${lock ? 'aria-disabled="true"' : ''}><span class="n">${x[0]}</span><h3>${x[1]}</h3><p>${x[2]}</p><span class="st">${G.done[i] && i > 0 && i < 5 ? starHTML(G.stars[i] || 0) : G.done[i] ? '완료' : ''}</span></button>`;
+  }).join('')}</div>
+   <div class="row center" style="margin-top:16px"><button class="big ghost" type="button" id="lbBtn">최우수 대원 순위표</button><button class="big ghost" type="button" id="toTitle">처음 화면</button></div>
+   <button class="teacher" type="button" id="teach">선생님용: 모든 작전 열기</button>`);
+  s.querySelectorAll('.node').forEach(b => b.onclick = () => { const i = +b.dataset.i; if (i > G.unlocked) { sfx.no(); toast('앞 작전을 먼저 끝내야 열려요!'); return; } sfx.ok(); hideScreen(); playStage(i); });
+  $('#lbBtn').onclick = () => showBoard();
+  $('#toTitle').onclick = () => showTitle();
+  $('#teach').onclick = () => { G.unlocked = 5; save(); showMap(); toast('모든 작전이 열렸어요.'); };
+}
+
+// ===== 순위표 (이 기기에 저장) =====
+function board() { try { return JSON.parse(localStorage.getItem(BOARD_KEY) || '[]'); } catch (e) { return []; } }
+function addToBoard() {
+  const b = board().filter(x => !(x.name === G.name && x.code === G.code));
+  b.push({ name: G.name, code: G.code, score: totalScore(), stars: [1, 2, 3, 4].reduce((a, i) => a + (G.stars[i] || 0), 0), date: new Date().toLocaleDateString('ko-KR') });
+  b.sort((a, c) => c.score - a.score);
+  try { localStorage.setItem(BOARD_KEY, JSON.stringify(b.slice(0, 50))); } catch (e) { }
+}
+function showBoard(back) {
+  const b = board();
+  const rows = b.slice(0, 10).map((x, i) => `<tr class="${i === 0 ? 'r1' : ''} ${x.name === G.name && x.code === G.code ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)} <small style="color:#9a7a60">· ${esc(x.code)}</small></td><td>${'★'.repeat(x.stars)}</td><td>${x.score.toLocaleString()}점</td></tr>`).join('');
+  modal(`<div class="panel"><h2>최우수 대원 순위표 <span class="tag">이 기기 기록</span></h2>
+   <p class="guide">이 기기에서 에필로그까지 마친 대원들의 총점 순위예요. 미션 정답, 연속 정답 보너스, 단서, 남은 빙하 블록이 점수가 돼요.</p>
+   ${b.length ? `<table class="lb"><tbody>${rows}</tbody></table>` : '<div class="note">아직 기록이 없어요. 첫 번째 정식 대원이 되어 보세요!</div>'}
+   <div class="row center" style="margin-top:14px"><button class="big blue" type="button" data-close>닫기</button></div>
+   <button class="teacher" type="button" id="clrB">선생님용: 순위표 초기화</button></div>`);
+  $('#clrB').onclick = () => { $('#clrB').textContent = '한 번 더 누르면 순위표가 모두 지워져요'; $('#clrB').onclick = () => { try { localStorage.removeItem(BOARD_KEY); } catch (e) { } closeModal(); toast('순위표를 초기화했어요.'); }; };
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ===== 임명장 (캔버스 → PNG / PDF) =====
+function svgImg(svg) { return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }); }
+async function drawCert() {
+  try { await document.fonts.load('60px Jua'); await document.fonts.load('30px "Gowun Dodum"'); } catch (e) { }
+  const W = 1754, H = 1240, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#fffdf3'); g.addColorStop(1, '#fff1cc'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.strokeStyle = '#4a2a12'; x.lineWidth = 14; x.strokeRect(36, 36, W - 72, H - 72);
+  x.strokeStyle = '#e0b400'; x.lineWidth = 6; x.strokeRect(64, 64, W - 128, H - 128);
+  const D = "Jua, 'Gowun Dodum', sans-serif", B = "'Gowun Dodum', sans-serif";
+  const outlined = (t, X, Y, size, fill) => { x.font = `${size}px ${D}`; x.textAlign = 'center'; x.lineJoin = 'round'; x.lineWidth = size / 6; x.strokeStyle = '#4a2a12'; x.strokeText(t, X, Y); x.fillStyle = fill; x.fillText(t, X, Y); };
+  outlined('임 명 장', W / 2, 230, 130, '#ffe14d');
+  x.font = `40px ${D}`; x.fillStyle = '#f2735a'; x.textAlign = 'center'; x.fillText('북극곰 구조대 정식 대원', W / 2, 300);
+  x.font = `72px ${D}`; x.fillStyle = '#12407a'; x.fillText(`${G.name} 대원`, W / 2, 420);
+  x.font = `34px ${B}`; x.fillStyle = '#7a5a43'; x.fillText(`코드네임  ${G.code}`, W / 2, 475);
+  x.font = `bold 38px ${B}`; x.fillStyle = '#3b2414';
+  ['위 대원은 기후변화의 원인을 밝히고 탄소 저울을 맞추어,', '녹아내리던 북극의 빙하를 되찾고 아기 북극곰 포리를', '엄마 곁으로 돌려보냈기에 북극곰 구조대 정식 대원으로 임명합니다.'].forEach((l, i) => x.fillText(l, W / 2, 570 + i * 58));
+  // 점수 상자
+  x.fillStyle = '#ffffff'; x.strokeStyle = '#4a2a12'; x.lineWidth = 5;
+  const box = (X, Y, w, h) => { x.beginPath(); x.roundRect ? x.roundRect(X, Y, w, h, 26) : x.rect(X, Y, w, h); x.fill(); x.stroke(); };
+  box(260, 770, 560, 270); box(934, 770, 560, 270);
+  x.textAlign = 'left'; x.font = `38px ${D}`; x.fillStyle = '#4a2a12'; x.fillText('작전 기록', 300, 825);
+  x.font = `bold 30px ${B}`;
+  ['지구 이상 신호', '범인 찾기', '탄소 저울', '빙하 되찾기'].forEach((t, i) => { x.fillStyle = '#3b2414'; x.fillText(`작전 ${i + 1}  ${t}`, 300, 875 + i * 42); x.fillStyle = '#f0a500'; x.fillText('★'.repeat(G.stars[i + 1] || 0) + '☆'.repeat(3 - (G.stars[i + 1] || 0)), 650, 875 + i * 42); });
+  x.font = `38px ${D}`; x.fillStyle = '#4a2a12'; x.fillText('나의 실천 약속', 974, 825);
+  x.font = `bold 30px ${B}`; x.fillStyle = '#3b2414';
+  (G.pledge.length ? G.pledge : ['꾸준히 실천하기']).forEach((p, i) => x.fillText(`${i + 1}. ${p}`, 974, 875 + i * 48));
+  x.textAlign = 'center'; outlined(`총점 ${totalScore().toLocaleString()}점`, W / 2, 1110, 56, '#ffffff');
+  x.font = `30px ${B}`; x.fillStyle = '#7a5a43'; x.fillText(new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }), W / 2, 1165);
+  x.textAlign = 'right'; x.font = `38px ${D}`; x.fillStyle = '#3b2414'; x.fillText('북극곰 구조대장  단비', W - 170, 1120);
+  x.beginPath(); x.arc(W - 140, 1105, 52, 0, Math.PI * 2); x.strokeStyle = '#d23a2a'; x.lineWidth = 6; x.stroke();
+  x.font = `30px ${D}`; x.fillStyle = '#d23a2a'; x.textAlign = 'center'; x.fillText('구조대', W - 140, 1100); x.fillText('인', W - 140, 1132);
+  const imgs = await Promise.all([svgImg(poriSVG('joy')), svgImg(danbiSVG('smile')), svgImg(heroSVG('happy', G.avatar)), svgImg(thermoSVG()), svgImg(lukaSVG('grin'))]);
+  const place = (im, X, Y, s) => { if (im) x.drawImage(im, X, Y, s, s); };
+  place(imgs[2], 96, 90, 230); place(imgs[0], W - 330, 90, 240); place(imgs[1], 80, 340, 190); place(imgs[3], W - 260, 340, 180); place(imgs[4], W - 300, 560, 0);
+  return c;
+}
+async function getDownloads() {
+  try { if (window.claude && typeof window.claude.use === 'function') return await window.claude.use('downloads'); } catch (e) { }
+  return null;
+}
+async function saveFile(name, blob) {
+  const dl = await getDownloads();
+  if (!dl) return false;
+  try { await dl.save({ filename: name, data: blob }); toast('저장했어요!'); return true; }
+  catch (e) { if (e && e.code === 'declined') toast('저장을 취소했어요.'); else toast('이 화면에서는 내려받기를 할 수 없어요. 이미지를 길게 눌러 저장하세요.'); return true; }
+}
+
+// ===== 배경 =====
+const OLB = '#4a2a12';
+const BGS = {
+  classroom: () => `<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice"><rect width="1000" height="560" fill="#ffe9c2"/>
+   <rect y="400" width="1000" height="160" fill="#d9a066"/><path d="M0 400h1000" stroke="${OLB}" stroke-width="5"/>
+   <rect x="300" y="70" width="400" height="220" rx="14" fill="#2f6b4f" stroke="${OLB}" stroke-width="7"/><text x="500" y="190" text-anchor="middle" font-family="Jua" font-size="40" fill="#e9f5ee" opacity=".85">기후변화와 우리 생활</text>
+   <rect x="60" y="80" width="170" height="200" rx="10" fill="#bfe6ff" stroke="${OLB}" stroke-width="6"/><path d="M145 80v200M60 180h170" stroke="${OLB}" stroke-width="5"/>
+   <rect x="780" y="80" width="170" height="200" rx="10" fill="#bfe6ff" stroke="${OLB}" stroke-width="6"/><path d="M865 80v200M780 180h170" stroke="${OLB}" stroke-width="5"/>
+   <g fill="#c98a4b" stroke="${OLB}" stroke-width="5"><rect x="120" y="430" width="220" height="40" rx="8"/><rect x="660" y="430" width="220" height="40" rx="8"/></g></svg>`,
+  hq: () => `<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="hqg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd6ff"/><stop offset="1" stop-color="#e3f4ff"/></linearGradient></defs>
+   <rect width="1000" height="560" fill="url(#hqg)"/><rect y="430" width="1000" height="130" fill="#7aa8d6"/><path d="M0 430h1000" stroke="${OLB}" stroke-width="5"/>
+   <rect x="230" y="40" width="540" height="300" rx="24" fill="#1d4478" stroke="${OLB}" stroke-width="8"/>
+   <g fill="#5fc9a8" stroke="#0e2a50" stroke-width="3"><path d="M290 120 q40-30 90-10 q30 20 10 50 q-30 30-70 20 q-40-20-30-60z"/><path d="M420 100 q50-20 110 0 q40 20 30 60 q-30 40-90 30 q-60-20-50-90z"/><path d="M600 110 q60-30 120 10 q20 40-20 70 q-50 20-90-10 q-30-30-10-70z"/><path d="M360 220 q30-10 50 20 q10 40-20 70 q-30 10-40-30 q-10-40 10-60z"/><path d="M640 230 q40-10 60 20 q0 30-40 40 q-40-10-20-60z"/></g>
+   <text x="500" y="320" text-anchor="middle" font-family="Jua" font-size="22" fill="#9fe3ff">북극곰 구조대 지구 관측 화면</text>
+   <g stroke="${OLB}" stroke-width="5"><rect x="80" y="360" width="200" height="80" rx="14" fill="#ffd23f"/><rect x="720" y="360" width="200" height="80" rx="14" fill="#ffd23f"/></g>
+   <g><circle cx="120" cy="395" r="10" fill="#ff5a4a"/><circle cx="160" cy="395" r="10" fill="#2fbf71"/><circle cx="200" cy="395" r="10" fill="#3a9be6"/><circle cx="760" cy="395" r="10" fill="#2fbf71"/><circle cx="800" cy="395" r="10" fill="#ff5a4a"/><circle cx="840" cy="395" r="10" fill="#3a9be6"/></g></svg>`,
+  arctic: () => `<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a99be6"/><stop offset=".5" stop-color="#f5b3b6"/><stop offset="1" stop-color="#ffd896"/></linearGradient></defs>
+   <rect width="1000" height="560" fill="url(#ag)"/><circle cx="780" cy="300" r="70" fill="#fff2b0" opacity=".9"/>
+   <path d="M0 140 Q250 60 500 140 T1000 120" stroke="#9ff0d8" stroke-width="40" fill="none" opacity=".45"/>
+   <rect y="330" width="1000" height="230" fill="#4fb0e8"/><path d="M0 330h1000" stroke="${OLB}" stroke-width="5"/>
+   <g fill="#fff" stroke="${OLB}" stroke-width="6"><path d="M60 360 l60-40 h140 l40 40 z"/><path d="M640 420 l40-30 h120 l50 30 z"/><path d="M380 470 l30-20 h80 l30 20 z"/></g>
+   <g stroke="#2a7cc4" stroke-width="4" opacity=".6" fill="none"><path d="M100 420 q20 -10 40 0"/><path d="M520 380 q20-10 40 0"/><path d="M820 500 q20-10 40 0"/></g></svg>`,
+  ocean: () => `<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="og" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fd3ff"/><stop offset="1" stop-color="#2a6fb8"/></linearGradient></defs>
+   <rect width="1000" height="560" fill="url(#og)"/><g fill="#fff" opacity=".18"><path d="M150 0 L260 0 L120 560 L40 560z"/><path d="M520 0 L600 0 L520 560 L420 560z"/></g>
+   <path d="M0 470 Q250 440 500 470 T1000 460 V560 H0z" fill="#f2d49b" stroke="${OLB}" stroke-width="5"/></svg>`,
+  town: () => `<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b6a6ec"/><stop offset=".6" stop-color="#f7bfae"/><stop offset="1" stop-color="#ffe0a6"/></linearGradient></defs>
+   <rect width="1000" height="560" fill="url(#tg)"/><g fill="#f6e3d3" stroke="${OLB}" stroke-width="5"><rect x="40" y="200" width="120" height="260"/><rect x="180" y="140" width="100" height="320"/><rect x="720" y="170" width="110" height="290"/><rect x="850" y="230" width="120" height="230"/></g>
+   <g fill="#ffe27a"><rect x="60" y="230" width="22" height="22"/><rect x="110" y="290" width="22" height="22"/><rect x="200" y="180" width="22" height="22"/><rect x="740" y="210" width="22" height="22"/><rect x="880" y="270" width="22" height="22"/></g>
+   <rect y="460" width="1000" height="100" fill="#8ccf6a"/><path d="M0 460h1000" stroke="${OLB}" stroke-width="5"/></svg>`
+};
+
+// ===== 공통 패널 =====
+function panel(tag, title, guide, wide) {
+  const p = document.createElement('div'); p.className = 'panel'; if (wide) p.style.maxWidth = wide + 'px';
+  p.innerHTML = `<h2>${tag ? `<span class="tag">${tag}</span>` : ''}${title}</h2>${guide ? `<p class="guide">${guide}</p>` : ''}<div class="body"></div>`;
+  $('#layer').appendChild(p); return p.querySelector('.body');
+}
+function doneBtn(body, label) { return new Promise(r => { const b = document.createElement('div'); b.className = 'row center'; b.style.marginTop = '14px'; b.innerHTML = `<button class="big" type="button">${label || '다음'}</button>`; body.appendChild(b); b.firstChild.onclick = () => { sfx.tick(); r(); }; }); }
+
+const MISSIONS = {};
+
+// 카드 분류 (한 장씩)
+MISSIONS.sort = o => new Promise(res => {
+  const body = panel(o.tag, o.title, o.guide);
+  let queue = shuffle(o.cards), left = queue.length;
+  body.innerHTML = `<div class="meter"><i></i></div><div class="combo"></div>
+   <div class="bins"><button class="bin a" type="button" data-b="0">${o.bins[0]}<small>← 왼쪽</small></button><div class="slot"></div><button class="bin b" type="button" data-b="1">${o.bins[1]}<small>오른쪽 →</small></button></div>`;
+  const total = queue.length;
+  const draw = () => {
+    $('.meter i', body).style.width = ((total - left) / total * 100) + '%';
+    if (!queue.length) { document.removeEventListener('keydown', key); setTimeout(res, 500); return; }
+    const c = queue[0]; $('.slot', body).innerHTML = `<div class="card">${c.em ? `<div class="em">${c.em}</div>` : ''}<div>${c.text}</div></div>`;
+  };
+  const pick = b => {
+    const c = queue[0]; if (!c) return;
+    if (c.bin === b) { right(); queue.shift(); left--; $('.combo', body).textContent = G.combo >= 2 ? `${G.combo}연속 정답!` : ''; if (o.ok) react(...o.ok); draw(); }
+    else { wrong(); $('.slot .card', body).classList.add('no'); $('.combo', body).textContent = ''; if (o.no) react(...(typeof o.no === 'function' ? o.no(c) : o.no)); queue.push(queue.shift()); setTimeout(draw, 450); }
+  };
+  body.querySelectorAll('.bin').forEach(b => b.onclick = () => pick(+b.dataset.b));
+  const key = e => { if (e.key === 'ArrowLeft') pick(0); if (e.key === 'ArrowRight') pick(1); };
+  document.addEventListener('keydown', key);
+  draw();
+});
+
+// 객관식 여러 문제
+MISSIONS.choice = async o => {
+  for (const q of o.qs) {
+    await new Promise(res => {
+      $('#layer').innerHTML = '';
+      const body = panel(o.tag, o.title, '', o.wide);
+      body.innerHTML = `${q.pre || ''}<p style="font-size:20px;font-weight:700;margin:6px 0 12px">${q.q}</p><div class="${q.opts.length > 3 ? 'grid2' : 'row'}" style="gap:10px">${shuffle(q.opts).map(x => `<button class="opt" type="button">${x}</button>`).join('')}</div>`;
+      if (q.react) react(...q.react);
+      body.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+        if (b.textContent === q.a) { b.classList.add('ok'); right(); body.querySelectorAll('.opt').forEach(x => x.disabled = true); if (q.ok) react(...q.ok); setTimeout(res, q.ok ? 1600 : 700); }
+        else { b.classList.add('no'); b.disabled = true; wrong(); react(...(q.no || ['thermo', '삐빅! 다시 생각해 봐. 단서 수첩을 열어 봐도 좋아.'])); }
+      });
+    });
+  }
+};
+
+// 세계 이상 신호 지도
+MISSIONS.sos = o => new Promise(res => {
+  const body = panel('미션 1-2', '세계 이상 신호 출동', '빨간 신호를 눌러 주민의 SOS를 읽고, 어떤 기후변화 현상인지 골라요.', 860);
+  const pins = o.pins; let solved = 0;
+  body.innerHTML = `<div class="mapwrap" style="height:300px"><svg viewBox="0 0 860 300" width="100%" height="100%" preserveAspectRatio="none"><rect width="860" height="300" fill="#4fb0e8"/>
+    <g fill="#8ccf6a" stroke="${OLB}" stroke-width="4"><path d="M40 70 q80-50 170-20 q60 30 40 90 q-40 50-120 40 q-80-20-90-110z"/><path d="M300 50 q90-30 180 10 q50 40 20 100 q-50 50-140 30 q-80-30-60-140z"/><path d="M560 60 q100-40 200 10 q50 50 0 110 q-70 40-150 10 q-80-40-50-130z"/><path d="M180 200 q50-20 90 20 q10 50-40 70 q-60 0-50-90z"/><path d="M620 210 q60-10 80 30 q-10 40-60 40 q-40-20-20-70z"/></g>
+    <g fill="#fff" stroke="${OLB}" stroke-width="4"><path d="M300 0 h260 v20 q-130 20-260 0z"/></g></svg>
+    ${pins.map((p, i) => `<button class="pin" type="button" data-i="${i}" style="left:${p.x}%;top:${p.y}%"><i></i><span>${p.name}</span></button>`).join('')}</div>
+    <div id="sosBox" style="margin-top:12px"></div>`;
+  react('thermo', '삐빅! 지도의 빨간 신호 다섯 곳을 하나씩 눌러 봐.');
+  body.querySelectorAll('.pin').forEach(pb => pb.onclick = () => {
+    const p = pins[+pb.dataset.i]; if (pb.classList.contains('done')) return; sfx.tick();
+    const box = $('#sosBox', body);
+    box.innerHTML = `<div class="note"><b>${p.name}</b>"${p.sos}"</div><div class="row" style="margin-top:10px">${shuffle(o.opts).map(x => `<button class="opt" type="button">${x}</button>`).join('')}</div>`;
+    react('villager', p.sos, 'sad');
+    box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+      if (b.textContent === p.a) {
+        b.classList.add('ok'); right(); pb.classList.add('done'); solved++; box.innerHTML = `<div class="note" style="background:#d4f7e3"><b>${p.a}</b>해결! 주민들이 안전한 곳으로 이동했어요.</div>`;
+        react('thermo', `삐빅! 정답, ${p.a}이야. ${solved < pins.length ? `남은 신호는 ${pins.length - solved}곳!` : '모든 신호를 해결했어!'}`);
+        if (solved === pins.length) setTimeout(res, 1500);
+      } else { b.classList.add('no'); b.disabled = true; wrong(); react('luka', '앗, 아닌 것 같아! 주민의 말을 다시 꼼꼼히 읽어 봐.'); }
+    });
+  });
+});
+
+// 막대그래프 판독
+MISSIONS.graph = async o => {
+  const vals = [7.7, 10.4, 11.1, 14], labels = ['1984~1993', '1994~2003', '2004~2013', '2014~2023'];
+  const bars = vals.map((v, i) => { const h = v / 16 * 200, x = 90 + i * 150; return `<g><rect class="gbar" x="${x}" y="${240 - h}" width="90" height="${h}" rx="10" fill="${i === 3 ? '#f2735a' : '#ffb36b'}" stroke="${OLB}" stroke-width="4" style="transform-origin:${x + 45}px 240px;animation:rise .8s ${i * .25}s both"/><text x="${x + 45}" y="${232 - h}" text-anchor="middle" font-family="Jua" font-size="22" fill="${OLB}">${v}일</text><text x="${x + 45}" y="268" text-anchor="middle" font-size="15" font-weight="700" fill="#6b4a33">${labels[i]}</text></g>`; }).join('');
+  const chart = `<svg viewBox="0 0 700 290" width="100%" style="max-height:290px;background:#fff;border:3px solid ${OLB};border-radius:16px">
+   <g stroke="#eadfcf" stroke-width="2">${[4, 8, 12, 16].map(t => `<line x1="60" x2="680" y1="${240 - t / 16 * 200}" y2="${240 - t / 16 * 200}"/>`).join('')}</g>
+   <g font-size="14" fill="#9a7a60" text-anchor="end">${[0, 4, 8, 12, 16].map(t => `<text x="52" y="${245 - t / 16 * 200}">${t}</text>`).join('')}</g>
+   <line x1="60" x2="680" y1="240" y2="240" stroke="${OLB}" stroke-width="3"/>${bars}</svg>
+   <p style="margin:6px 0 0;font-size:14px;color:#7a5a43">우리나라 폭염 일수(연평균, 일) · 자료: 기상청 기상자료개방포털(교과서 89쪽)</p>`;
+  await MISSIONS.choice({
+    tag: '미션 1-3', title: '써모의 그래프 판독', wide: 760, qs: [
+      { pre: chart, q: '시간이 지날수록 폭염 일수는 어떻게 변했나요?', opts: ['줄었다', '비슷하다', '늘었다'], a: '늘었다', react: ['thermo', '삐빅! 막대의 높이가 어떻게 변하는지 봐.'], ok: ['thermo', '삐빅! 맞아. 폭염이 점점 잦아지고 있어.'] },
+      { pre: chart, q: '가장 최근 막대(14일)는 가장 오래된 막대(7.7일)의 약 몇 배인가요?', opts: ['약 2배', '약 5배', '약 10배'], a: '약 2배', ok: ['luka', '40년 만에 두 배나? 포리가 있는 북극도 그래서 더워진 거구나.'] }
+    ]
+  });
+};
+
+// 빙하 비교 슬라이더
+MISSIONS.glacier = () => new Promise(res => {
+  const body = panel('미션 1-4', '빙하 비교 사진', '가운데 막대를 좌우로 움직여 같은 장소의 옛날과 오늘을 비교해 보세요.', 760);
+  const scene = (ice) => `<svg viewBox="0 0 700 320" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><rect width="700" height="320" fill="#bfe6ff"/>
+   <path d="M0 260 L120 80 L230 200 L350 40 L470 190 L580 70 L700 240 V320 H0Z" fill="#9b8a7a" stroke="${OLB}" stroke-width="5"/>
+   ${ice ? `<path d="M210 320 Q240 200 300 120 L350 60 L400 120 Q460 200 490 320Z" fill="#f4fbff" stroke="${OLB}" stroke-width="5"/><path d="M110 100 L130 80 L150 110Z M560 90 L580 70 L600 100Z" fill="#fff" stroke="${OLB}" stroke-width="4"/>`
+      : `<path d="M330 90 L350 60 L372 92 Q350 110 330 90Z" fill="#f4fbff" stroke="${OLB}" stroke-width="4"/><path d="M220 320 Q300 270 350 250 Q400 270 480 320Z" fill="#5fb8e8" stroke="${OLB}" stroke-width="4"/>`}
+   <rect y="290" width="700" height="30" fill="#6fae5c"/></svg>`;
+  body.innerHTML = `<div style="position:relative;height:300px;border:3px solid ${OLB};border-radius:16px;overflow:hidden">
+    <div style="position:absolute;inset:0">${scene(false)}</div>
+    <div id="gTop" style="position:absolute;inset:0;clip-path:inset(0 50% 0 0)">${scene(true)}</div>
+    <span class="tag" style="position:absolute;left:10px;top:10px;font-family:Jua">1910년</span><span class="tag" style="position:absolute;right:10px;top:10px;font-family:Jua;background:#3a9be6">2021년</span>
+    <div id="gLine" style="position:absolute;top:0;bottom:0;left:50%;width:6px;background:#ffe14d;border:2px solid ${OLB};transform:translateX(-50%)"></div></div>
+    <input type="range" id="gR" min="0" max="100" value="50" style="width:100%;margin-top:10px" aria-label="옛날과 오늘 비교">
+    <p style="font-size:14px;color:#7a5a43;margin:4px 0 0">미국 글레이셔 국립 공원의 1910년과 2021년 모습을 그림으로 나타냈어요(교과서 93쪽).</p>`;
+  const r = $('#gR', body); let moved = 0;
+  r.oninput = () => { $('#gTop', body).style.clipPath = `inset(0 ${100 - r.value}% 0 0)`; $('#gLine', body).style.left = r.value + '%'; moved++; if (moved === 8) { react('luka', '우와, 빙하가 거의 다 사라졌잖아!'); doneBtn(body, '다음').then(res); } };
+  react('thermo', '삐빅! 막대를 끝까지 움직여 봐.');
+});
+
+// 해수면 상승 모형실험
+MISSIONS.sealevel = async () => {
+  await new Promise(res => {
+    const body = panel('미션 1-4', '해수면 상승 모형실험', '"물 한 컵 붓기"를 눌러 녹은 빙하가 바다로 흘러드는 모습을 나타내 보세요.', 760);
+    body.innerHTML = `<svg viewBox="0 0 700 300" width="100%" style="max-height:300px;background:#f6fbff;border:3px solid ${OLB};border-radius:16px">
+     <rect x="40" y="30" width="620" height="250" fill="none" stroke="#7ab6e0" stroke-width="6" rx="6"/>
+     <rect id="water" x="44" y="230" width="612" height="46" fill="#4fb0e8" opacity=".85"/>
+     <path d="M380 276 L656 120 L656 276Z" fill="#b59a7a" stroke="${OLB}" stroke-width="4"/>
+     <g id="island"><ellipse cx="200" cy="236" rx="70" ry="16" fill="#e8c98f" stroke="${OLB}" stroke-width="4"/><path d="M200 220 v-30" stroke="${OLB}" stroke-width="5"/><path d="M200 190 q-20-10-30 4 M200 190 q20-10 30 4 M200 190 q0-18 -14-22" fill="none" stroke="#2fa36a" stroke-width="7" stroke-linecap="round"/></g>
+     <g id="house"><rect x="520" y="166" width="44" height="34" fill="#ffd23f" stroke="${OLB}" stroke-width="4"/><path d="M514 168 L542 144 L570 168Z" fill="#f2735a" stroke="${OLB}" stroke-width="4"/></g>
+     <g id="tree"><rect x="606" y="132" width="8" height="26" fill="#8a5a3a" stroke="${OLB}" stroke-width="3"/><circle cx="610" cy="124" r="18" fill="#5cc46a" stroke="${OLB}" stroke-width="4"/></g>
+     <text x="500" y="268" font-size="15" fill="#fff" font-weight="700">자갈 = 육지</text><text x="70" y="268" font-size="15" fill="#fff" font-weight="700">물 = 바닷물</text></svg>
+     <div class="row center" style="margin-top:12px"><button class="big blue" type="button" id="pour">물 한 컵 붓기 (0/4)</button></div>`;
+    let n = 0; const levels = [230, 205, 178, 150, 110];
+    react('thermo', '삐빅! 수조의 자갈은 육지, 물은 바닷물이야. 물을 한 컵씩 부어 봐.');
+    $('#pour', body).onclick = () => {
+      n++; sfx.splash(); const w = $('#water', body); const y = levels[n];
+      w.setAttribute('y', y); w.setAttribute('height', 276 - y); w.style.transition = 'all .6s';
+      $('#pour', body).textContent = `물 한 컵 붓기 (${n}/4)`;
+      if (n === 1) react('luka', '섬이 조금 잠겼어!');
+      if (n === 2) { $('#island', body).style.opacity = .35; react('luka', '섬이 완전히 잠겨 버렸어!'); }
+      if (n === 3) react('thermo', '삐빅! 물이 집과 나무 바로 아래까지 올라왔어.');
+      if (n === 4) { $('#house', body).style.opacity = .35; $('#tree', body).style.opacity = .35; react('luka', '집이랑 나무까지 물에 잠겼어…'); $('#pour', body).disabled = true; doneBtn(body, '관찰 끝!').then(res); }
+    };
+  });
+  await MISSIONS.choice({ tag: '미션 1-4', title: '모형실험 정리', qs: [{ q: '바닷물의 높이가 올라가면 어떤 일이 생기나요?', opts: ['사람과 동식물이 살 수 있는 육지가 줄어든다', '육지가 더 넓어진다', '아무 변화가 없다'], a: '사람과 동식물이 살 수 있는 육지가 줄어든다' }] });
+};
+
+// 짝 연결
+MISSIONS.match = o => new Promise(res => {
+  const body = panel(o.tag, o.title, o.guide, 860);
+  const L = shuffle(o.pairs.map((p, i) => ({ ...p, i }))), R = shuffle(o.pairs.map((p, i) => ({ ...p, i })));
+  body.innerHTML = `<div class="grid2" style="grid-template-columns:1fr 1.4fr"><div class="col" id="mL" style="display:grid;gap:8px">${L.map(p => `<button class="opt" type="button" data-i="${p.i}"><span style="font-size:26px">${p.em}</span> ${p.l}</button>`).join('')}</div>
+    <div class="col" id="mR" style="display:grid;gap:8px">${R.map(p => `<button class="opt" type="button" data-i="${p.i}">${p.r}</button>`).join('')}</div></div>`;
+  let sel = null, n = 0;
+  react('thermo', '삐빅! 왼쪽 현장을 먼저 누르고, 알맞은 피해를 오른쪽에서 골라.');
+  body.querySelectorAll('#mL .opt').forEach(b => b.onclick = () => { if (b.disabled) return; body.querySelectorAll('#mL .opt').forEach(x => x.style.outline = ''); sel = b; b.style.outline = '4px solid #ffb400'; sfx.tick(); });
+  body.querySelectorAll('#mR .opt').forEach(b => b.onclick = () => {
+    if (!sel || b.disabled) { if (!sel) react('luka', '왼쪽 현장부터 먼저 골라 줘!'); return; }
+    if (sel.dataset.i === b.dataset.i) {
+      right(); [sel, b].forEach(x => { x.classList.add('ok'); x.disabled = true; x.style.outline = ''; }); sel = null; n++;
+      if (n === o.pairs.length) { if (o.end) react(...o.end); setTimeout(res, 1800); }
+    } else { wrong(); b.classList.add('no'); setTimeout(() => b.classList.remove('no'), 450); react('luka', '음, 그 피해는 다른 현장 같아.'); }
+  });
+});
+
+// 다섯 장소 수사 (고글 렌즈로 흔적 찾기)
+MISSIONS.hunt = async o => {
+  const done = new Set(); G.evid = [];
+  while (done.size < o.places.length) {
+    const pi = await new Promise(res => {
+      const body = panel('미션 2-1', '다섯 장소 수사', '수사할 장소를 고르세요. 고글을 끼면 지구를 데우는 흔적이 붉게 보여요.', 860);
+      body.innerHTML = `<div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${o.places.map((p, i) => `<button class="opt" type="button" data-i="${i}" ${done.has(i) ? 'disabled style="opacity:.55"' : ''} style="text-align:center"><div style="font-size:42px">${p.em}</div><b>${p.name}</b>${done.has(i) ? '<div style="color:#2fbf71">수사 완료</div>' : ''}</button>`).join('')}</div>
+        <div class="evid">${G.evid.map(e => `<span class="e">증거: ${e}</span>`).join('')}</div>`;
+      body.querySelectorAll('.opt').forEach(b => b.onclick = () => { sfx.tick(); res(+b.dataset.i); });
+    });
+    clearLayer();
+    const p = o.places[pi];
+    await new Promise(res => {
+      const body = panel('수사 중', p.name, '렌즈를 움직여 붉게 빛나는 흔적 2개를 찾아 누르세요. 다른 물건을 누르면 시간이 3초 줄어요.', 860);
+      body.innerHTML = `<div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="timer" id="tm">30초</span><span id="fd" style="font-family:Jua;font-size:18px">찾은 흔적 0 / 2</span></div>
+       <div class="hunt" id="hz" style="background:${p.bg}">${p.objs.map((ob, i) => `<button class="obj" type="button" data-i="${i}" style="left:${ob.x}%;top:${ob.y}%" aria-label="${ob.label}">${ob.em}</button>`).join('')}
+        <div class="heat" id="ht">${p.objs.filter(ob => ob.bad).map(ob => `<b style="left:${ob.x}%;top:${ob.y}%"></b>`).join('')}</div><div class="lens" id="ln"></div></div>`;
+      const hz = $('#hz', body), ht = $('#ht', body), ln = $('#ln', body);
+      const mv = e => { const r = hz.getBoundingClientRect(); const x = e.clientX - r.left, y = e.clientY - r.top; [ht, ln].forEach(el => { el.style.setProperty('--x', x + 'px'); el.style.setProperty('--y', y + 'px'); }); };
+      hz.addEventListener('pointermove', mv); hz.addEventListener('pointerdown', mv);
+      let t = 30, found = 0;
+      react('danbi', '고글을 끼고 천천히 살펴봐. 흔적은 꼭 두 개야.');
+      const tick = setInterval(() => { t--; $('#tm', body).textContent = t + '초'; if (t <= 5) sfx.tick(); if (t <= 0) { clearInterval(tick); ht.classList.add('all'); G.mist++; react('thermo', '삐빅! 시간 초과. 흔적 위치를 모두 보여 줄게. 빛나는 곳을 눌러 봐.'); } }, 1000);
+      body.querySelectorAll('.obj').forEach(b => b.onclick = () => {
+        const ob = p.objs[+b.dataset.i]; if (b.classList.contains('found')) return;
+        if (ob.bad) { b.classList.add('found'); found++; right(); $('#fd', body).textContent = `찾은 흔적 ${found} / 2`; react('thermo', `삐빅! 흔적 발견: ${ob.label}`); if (found === 2) { clearInterval(tick); setTimeout(res, 900); } }
+        else { sfx.no(); t = Math.max(1, t - 3); $('#tm', body).textContent = t + '초'; react('luka', `${ob.label}은(는) 괜찮아 보여. 렌즈로 붉은 빛을 찾아봐!`); }
+      });
+    });
+    clearLayer();
+    await say(p.who, p.testimony, 'sad');
+    G.evid.push(p.evid); done.add(pi); sfx.win(); toast(`증거 카드 획득: ${p.evid}`);
+    if (done.size === 3) await say('luka', '이상하다… 그림자는 안 보이고, 흔적만 자꾸 나오네?', 'serious');
+  }
+};
+
+// 탄소 저울 퍼즐
+MISSIONS.scale = async o => {
+  for (let ri = 0; ri < o.rounds.length; ri++) {
+    const rd = o.rounds[ri];
+    await new Promise(res => {
+      const body = panel(`미션 3-1 · ${ri + 1}라운드`, '탄소 저울 퍼즐', '카드를 눌러 저울을 수평으로 맞추세요. 카드마다 어느 접시에 영향을 줄지 먼저 생각해 보세요!', 860);
+      let L = rd.L, R = rd.R; const used = new Set(); let t = rd.time || 0, tick = null;
+      const draw = () => {
+        const diff = L - R, ang = Math.max(-18, Math.min(18, diff * 1.6));
+        const rad = ang * Math.PI / 180, cx = 350, cy = 90, arm = 210;
+        const lx = cx - arm * Math.cos(rad), ly = cy + arm * Math.sin(rad), rx = cx + arm * Math.cos(rad), ry = cy - arm * Math.sin(rad);
+        const pan = (x, y, val, col, lab, icon) => `<line x1="${x}" y1="${y}" x2="${x - 50}" y2="${y + 70}" stroke="${OLB}" stroke-width="3"/><line x1="${x}" y1="${y}" x2="${x + 50}" y2="${y + 70}" stroke="${OLB}" stroke-width="3"/>
+          <path d="M${x - 70} ${y + 70} h140 q-10 34 -70 34 q-60 0 -70 -34z" fill="${col}" stroke="${OLB}" stroke-width="4"/>
+          <text x="${x}" y="${y + 60}" text-anchor="middle" font-size="26">${icon.repeat(Math.min(5, Math.ceil(val / 4)))}</text>
+          <text x="${x}" y="${y + 132}" text-anchor="middle" font-family="Jua" font-size="20" fill="${OLB}">${lab} ${val}</text>`;
+        $('#sc', body).innerHTML = `<svg viewBox="0 0 700 330" width="100%"><path d="M310 250 L350 100 L390 250Z" fill="#ffd23f" stroke="${OLB}" stroke-width="5"/>
+          <line x1="${lx}" y1="${ly}" x2="${rx}" y2="${ry}" stroke="${OLB}" stroke-width="12" stroke-linecap="round"/><line x1="${lx}" y1="${ly}" x2="${rx}" y2="${ry}" stroke="#a8743e" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="${cx}" cy="${cy}" r="12" fill="#f2735a" stroke="${OLB}" stroke-width="4"/>
+          ${pan(lx, ly, L, '#c8c3cf', '내보내는 양', '☁️')}${pan(rx, ry, R, '#b9ecc4', '흡수하는 양', '🌿')}</svg>`;
+        $('#st', body).textContent = diff === 0 ? '수평! 탄소 중립 달성!' : diff > 0 ? `내보내는 쪽이 ${diff}만큼 더 무거워요` : `흡수하는 쪽이 ${-diff}만큼 더 무거워요`;
+        if (diff === 0) { clearInterval(tick); sfx.win(); addBlock(2); G.pts += 200; react('thermo', '삐빅! 수평 달성! 더 이상 이산화 탄소가 쌓이지 않아.'); body.querySelectorAll('.wcard').forEach(b => b.disabled = true); doneBtn(body, ri < o.rounds.length - 1 ? '다음 라운드' : '저울 퍼즐 완료!').then(res); }
+      };
+      body.innerHTML = `<div class="row" style="justify-content:space-between"><span id="st" style="font-family:Jua;font-size:19px;color:#c43d1f"></span>${t ? `<span class="timer" id="tm">${t}초</span>` : ''}</div>
+        <div class="scale" id="sc"></div>
+        <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px">${shuffle(rd.cards).map((c, i) => `<button class="wcard" type="button" data-c='${JSON.stringify(c)}'><span class="w">${c.v}</span>${c.t}</button>`).join('')}</div>
+        <div class="row center" style="margin-top:10px"><button class="big ghost" type="button" id="rs">처음부터 다시</button></div>`;
+      body.querySelectorAll('.wcard').forEach(b => b.onclick = () => {
+        if (b.classList.contains('used')) return; const c = JSON.parse(b.dataset.c); b.classList.add('used'); b.disabled = true;
+        if (c.k === 'cut') { L -= c.v; sfx.ok(); react('thermo', `삐빅! ${c.t}: 내보내는 이산화 탄소가 ${c.v}만큼 줄었어.`); }
+        else if (c.k === 'sink') { R += c.v; sfx.ok(); react('thermo', `삐빅! ${c.t}: 흡수하는 이산화 탄소가 ${c.v}만큼 늘었어.`); }
+        else { L += c.v; wrong(); react('luka', `으악, ${c.t}는 작전 2에서 찾은 범인 행동이잖아! 내보내는 쪽이 더 무거워졌어. "처음부터 다시"를 눌러 봐.`); }
+        draw();
+      });
+      $('#rs', body).onclick = () => { L = rd.L; R = rd.R; body.querySelectorAll('.wcard').forEach(b => { b.classList.remove('used'); b.disabled = false; }); sfx.tick(); draw(); };
+      if (t) tick = setInterval(() => { t--; const tm = $('#tm', body); if (tm) tm.textContent = t + '초'; if (t <= 0) { clearInterval(tick); G.mist++; react('thermo', '삐빅! 시간이 다 됐지만 괜찮아. 끝까지 맞춰 보자!'); if (tm) tm.textContent = '시간 초과'; } }, 1000);
+      react('danbi', rd.say || '내보내는 양은 줄이고, 흡수하는 양은 늘려서 양쪽을 같게 맞춰 봐.');
+      draw();
+    });
+    clearLayer();
+  }
+};
+
+// 바다 숲 살리기
+MISSIONS.seaforest = () => new Promise(res => {
+  const body = panel('미션 3-2', '바다 숲을 살려라', '하얗게 변한 바위를 눌러 인공 어초를 내려놓고, 한 번 더 눌러 바닷말을 심으세요.', 860);
+  const st = [0, 0, 0, 0, 0, 0];
+  const draw = () => {
+    const grown = st.filter(s => s === 2).length;
+    $('#sf', body).innerHTML = `<svg viewBox="0 0 760 280" width="100%" style="background:linear-gradient(#7fd3ff,#2a6fb8);border:3px solid ${OLB};border-radius:16px">
+      <path d="M0 230 Q190 210 380 230 T760 225 V280 H0Z" fill="#f2d49b" stroke="${OLB}" stroke-width="4"/>
+      ${Array.from({ length: grown }, (_, i) => `<g style="animation:swim ${3 + i}s ease-in-out infinite alternate"><ellipse cx="${100 + i * 110}" cy="${60 + (i % 3) * 30}" rx="18" ry="10" fill="#ffb36b" stroke="${OLB}" stroke-width="3"/><path d="M${118 + i * 110} ${60 + (i % 3) * 30} l12 -8 v16z" fill="#ffb36b" stroke="${OLB}" stroke-width="3"/><circle cx="${92 + i * 110}" cy="${57 + (i % 3) * 30}" r="2.5" fill="${OLB}"/></g>`).join('')}
+      ${st.map((s, i) => { const x = 70 + i * 124; return `<g class="spot" data-i="${i}" style="cursor:pointer">
+        ${s === 0 ? `<ellipse cx="${x}" cy="222" rx="42" ry="16" fill="#f4f4f4" stroke="${OLB}" stroke-width="4"/><text x="${x}" y="200" text-anchor="middle" font-family="Jua" font-size="16" fill="#fff">눌러요</text>` : ''}
+        ${s >= 1 ? `<path d="M${x - 34} 230 L${x - 24} 186 L${x + 24} 186 L${x + 34} 230Z" fill="#b8b0a6" stroke="${OLB}" stroke-width="4"/><rect x="${x - 10}" y="198" width="20" height="16" fill="#8a8178" stroke="${OLB}" stroke-width="3"/>` : ''}
+        ${s === 2 ? `<path d="M${x - 14} 188 q-14 -40 4 -80 M${x} 188 q12 -50 -4 -100 M${x + 14} 188 q14 -36 -2 -70" fill="none" stroke="#3aa65a" stroke-width="9" stroke-linecap="round" style="animation:rise .8s both"/><path d="M${x - 14} 188 q-14 -40 4 -80 M${x} 188 q12 -50 -4 -100 M${x + 14} 188 q14 -36 -2 -70" fill="none" stroke="${OLB}" stroke-width="2" opacity=".4"/>` : ''}
+        <rect x="${x - 50}" y="80" width="100" height="160" fill="transparent"/></g>`; }).join('')}</svg>`;
+    $('#gg', body).style.width = (st.reduce((a, b) => a + b, 0) / 12 * 100) + '%';
+    body.querySelectorAll('.spot').forEach(g => g.onclick = () => {
+      const i = +g.dataset.i; if (st[i] >= 2) return; st[i]++; G.pts += 30; sfx.ok();
+      if (st[i] === 1) react('thermo', '삐빅! 인공 어초를 내려놓았어. 한 번 더 눌러 바닷말을 심어.');
+      else { addBlock(1); react('luka', `바닷말이 자랐어! 물고기가 돌아오고 있어!`); }
+      draw();
+      if (st.every(s => s === 2)) { react('danbi', '우리나라는 매년 5월 10일을 바다 식목일로 정해 바다 숲을 지키고 있어.'); doneBtn(body, '바다 숲 복원 완료!').then(res); }
+    });
+  };
+  body.innerHTML = `<div id="sf"></div><div style="margin-top:10px"><b style="font-family:Jua">흡수 게이지</b><div class="meter" style="margin-top:4px"><i id="gg"></i></div></div>`;
+  draw();
+});
+
+// 세계 구조대 연합 회의
+MISSIONS.council = async o => {
+  const labels = o.items.map(x => x.a);
+  for (const it of o.items) {
+    await new Promise(res => {
+      const body = panel('미션 3-3', '세계 구조대 연합 회의', '대표의 발표를 읽고 알맞은 대응 방법 이름표를 붙이세요.', 760);
+      body.innerHTML = `<div class="row" style="align-items:flex-start;gap:14px;flex-wrap:nowrap"><div style="width:120px;flex:none;border:3px solid ${OLB};border-radius:20px;background:#f0eaff">${npcSVG({ suit: it.c, suit2: it.c })}</div>
+        <div class="note" style="font-size:19px"><b>${it.who}</b>"${it.say}"</div></div>
+        <div class="grid2" style="margin-top:12px">${shuffle(labels).map(l => `<button class="opt" type="button">${l}</button>`).join('')}</div>`;
+      react('rep', it.say);
+      body.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+        if (b.textContent === it.a) { b.classList.add('ok'); right(); body.querySelectorAll('.opt').forEach(x => x.disabled = true); setTimeout(res, 900); }
+        else { b.classList.add('no'); b.disabled = true; wrong(); react('thermo', '삐빅! 발표 내용을 다시 읽어 봐.'); }
+      });
+    });
+    clearLayer();
+  }
+};
+
+// 일주일 빙하 챌린지
+MISSIONS.week = o => new Promise(async res => {
+  for (const d of o.days) {
+    await new Promise(r => {
+      clearLayer();
+      const body = panel('미션 4-1', `일주일 빙하 챌린지 · ${d.day}요일`, '', 760);
+      const opts = shuffle([{ t: d.good, g: 1 }, { t: d.bad, g: 0 }]);
+      body.innerHTML = `<div class="card" style="width:100%;min-height:110px;margin:0 auto 14px"><div class="em">${d.em}</div><div style="font-weight:700">${d.sit}</div></div>
+        <div class="grid2">${opts.map(x => `<button class="opt" type="button" data-g="${x.g}" style="text-align:center">${x.t}</button>`).join('')}</div>`;
+      body.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+        if (b.dataset.g === '1') { b.classList.add('ok'); right(); body.querySelectorAll('.opt').forEach(x => x.disabled = true); react('thermo', d.ok); setTimeout(r, 1500); }
+        else { b.classList.add('no'); b.disabled = true; wrong(); react('pori', '으아아! 얼음이 흔들려요! 다른 방법은 없을까요?', 'scared'); }
+      });
+    });
+  }
+  clearLayer(); res();
+});
+
+// 알리기 작전 (포스터 / 알뜰 시장)
+MISSIONS.campaign = () => new Promise(res => {
+  const body = panel('미션 4-2', '알리기 작전', '두 작전 중 하나를 골라 기후변화 대응 방법을 주변에 알려요.', 760);
+  body.innerHTML = `<div class="grid2"><button class="opt" type="button" id="cP" style="text-align:center"><div style="font-size:48px">🖼️</div><b>홍보 포스터 만들기</b></button><button class="opt" type="button" id="cM" style="text-align:center"><div style="font-size:48px">🛍️</div><b>알뜰 시장 열기</b></button></div>`;
+  $('#cP', body).onclick = () => { sfx.tick(); poster(body, res); };
+  $('#cM', body).onclick = () => { sfx.tick(); market(body, res); };
+});
+function poster(body, res) {
+  const stick = ['🐻‍❄️', '🌳', '🚲', '💡', '🌊', '🧊'], prac = ['가까운 거리는 걸어요', '전기를 아껴 써요', '일회용품을 줄여요', '분리배출해요', '숲을 지켜요'];
+  let s = stick[0], p = prac[0];
+  const draw = () => {
+    body.innerHTML = `<div class="grid2" style="align-items:start"><div>
+      <label style="font-family:Jua;font-size:18px">1. 그림 고르기</label><div class="chips" id="pS" style="margin:6px 0 12px">${stick.map(x => `<button type="button" class="chip ${x === s ? 'sel' : ''}" style="font-size:26px">${x}</button>`).join('')}</div>
+      <label style="font-family:Jua;font-size:18px">2. 강조할 실천</label><div class="chips" id="pP" style="margin:6px 0 12px">${prac.map(x => `<button type="button" class="chip ${x === p ? 'sel' : ''}">${x}</button>`).join('')}</div>
+      <label for="pT" style="font-family:Jua;font-size:18px">3. 포스터 제목</label><input type="text" id="pT" maxlength="16" value="${esc(G.poster && G.poster.t || '빙하를 지켜 주세요!')}" style="width:100%;font-size:18px;padding:10px;border:3px solid ${OLB};border-radius:12px;margin-top:6px;font-weight:700">
+      <div class="row" style="margin-top:12px"><button class="big green" type="button" id="pDone">포스터 붙이기</button></div></div>
+      <div class="poster" id="pv"><div class="pt"></div><div class="pe">${s}</div><div class="pp">${p}</div></div></div>`;
+    const upd = () => { $('#pv .pt', body).textContent = $('#pT', body).value || '빙하를 지켜 주세요!'; };
+    $('#pT', body).oninput = upd; upd();
+    $('#pS', body).onclick = e => { const b = e.target.closest('.chip'); if (b) { s = b.textContent; G.poster = { t: $('#pT', body).value }; draw(); } };
+    $('#pP', body).onclick = e => { const b = e.target.closest('.chip'); if (b) { p = b.textContent; G.poster = { t: $('#pT', body).value }; draw(); } };
+    $('#pDone', body).onclick = () => { G.poster = { t: $('#pT', body).value || '빙하를 지켜 주세요!', s, p }; G.pts += 200; addBlock(2); sfx.win(); save(); res(); };
+  };
+  draw();
+}
+function market(body, res) {
+  const items = [{ t: '작아진 운동화', em: '👟', g: 1 }, { t: '다 읽은 동화책', em: '📚', g: 1 }, { t: '안 쓰는 장난감 자동차', em: '🚗', g: 1 }, { t: '매일 쓰는 내 칫솔', em: '🪥', g: 0 }, { t: '먹다 남은 과자', em: '🍪', g: 0 }, { t: '내 안경', em: '👓', g: 0 }];
+  let n = 0;
+  body.innerHTML = `<p class="guide">나에게는 필요 없지만 누군가에게 필요한 물건 3개를 골라 알뜰 시장에 내놓으세요.</p><div class="grid2" style="grid-template-columns:repeat(3,1fr)">${shuffle(items).map(x => `<button class="opt" type="button" data-g="${x.g}" style="text-align:center"><div style="font-size:40px">${x.em}</div>${x.t}</button>`).join('')}</div>`;
+  body.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    if (b.dataset.g === '1') { b.classList.add('ok'); b.disabled = true; right(); n++; if (n === 3) { react('luka', '알뜰 시장이 북적북적해! 다들 물건을 나누어 쓰고 있어.'); G.campaign = 'market'; setTimeout(res, 1500); } }
+    else { b.classList.add('no'); b.disabled = true; wrong(); react('thermo', '삐빅! 그건 지금 나에게 꼭 필요한 물건이야.'); }
+  });
+}
+
+// 최종 미션: 빙하 얼리기 러시
+MISSIONS.rush = o => new Promise(res => {
+  const attempt = () => {
+    clearLayer();
+    const body = panel('미션 4-3', '최종 미션: 빙하 얼리기 러시', '떨어지는 카드 중 환경을 지키는 행동만 눌러 얼음 에너지를 100까지 채우세요!', 860);
+    body.innerHTML = `<div class="row" style="justify-content:space-between;margin-bottom:6px"><span class="timer" id="tm">40초</span><b style="font-family:Jua;font-size:18px" id="en">얼음 에너지 0</b></div>
+      <div class="meter" style="height:20px"><i id="eg"></i></div>
+      <div id="rz" style="position:relative;height:320px;margin-top:10px;border:3px solid ${OLB};border-radius:18px;overflow:hidden;background:linear-gradient(#c3b2ee,#f6c2b6 60%,#4fb0e8 60%)">
+       <div id="bridge" style="position:absolute;left:0;bottom:0;height:40%;width:0;background:linear-gradient(#fff,#bfe6ff);border-right:3px solid ${OLB};transition:width .3s"></div>
+       <div style="position:absolute;left:8px;bottom:40%;width:70px">${poriSVG('scared')}</div><div style="position:absolute;right:8px;bottom:40%;width:90px;transform:scaleX(-1)">${poriSVG('happy')}</div></div>`;
+    react('danbi', '지금까지 배운 걸 모두 떠올려! 환경을 지키는 행동만 골라!');
+    const rz = $('#rz', body); let en = 0, t = 40, speed = 1, alive = true; const cards = [];
+    const setE = v => { en = Math.max(0, Math.min(100, v)); $('#eg', body).style.width = en + '%'; $('#en', body).textContent = `얼음 에너지 ${en}`; $('#bridge', body).style.width = en + '%'; };
+    const spawn = () => {
+      if (!alive) return; const good = Math.random() < .58; const pool = good ? o.good : o.bad; const txt = pool[Math.floor(Math.random() * pool.length)];
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'fall'; b.textContent = txt; b.style.left = (14 + Math.random() * 72) + '%'; b.style.top = '-50px';
+      b.style.background = '#fff'; rz.appendChild(b);
+      const c = { b, y: -50, good, v: (0.9 + Math.random() * .6) * speed }; cards.push(c);
+      b.onpointerdown = e => { e.preventDefault(); if (c.dead) return; c.dead = true; b.classList.add('pop'); setTimeout(() => b.remove(), 300);
+        if (good) { setE(en + 8); G.pts += 40; sfx.ok(); } else { setE(en - 10); G.combo = 0; sfx.no(); shakeStage(); react('luka', `앗, "${txt}"는 지구를 데우는 행동이야!`); }
+        if (en >= 100) win(); };
+    };
+    const loop = () => { if (!alive) return; for (const c of cards) { if (c.dead) continue; c.y += c.v * 2.2; c.b.style.top = c.y + 'px'; if (c.y > 330) { c.dead = true; c.b.remove(); } } requestAnimationFrame(loop); };
+    const sp = setInterval(spawn, 850); const tk = setInterval(() => { t--; $('#tm', body).textContent = t + '초'; speed += .03; if (t <= 0) lose(); }, 1000);
+    const stop = () => { alive = false; clearInterval(sp); clearInterval(tk); };
+    const win = () => { if (!alive) return; stop(); sfx.win(); addBlock(3); G.pts += t * 10; react('thermo', `삐빅! 얼음 다리 완성! 남은 시간 ${t}초 보너스!`); setTimeout(res, 1600); };
+    const lose = () => { if (!alive) return; stop(); G.mist++; react('danbi', '조금 모자랐어. 괜찮아, 한 번 더 도전하자!'); setTimeout(attempt, 2000); };
+    spawn(); loop();
+  };
+  attempt();
+});
+
+// 실천 약속 고르기
+MISSIONS.pledge = () => new Promise(res => {
+  const opts = ['가까운 거리는 걸어 다니기', '빈방 불 끄기', '텀블러 쓰기', '급식 남기지 않기', '분리배출하기', '물 아껴 쓰기', '필요 없는 물건 사지 않기', '가족에게 기후변화 알리기'];
+  const body = panel('약속', '일주일 실천 목표 정하기', '일주일 동안 지킬 실천 목표 3가지를 고르세요. 임명장에 적혀요.', 760);
+  const sel = new Set();
+  body.innerHTML = `<div class="grid2">${opts.map(o => `<button class="opt" type="button">${o}</button>`).join('')}</div><div class="row center" style="margin-top:12px"><button class="big" type="button" id="pg" disabled>약속하기 (0/3)</button></div>`;
+  body.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const t = b.textContent; if (sel.has(t)) { sel.delete(t); b.classList.remove('ok'); } else if (sel.size < 3) { sel.add(t); b.classList.add('ok'); } sfx.tick();
+    $('#pg', body).disabled = sel.size !== 3; $('#pg', body).textContent = `약속하기 (${sel.size}/3)`;
+  });
+  $('#pg', body).onclick = () => { G.pledge = [...sel]; save(); sfx.win(); res(); };
+});
+
+// 임명식 + 순위표 + 내려받기
+MISSIONS.ceremony = async () => {
+  addToBoard();
+  const canvas = await drawCert();
+  const url = canvas.toDataURL('image/png');
+  const b = board(); const rank = b.findIndex(x => x.name === G.name && x.code === G.code) + 1;
+  const body = panel('임명식', '북극곰 구조대 임명장', `${G.name} 대원의 총점은 ${totalScore().toLocaleString()}점, 이 기기 순위 ${rank}위예요!`, 900);
+  body.innerHTML = `<img src="${url}" alt="${esc(G.name)} 대원의 북극곰 구조대 임명장" style="width:100%;border-radius:12px;border:3px solid ${OLB}">
+    <div class="row center" style="margin-top:12px"><button class="big" type="button" id="dPng">이미지(PNG)로 저장</button><button class="big blue" type="button" id="dPdf">PDF로 저장</button><button class="big ghost" type="button" id="dLb">순위표 보기</button><button class="big ghost" type="button" id="dMap">작전 지도</button></div>
+    <p id="dlNote" class="guide" style="text-align:center;margin-top:10px"></p>`;
+  const note = msg => { $('#dlNote', body).textContent = msg; };
+  const fname = `북극곰구조대_임명장_${G.name}`;
+  $('#dPng', body).onclick = async () => {
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    const ok = await saveFile(fname + '.png', blob);
+    if (!ok) note('이 화면에서는 바로 내려받을 수 없어요. 위 임명장 이미지를 길게 누르거나(태블릿) 오른쪽 클릭해서(컴퓨터) "이미지 저장"을 고르세요.');
+  };
+  $('#dPdf', body).onclick = async () => {
+    if (!window.jspdf) { note('PDF 도구를 불러오지 못했어요. 이미지(PNG)로 저장해 주세요.'); return; }
+    const pdf = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    pdf.addImage(canvas.toDataURL('image/jpeg', .92), 'JPEG', 0, 0, 297, 210);
+    const ok = await saveFile(fname + '.pdf', pdf.output('blob'));
+    if (!ok) note('이 화면에서는 PDF를 바로 내려받을 수 없어요. 임명장 이미지를 길게 누르거나 오른쪽 클릭해서 저장하세요.');
+  };
+  $('#dLb', body).onclick = () => showBoard();
+  await new Promise(r => $('#dMap', body).onclick = r);
+};
+
+// ===== 확인 퀴즈 =====
+async function quiz(items, clues) {
+  await clueCheck(clues);
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    await new Promise(res => {
+      clearLayer();
+      const body = panel(`확인 퀴즈 ${i + 1}/${items.length}`, '빈칸을 채워라!', it.hint ? `초성 힌트: ${it.hint}` : '', 720);
+      const q = it.q.replace('( )', `<span style="display:inline-block;min-width:110px;border-bottom:4px solid ${OLB};text-align:center;color:#c43d1f" id="blank">?</span>`);
+      body.innerHTML = `<p style="font-size:22px;font-weight:700;line-height:1.7">${q}</p><div class="grid2">${shuffle(it.opts).map(o => `<button class="opt" type="button" style="text-align:center">${o}</button>`).join('')}</div>`;
+      react('thermo', '삐빅! 단서 수첩을 떠올리며 빈칸에 들어갈 말을 골라 봐.');
+      body.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+        if (b.textContent === it.a) { b.classList.add('ok'); $('#blank', body).textContent = it.a; right(); body.querySelectorAll('.opt').forEach(x => x.disabled = true); setTimeout(res, 1000); }
+        else { b.classList.add('no'); b.disabled = true; wrong(); react('luka', '아깝다! 초성 힌트를 다시 봐.'); }
+      });
+    });
+  }
+  clearLayer();
+}
+
+// ===== 스토리 스크립트 =====
+const S = (who, text, mood, extra) => Object.assign({ t: 'say', who, text, mood }, extra || {});
+const N = text => ({ t: 'say', who: 'narr', text });
+const BG = bg => ({ t: 'bg', bg });
+const M = (id, o) => ({ t: 'm', id, o });
+const F = fn => ({ t: 'fx', fn });
+const Q = items => ({ t: 'quiz', items });
+const R = gear => ({ t: 'reward', gear });
+
+async function twistFx() {
+  const L = $('#layer');
+  L.innerHTML = `<div id="tw" style="position:relative;width:240px;height:240px">${shadowSVG()}</div>`;
+  shakeStage(); await sleep(1300);
+  const tw = $('#tw'); tw.innerHTML = ''; sfx.crack();
+  for (let i = 0; i < 46; i++) {
+    const s = document.createElement('div'); s.textContent = '👤';
+    s.style.cssText = `position:absolute;left:45%;top:40%;font-size:30px;--dx:${(Math.random() - .5) * 760}px;--dy:${(Math.random() - .5) * 420}px;animation:scatter 1.3s ${i * .02}s forwards`;
+    tw.appendChild(s);
+  }
+  await sleep(1700);
+}
+function shadowPeek() { return F(async () => { const L = $('#layer'); L.innerHTML = `<div style="width:160px;opacity:.85;animation:pop .3s">${shadowSVG()}</div>`; sfx.crack(); await sleep(1100); L.innerHTML = ''; }); }
+
+const STAGES = [
+  // ---------- 프롤로그 ----------
+  {
+    label: '프롤로그', title: '구조 요청이 도착했다', goal: '아기 북극곰 포리의 구조 요청을 받고 북극곰 구조대에 합류해요.', bg: 'classroom', clues: ['빙하'],
+    steps: [
+      N('친구와 함께 도서관에서 빌린 책을 펼친 날이었어요.'),
+      S('friend', '이 사진 좀 봐. 북극곰이 쉴 곳을 잃고 먹잇감도 못 찾고 있대.', 'sad'),
+      S('me', '어? 북극은 원래 엄청 추운 곳 아니야? 왜 얼음이 녹고 있지?', 'o'),
+      N('그때, 책 속 북극곰 사진이 파랗게 빛나기 시작했어요.'),
+      F(async () => { flash(); sfx.win(); await sleep(700); setBg('hq'); }),
+      S('thermo', '삐빅! 신입 대원 도착 확인. 북극곰 구조대 본부에 온 걸 환영해.'),
+      S('luka', '와, 진짜 왔다! 반가워, 나는 선배 대원 루카야. 너 이름이 뭐야?', 'grin'),
+      S('me', '나는 {name}! 코드네임은 {code}야.', 'happy'),
+      S('danbi', '반갑다, {name} 대원. 나는 구조대장 단비야. 방금 너에게 온 빛은 우리가 보낸 호출 신호였어. 기후를 궁금해하는 사람에게만 보이는 빛이지.', 'smile'),
+      S('danbi', '지금 우리에겐 급한 구조 요청이 하나 있어. 써모, 통신 연결해 줘.', 'serious'),
+      F(async () => { setBg('arctic'); sfx.crack(); }),
+      S('pori', '구조대님, 들리세요? 저는 포리예요. 엄마랑 사냥하러 나왔는데, 밟고 있던 얼음이 갑자기 갈라졌어요.', 'scared'),
+      S('pori', '얼음이 자꾸 녹아서 엄마한테 돌아갈 수가 없어요. 도와주세요!', 'sad'),
+      S('luka', '대장님, 당장 헬기 타고 가서 포리를 구해 오면 되잖아요!', 'o'),
+      S('danbi', '그러면 오늘은 포리를 구하겠지. 하지만 내일도, 다음 달에도 빙하는 계속 녹을 거야. 포리가 엄마와 다시 살려면, 빙하가 녹는 걸 멈춰야 해.', 'serious'),
+      F(async () => { G.towerOn = true; G.blocks = 6; $('#blocks').innerHTML = ''; renderTower(); sfx.win(); }),
+      S('thermo', '삐빅! 포리 주변에 빙하 블록 탑을 설치했어. 화면 오른쪽을 봐. 우리가 올바른 선택을 할 때마다 블록이 단단해지고, 틀리면 블록 하나가 녹아내려.'),
+      S('danbi', '{name} 대원, 이것을 받아. 구조대 손목 통신기야. 대사 속에서 반짝이는 단어를 누르면 단서 수첩에 저장돼. 지금 **빙하**를 눌러 봐.', 'smile', { must: '빙하' }),
+      S('thermo', '삐빅! 잘했어. 단서를 모두 모아야 작전 끝의 확인 퀴즈가 열려. 정답을 맞힐수록, 연속으로 맞힐수록 점수가 올라가.'),
+      S('danbi', '네 번의 작전이 기다리고 있다. 북극곰 구조대, 출동!', 'smile'),
+      R('watch')
+    ]
+  },
+  // ---------- 작전 1 ----------
+  {
+    label: '작전 1', title: '지구 이상 신호를 추적하라', goal: '날씨와 기후, 기후변화의 뜻을 알고 기후변화 현상과 피해를 확인해요. (교과서 88~89쪽, 92~95쪽)', bg: 'hq',
+    clues: ['날씨', '기후', '평년', '기후변화', '기온 변화', '강수량 변화', '해수면 상승'],
+    steps: [
+      N('삐삐! 본부 대형 화면의 세계 지도에 빨간 불빛이 하나씩 켜집니다.'),
+      S('thermo', '삐빅! 경고, 경고! 지구 곳곳에서 이상 신호가 감지되고 있어.', 'alert'),
+      S('luka', '이상 신호? 불빛이 여기저기 다 켜져 있잖아!', 'o'),
+      S('danbi', '포리의 빙하만 문제가 아니었군. 지구 전체에 무슨 일이 일어나고 있는지부터 알아야 해. 써모, 브리핑을 시작해.', 'serious'),
+      S('thermo', '이상 신호를 읽으려면 먼저 두 단어를 구분해야 해. 날씨와 기후야.'),
+      S('thermo', '**날씨**는 오늘 비가 오는지, 덥거나 추운지처럼 그날그날 바뀌는 하늘과 공기의 상태야.'),
+      S('thermo', '**기후**는 한 지역에서 보통 30년 이상 오랜 기간에 걸쳐 나타나는 날씨의 평균적인 상태야.'),
+      S('luka', '에이, 그럼 간단하네! 오늘 엄청 추우니까 지구는 더워지는 게 아니라 추워지는 거지?', 'grin'),
+      S('thermo', '삐빅! 틀렸어, 루카. 오늘 하루가 추운 건 날씨야. 지구가 더워지는지는 오랜 기간의 평균, 즉 기후를 봐야 알 수 있어.'),
+      S('danbi', '오늘 소나기가 온다는 건 날씨, 우리나라는 여름에 덥고 비가 많이 온다는 건 기후. 기억해 두도록.', 'smile'),
+      M('sort', {
+        tag: '미션 1-1', title: '날씨일까, 기후일까?', guide: '카드를 읽고 날씨인지 기후인지 골라요. 키보드 ← → 키로도 할 수 있어요.', bins: ['날씨', '기후'],
+        cards: [{ text: '오늘 오후에 소나기가 와요.', em: '🌦️', bin: 0 }, { text: '우리나라는 여름에 덥고 비가 많이 와요.', em: '🇰🇷', bin: 1 }, { text: '내일은 바람이 강하게 불어요.', em: '🌬️', bin: 0 }, { text: '사막 지역은 일 년 내내 비가 거의 오지 않아요.', em: '🏜️', bin: 1 }, { text: '어제 아침에 눈이 왔어요.', em: '🌨️', bin: 0 }, { text: '북극은 오랜 기간 동안 매우 추운 곳이에요.', em: '🧊', bin: 1 }],
+        ok: ['thermo', '삐빅! 정확해. 하루의 일은 날씨, 오랜 기간의 평균은 기후!'], no: ['luka', '어, 나랑 똑같은 실수를 했네! "오늘", "내일" 같은 말이 있는지 다시 봐.']
+      }),
+      S('thermo', '다음 단서는 **평년**이야. 지난 30년 동안 날씨의 평균적인 상태를 말해. "평년보다 덥다"는 건 보통 때보다 덥다는 뜻이야.'),
+      S('thermo', '그리고 이렇게 오랜 기간에 걸쳐 평균적인 날씨가 변하는 것을 **기후변화**라고 해.'),
+      S('luka', '근데 기후는 옛날에도 변했다며? 그럼 문제없는 거 아니야?', 'o'),
+      S('danbi', '좋은 질문이야. 기후는 끊임없이 변해 왔어. 하지만 오늘날은 그 변화의 정도가 매우 커. 그래서 지도에 불빛이 이렇게 많이 켜진 거지.', 'serious'),
+      M('sos', {
+        opts: ['폭염', '한파', '홍수', '폭설', '가뭄'], pins: [
+          { name: '해바라기 마을', x: 22, y: 34, a: '폭염', sos: '기온이 평년보다 훨씬 높은 날이 여러 날 이어져요. 할머니께서 더위를 먹어 병원에 가셨어요.' },
+          { name: '자작나무 마을', x: 50, y: 22, a: '한파', sos: '기온이 갑자기 뚝 떨어져서 수도관이 얼어 터졌어요!' },
+          { name: '강변 마을', x: 78, y: 36, a: '홍수', sos: '짧은 시간 동안 비가 너무 많이 내려서 마을 길이 물에 잠겼어요.' },
+          { name: '산골 마을', x: 30, y: 78, a: '폭설', sos: '하룻밤 사이에 눈이 무릎까지 쌓여서 자동차가 다니지 못해요.' },
+          { name: '들판 마을', x: 77, y: 80, a: '가뭄', sos: '비가 오랫동안 내리지 않아서 논밭이 갈라지고 마실 물도 부족해요.' }
+        ]
+      }),
+      S('thermo', '삐빅! 분석 완료. 폭염과 한파는 **기온 변화**로, 홍수·폭설·가뭄은 **강수량 변화**로 나타나는 현상이야. 이런 현상이 예년보다 더 자주 일어나고 정도도 심해지고 있어.'),
+      M('graph'),
+      S('danbi', '기후변화가 사람과 자연에게 어떤 피해를 주는지 현장을 직접 확인하자.', 'serious'),
+      M('glacier'),
+      S('thermo', '삐빅! 지구의 평균 기온이 높아지면서 극지방과 육지를 덮고 있던 빙하가 빠르게 녹고 있어. 얼어 있던 땅도 녹고 있지.'),
+      S('luka', '그럼 녹은 물은 다 어디로 가?', 'o'),
+      M('sealevel'),
+      S('thermo', '삐빅! 이걸 **해수면 상승**이라고 해. 해안가가 물에 잠기고, 해안 생태계가 파괴돼서 많은 생물이 위험에 처해.'),
+      S('danbi', '실제로 남태평양의 섬나라 투발루는 바닷물에 잠겨 육지 면적이 줄어들고 있어.', 'serious'),
+      M('match', {
+        tag: '미션 1-4', title: '피해 카드 연결하기', guide: '현장과 피해를 짝지어요. (교과서 94쪽)', end: ['pori', '그거 저예요… 저만 그런 게 아니었구나.', 'sad'],
+        pairs: [{ em: '🥵', l: '뜨거운 도시의 사람들', r: '폭염이 길어져 건강을 해칠 수 있어요.' }, { em: '🔥', l: '불타는 숲', r: '산불이 자주 발생해요.' }, { em: '🌀', l: '거센 바람과 파도', r: '태풍이 자주 발생해요.' }, { em: '🌾', l: '갈라진 논밭', r: '오랜 가뭄으로 식량이 부족해져요.' }, { em: '🪸', l: '하얗게 변한 바닷속', r: '바닷물의 온도가 높아져 바다 생태계가 파괴돼요.' }, { em: '🐻‍❄️', l: '얼음 조각 위의 북극곰', r: '기후변화에 적응하지 못한 동물이 멸종 위기에 처해요.' }]
+      }),
+      Q([
+        { q: '오랜 기간에 걸쳐 평균적인 날씨가 변하는 것을 ( )(이)라고 해요.', hint: 'ㄱㅎㅂㅎ', a: '기후변화', opts: ['기후변화', '날씨', '평년', '해수면'] },
+        { q: '한 지역에서 보통 ( )년 이상 나타나는 날씨의 평균적인 상태를 기후라고 해요.', a: '30', opts: ['1', '5', '30', '100'] },
+        { q: '최근에 가뭄, 폭설, 폭염, 한파, 홍수 같은 ( ) 현상이 많이 나타나고 있어요.', hint: 'ㄱㅎㅂㅎ', a: '기후변화', opts: ['기후변화', '자연', '계절', '날씨예보'] },
+        { q: '극지방과 육지의 빙하, 언 땅이 녹으면서 ( )이 상승하고 있어요.', hint: 'ㅎㅅㅁ', a: '해수면', opts: ['해수면', '산꼭대기', '구름', '기온계'] }
+      ]),
+      S('danbi', '오늘 알아낸 것을 정리하자. 지구의 기후가 변하고 있고, 그 변화는 폭염, 한파, 홍수, 폭설, 가뭄으로 나타나. 빙하가 녹아 바닷물이 높아지고, 사람과 동물 모두 피해를 입고 있지.', 'smile'),
+      S('thermo', '삐빅! 그런데 대장님, 이상한 게 있어요. 지구의 평균 기온이 계속 올라가고 있어요. 누군가 지구를 데우고 있는 것 같아요.', 'alert'),
+      shadowPeek(),
+      S('luka', '방금 봤어? 저 그림자가 범인일지도 몰라!', 'o'),
+      S('danbi', '그렇다면 다음 작전은 하나야. 빙하를 녹인 범인을 찾는다. {name} 대원, 수고했어. 이것을 받아.', 'serious'),
+      R('goggle')
+    ]
+  },
+  // ---------- 작전 2 ----------
+  {
+    label: '작전 2', title: '빙하를 녹인 범인을 찾아라', goal: '기후변화의 원인을 찾고, 지구 온난화와 온실가스의 관계를 알아봐요. (교과서 90~91쪽)', bg: 'town',
+    clues: ['최근 100여 년', '인간의 활동', '온실가스', '지구 온난화'],
+    steps: [
+      S('danbi', '대원들, 기후 관측 고글을 써. 고글을 끼면 지구를 데우는 흔적이 붉게 보여.', 'serious'),
+      S('thermo', '삐빅! 수사 브리핑을 시작할게. 기후는 자연적으로도 변해 왔어. 그런데 **최근 100여 년** 동안에는 유독 급격하게 변하고 있어.'),
+      S('luka', '100년 전부터 갑자기? 그때 무슨 일이 있었는데?', 'o'),
+      S('thermo', '그걸 알아내는 게 이번 작전이야. 단서를 따라가 보자.'),
+      M('hunt', {
+        places: [
+          { name: '공장 지대', em: '🏭', bg: 'linear-gradient(#cfd8e6,#f6e3d3)', who: 'factory', evid: '산업 활동', testimony: '요즘 사람들이 물건을 아주 많이 사서, 공장을 밤낮없이 돌려요. 공장에서 많은 물건을 생산하고 또 소비하지요.', objs: [{ em: '🏭', x: 28, y: 45, label: '굴뚝 연기', bad: 1 }, { em: '📦', x: 70, y: 70, label: '쌓인 물건 더미', bad: 1 }, { em: '🌼', x: 86, y: 28, label: '꽃' }, { em: '🐦', x: 52, y: 20, label: '새' }, { em: '🚲', x: 14, y: 80, label: '자전거' }, { em: '🌲', x: 90, y: 74, label: '나무' }] },
+          { name: '숲', em: '🌳', bg: 'linear-gradient(#d8f5c4,#a8dc8a)', who: 'squirrel', evid: '산림 훼손', testimony: '여기 있던 나무를 다 베고 태워서, 땅을 개발한대요. 우리 집도 없어졌어요.', objs: [{ em: '🪵', x: 34, y: 66, label: '베어 낸 나무 밑동', bad: 1 }, { em: '🔥', x: 74, y: 48, label: '불탄 자리', bad: 1 }, { em: '🌳', x: 14, y: 36, label: '나무' }, { em: '🍄', x: 56, y: 82, label: '버섯' }, { em: '🦋', x: 50, y: 22, label: '나비' }, { em: '🌷', x: 88, y: 80, label: '꽃' }] },
+          { name: '도로와 공항', em: '🛣️', bg: 'linear-gradient(#c8e6ff,#d9d4cc)', who: 'police', evid: '교통수단 이용', testimony: '가까운 거리도 다들 자동차를 타서 길이 늘 막혀요. 비행기도 하루 종일 뜨고 내리고요.', objs: [{ em: '🚗', x: 40, y: 74, label: '줄지은 자동차', bad: 1 }, { em: '✈️', x: 72, y: 24, label: '비행기', bad: 1 }, { em: '🚦', x: 14, y: 50, label: '신호등' }, { em: '🚶', x: 86, y: 76, label: '걷는 사람' }, { em: '🌳', x: 58, y: 52, label: '가로수' }, { em: '🏪', x: 24, y: 24, label: '가게' }] },
+          { name: '우리 동네 집', em: '🏠', bg: 'linear-gradient(#fff1d6,#ffd9b0)', who: 'grandma', evid: '물과 에너지 낭비', testimony: '아무도 없는 방에 불이 하루 종일 켜져 있더구나. 수도꼭지에서는 물이 콸콸 흐르고.', objs: [{ em: '💡', x: 30, y: 26, label: '빈방에 켜 둔 불', bad: 1 }, { em: '🚰', x: 72, y: 62, label: '틀어 둔 수도꼭지', bad: 1 }, { em: '🛋️', x: 46, y: 74, label: '소파' }, { em: '🪴', x: 88, y: 34, label: '화분' }, { em: '🐈', x: 16, y: 74, label: '고양이' }, { em: '📚', x: 60, y: 30, label: '책' }] },
+          { name: '학교', em: '🏫', bg: 'linear-gradient(#e8f3ff,#d6ecd2)', who: 'janitor', evid: '쓰레기 증가', testimony: '멀쩡한 물건이랑 일회용품이 매일 산더미처럼 버려져요. 필요 없는 물건도 많이 사고요.', objs: [{ em: '🗑️', x: 24, y: 68, label: '넘치는 쓰레기통', bad: 1 }, { em: '🛍️', x: 70, y: 40, label: '뜯지도 않은 새 학용품', bad: 1 }, { em: '✏️', x: 50, y: 78, label: '연필' }, { em: '🎒', x: 86, y: 74, label: '가방' }, { em: '🏀', x: 14, y: 28, label: '공' }, { em: '📗', x: 44, y: 30, label: '교과서' }] }
+        ]
+      }),
+      BG('hq'),
+      F(() => MISSIONS.choice({
+        tag: '미션 2-2', title: '증거 보드 맞추기', qs: [{
+          pre: `<div class="evid" style="margin-bottom:8px">${(G.evid || []).map(e => `<span class="e">증거: ${e}</span>`).join('')}</div>`,
+          q: '증거 다섯 개가 가리키는 범인은 누구일까요?', opts: ['정체불명의 그림자', '갑자기 뜨거워진 태양', '편리한 생활을 위해 늘어난 사람들의 활동'], a: '편리한 생활을 위해 늘어난 사람들의 활동',
+          no: ['thermo', '삐빅! 증거 카드를 다시 읽어 봐. 증거 다섯 개는 모두 사람들이 한 일을 가리키고 있어.']
+        }]
+      })),
+      N('고글이 갑자기 삐삐 울립니다. 붉은 흔적이 바로 본부 안에서 보여요.'),
+      S('luka', '어…? 대장님, 본부 에어컨이 아무도 없는 방에서 켜져 있어요. 현관 불도요.', 'o'),
+      S('luka', '그리고 아까 나는 편의점까지 오토바이를 타고 갔고… 음료수 컵도 세 개나 버렸어.', 'sad'),
+      F(twistFx),
+      N('그림자가 화면 가득 나타났다가 작은 그림자 수백 개로 흩어졌어요. 그림자마다 사람의 모양이에요.'),
+      S('danbi', '그래, 범인은 악당 한 명이 아니었어. 편리한 생활을 위해 급격하게 늘어난 우리 모두의 활동, 바로 **인간의 활동**이 범인이야.', 'serious'),
+      S('luka', '그럼… 나도 범인이었던 거야? 엉엉.', 'sad'),
+      S('danbi', '자책할 필요는 없어, 루카. 오히려 좋은 소식이야. 우리가 한 일이 원인이라면, 우리가 바꿀 수도 있다는 뜻이니까.', 'smile'),
+      S('luka', '그런데 대장님, 사람들이 불을 켜고 자동차를 타는 게 어떻게 북극의 빙하를 녹여요? 북극은 엄청 멀잖아요.', 'o'),
+      S('thermo', '삐빅! 연결 고리를 하나씩 이어 줄게. 공장을 돌리고, 자동차를 타고, 전기를 쓰고, 숲을 태우면 공기 중으로 이산화 탄소 같은 기체가 많이 나와. 이런 기체를 **온실가스**라고 해.'),
+      S('thermo', '온실가스는 지구를 두꺼운 이불처럼 감싸서, 지구의 열이 우주로 빠져나가지 못하게 붙잡아.'),
+      S('luka', '아, 여름에 두꺼운 이불을 덮으면 땀이 뻘뻘 나는 것처럼?', 'grin'),
+      S('thermo', '바로 그거야. 온실가스가 많아질수록 이불이 두꺼워져서 지구의 평균 기온이 점점 올라가. 이걸 **지구 온난화**라고 해.'),
+      S('danbi', '지구 온난화로 빙하가 녹아 해수면이 높아지고, 날씨의 균형이 흔들려 폭염, 홍수, 가뭄 같은 기후변화 현상이 심해지는 거야.', 'serious'),
+      S('luka', '잠깐, 지구가 더워지는데 한파랑 폭설은 왜 생겨요?', 'o'),
+      S('thermo', '삐빅! 지구가 더워지면 공기와 바다의 흐름이 흔들려. 그래서 어떤 곳은 갑자기 아주 추워지거나 눈이 한꺼번에 쏟아지기도 해. 날씨가 점점 극단적으로 변하는 거야.'),
+      S('danbi', '정리하자. 인간의 활동이 늘어나 온실가스가 많이 나오고, 온실가스 때문에 지구 온난화가 일어나고, 지구 온난화 때문에 기후변화가 심해진다. 이 연결 고리를 꼭 기억해.', 'smile'),
+      M('chain'),
+      M('sort', {
+        tag: '미션 2-3', title: '우리 생활 점검', guide: '일주일 동안 한 행동이에요. 온실가스를 늘려 기후변화에 영향을 주는 행동인지 골라요.', bins: ['영향을 줘요', '영향을 주지 않아요'],
+        cards: [{ text: '양치할 때 물을 틀어 놓았어요.', em: '🚰', bin: 0 }, { text: '학교까지 걸어서 갔어요.', em: '🚶', bin: 1 }, { text: '빈 교실의 불을 켜 두었어요.', em: '💡', bin: 0 }, { text: '갖고 있는 색연필이 있는데 또 샀어요.', em: '🖍️', bin: 0 }, { text: '장바구니를 들고 장을 봤어요.', em: '🧺', bin: 1 }, { text: '가까운 학원에 자동차를 타고 갔어요.', em: '🚗', bin: 0 }, { text: '일회용 컵 대신 텀블러를 썼어요.', em: '🥤', bin: 1 }, { text: '추운데 창문을 열고 난방을 세게 틀었어요.', em: '🪟', bin: 0 }],
+        no: ['luka', '음, 그 행동을 하면 에너지를 더 쓰게 될까, 덜 쓰게 될까?']
+      }),
+      Q([
+        { q: '산림을 훼손하고 물과 에너지를 낭비하는 등 최근에 급격하게 늘어난 ( )의 활동은 기후변화에 영향을 주고 있어요.', hint: 'ㅇㄱ', a: '인간', opts: ['인간', '동물', '태양', '바다'] },
+        { q: '기후는 인간의 활동이 많아진 최근 ( )여 년 동안 급격하게 변하고 있어요.', a: '100', opts: ['10', '100', '1000', '3'] },
+        { q: '이산화 탄소처럼 지구를 이불처럼 감싸 열을 붙잡는 기체를 ( )(이)라고 해요.', hint: 'ㅇㅅㄱㅅ', a: '온실가스', opts: ['온실가스', '산소', '수증기 구름', '바람'] },
+        { q: '온실가스가 많아져 지구의 평균 기온이 점점 올라가는 것을 ( )(이)라고 해요.', hint: 'ㅈㄱ ㅇㄴㅎ', a: '지구 온난화', opts: ['지구 온난화', '해수면', '평년', '계절 변화'] }
+      ]),
+      S('danbi', '대장의 한마디. 공장에서 물건을 많이 만들고, 숲을 훼손하고, 교통수단을 많이 이용하고, 물과 에너지를 낭비하는 것. 이런 인간의 활동이 온실가스를 늘려 지구 온난화를 일으키고, 그 결과 기후변화가 심해지고 있어.', 'smile'),
+      S('thermo', '삐빅! 다음 작전에서는 온실가스 중에서 가장 많이 나오는 기체를 자세히 조사할게요.'),
+      S('pori', '대원님, 범인을 찾았다는 소식 들었어요! 그럼 이제 얼음을 되돌릴 수 있는 거죠?', 'happy'),
+      R('detector')
+    ]
+  },
+  // ---------- 작전 3 ----------
+  {
+    label: '작전 3', title: '탄소 저울을 맞춰라', goal: '이산화 탄소와 탄소 중립을 알고, 나라와 사회가 기후변화에 대응하는 방법을 알아봐요. (교과서 96~97쪽, 100~101쪽)', bg: 'hq',
+    clues: ['이산화 탄소', '바다 숲', '흡수', '탄소 중립', '인공 어초', '바다 식목일'],
+    steps: [
+      S('thermo', '삐빅! 작전 2에서 찾은 연결 고리 기억나? 인간의 활동이 늘어나면 온실가스가 나오고, 온실가스 때문에 지구 온난화가 일어나고, 그래서 기후변화가 심해졌지.'),
+      S('thermo', '온실가스 가운데 사람들의 활동으로 가장 많이 나오는 기체가 바로 **이산화 탄소**야. 공장을 돌리고, 자동차를 타고, 에너지를 쓸 때 많이 나와.'),
+      S('thermo', '이산화 탄소는 대기의 온도를 높이는 기체야. 이산화 탄소가 늘어날수록 지구 온난화가 심해지고, 빙하도 더 빨리 녹아.', 'alert'),
+      S('luka', '그럼 이산화 탄소를 아예 없애 버리면 되잖아! 거대한 청소기 같은 걸로!', 'grin'),
+      S('thermo', '삐빅! 상상력은 좋아. 그런데 지구에는 이미 이산화 탄소를 빨아들이는 청소기가 있어. 바로 나무와 숲, 그리고 미역·다시마·잘피가 자라는 **바다 숲**이야.'),
+      S('thermo', '이들은 이산화 탄소를 **흡수**해서 스스로 양분을 만들고, 그 과정에서 산소를 내보내.'),
+      N('본부 가운데에 커다란 저울이 나타납니다. 왼쪽 접시가 무겁게 내려가 있어요.'),
+      S('danbi', '이것이 이번 작전의 장비, 탄소 저울이야. 왼쪽 접시에는 사람들이 내보내는 이산화 탄소, 오른쪽 접시에는 숲과 바다 숲이 흡수하는 이산화 탄소가 올라가.', 'serious'),
+      S('thermo', '지금은 내보내는 쪽이 훨씬 무거워서, 남은 이산화 탄소가 계속 쌓이고 있어. 내보내는 양을 줄이고 흡수하는 양을 늘려서 양쪽을 같게 맞추는 것. 이걸 **탄소 중립**이라고 해.'),
+      S('luka', '아하! 없애는 게 아니라 맞추는 거구나. 시소 탈 때처럼!', 'grin'),
+      M('scale', {
+        rounds: [
+          { L: 10, R: 2, say: '1라운드야. 내보내는 양은 줄이고, 흡수하는 양은 늘려서 양쪽을 같게 맞춰 봐.', cards: [{ t: '가까운 거리는 걸어요', v: 3, k: 'cut' }, { t: '전기를 아껴 써요', v: 2, k: 'cut' }, { t: '나무를 심어요', v: 3, k: 'sink' }, { t: '숲을 보존해요', v: 2, k: 'sink' }, { t: '숲을 베어 건물을 지어요', v: 3, k: 'trap' }, { t: '일회용품을 자주 써요', v: 2, k: 'trap' }] },
+          { L: 15, R: 3, say: '2라운드는 더 무거워. 나라와 사회가 하는 일도 카드에 들어 있어.', cards: [{ t: '친환경 기술을 개발해요', v: 4, k: 'cut' }, { t: '일회용품을 줄여요', v: 2, k: 'cut' }, { t: '바다 숲을 되살려요', v: 4, k: 'sink' }, { t: '갯벌을 보존해요', v: 2, k: 'sink' }, { t: '자전거를 타요', v: 1, k: 'cut' }, { t: '빈방에 불을 켜 둬요', v: 2, k: 'trap' }, { t: '필요 없는 물건을 사요', v: 3, k: 'trap' }] },
+          { L: 20, R: 4, time: 60, say: '마지막 3라운드! 60초 안에 맞춰야 해. 집중!', cards: [{ t: '친환경 기술을 개발해요', v: 5, k: 'cut' }, { t: '가까운 거리는 걸어요', v: 3, k: 'cut' }, { t: '전기를 아껴 써요', v: 2, k: 'cut' }, { t: '나무를 심어요', v: 4, k: 'sink' }, { t: '숲을 보존해요', v: 3, k: 'sink' }, { t: '바다 숲을 되살려요', v: 2, k: 'sink' }, { t: '물을 틀어 놔요', v: 3, k: 'trap' }, { t: '숲을 태워 땅을 개발해요', v: 2, k: 'trap' }] }
+        ]
+      }),
+      BG('ocean'),
+      S('danbi', '긴급 상황이야. 바다 숲이 사막처럼 변하고 있대.', 'serious'),
+      S('thermo', '삐빅! 기후변화로 바닷물의 온도가 높아지면서, 차가운 물에서 잘 자라는 미역과 다시마가 살기 어려워졌어. 이걸 바다 사막화라고 해.', 'alert'),
+      S('thermo', '우리나라는 사람이 만든 돌인 **인공 어초**에 바닷말을 심어 바닷속으로 내려보내는 생태 기술을 쓰고 있어.'),
+      M('seaforest'),
+      S('danbi', '바다 숲이 되살아나면 이산화 탄소를 더 많이 흡수해서 지구의 평균 기온이 높아지는 것을 막을 수 있어. 우리나라는 매년 5월 10일을 **바다 식목일**로 정해 바다 숲을 지키고 있지.', 'smile'),
+      BG('hq'),
+      S('danbi', '이번엔 세계 구조대 연합 회의다. 여러 나라가 기후변화에 어떻게 대응하는지 들어 보자.', 'serious'),
+      M('council', {
+        items: [
+          { who: '초록 나라 대표', c: '#3aa65a', say: '여러 나라가 힘을 모아 아프리카 사막 지역에 거대한 숲의 장벽을 만들고 있어요.', a: '국제 협력 (녹색 장벽)' },
+          { who: '파랑 나라 대표', c: '#3a9be6', say: '우리나라는 숲과 갯벌을 함부로 개발하지 않고 지키고 있어요.', a: '자연환경 보존' },
+          { who: '노랑 나라 대표', c: '#e8a21c', say: '에너지를 적게 쓰는 새로운 기계와 방법을 연구하고 있어요.', a: '친환경 기술 개발' },
+          { who: '분홍 나라 대표', c: '#d77fa1', say: '폭염과 홍수가 와도 사람들이 안전하도록 미리 대비하고 있어요.', a: '기후변화에 적응할 수 있도록 대비' }
+        ]
+      }),
+      Q([
+        { q: '이산화 탄소는 대기의 ( )를 높이는 기체예요.', hint: 'ㅇㄷ', a: '온도', opts: ['온도', '습도', '바람', '높이'] },
+        { q: '내보내는 이산화 탄소와 흡수하는 이산화 탄소의 양을 같게 맞추는 것을 ( )(이)라고 해요.', hint: 'ㅌㅅ ㅈㄹ', a: '탄소 중립', opts: ['탄소 중립', '지구 온난화', '해수면 상승', '바다 사막화'] },
+        { q: '기후변화에 대응하기 위해 숲을 보존하고 ( ) 기술을 개발해요.', hint: 'ㅊㅎㄱ', a: '친환경', opts: ['친환경', '자동차', '일회용', '우주'] }
+      ]),
+      S('danbi', '대장의 한마디. 내보내는 이산화 탄소는 줄이고, 숲과 바다 숲으로 흡수는 늘리고. 저울을 맞추는 것이 탄소 중립이야. 여러 나라가 자연을 지키고, 친환경 기술을 만들고, 힘을 합치고 있지.', 'smile'),
+      S('luka', '그럼 이제 나라들이 다 해 주는 거죠? 끝!', 'grin'),
+      S('danbi', '아직이야. 저울을 끝까지 맞추려면 한 사람 한 사람의 힘이 필요해. 마지막 작전의 무대는 바로 너희들의 하루야.', 'serious'),
+      R('scale')
+    ]
+  },
+  // ---------- 작전 4 ----------
+  {
+    label: '작전 4', title: '포리의 빙하를 되찾아라', goal: '생활 속에서 기후변화에 대응하는 방법을 실천하고, 주변에 알려요. (교과서 97~99쪽)', bg: 'arctic',
+    clues: ['작은 행동부터', '걷거나 자전거', '전기를 아끼고', '일회용품과 비닐', '분리배출', '알려야', '꾸준히'],
+    steps: [
+      N('포리가 선 빙하가 사방에서 갈라지는 소리가 들립니다.'),
+      F(async () => { sfx.crack(); shakeStage(); }),
+      S('pori', '대원님! 얼음이 너무 작아졌어요. 엄마가 저 멀리서 저를 부르고 있는데, 갈 수가 없어요!', 'scared'),
+      S('danbi', '최종 작전을 시작한다. 이번 작전의 무대는 북극이 아니라, {name} 대원의 일주일이야.', 'serious'),
+      S('thermo', '삐빅! 기후변화에 대응하려면 **작은 행동부터** 실천해야 해. 가까운 거리는 **걷거나 자전거**를 타고, **전기를 아끼고**, **일회용품과 비닐**을 적게 쓰고, 재활용품을 **분리배출**하는 것처럼.'),
+      S('thermo', '이런 행동은 모두 내보내는 이산화 탄소를 줄여서, 탄소 저울을 맞추고 지구 온난화를 늦추는 데 도움이 돼.'),
+      S('luka', '에이, 그건 너무 작은 일 아니야? 나 한 명 바뀐다고 뭐가 달라져?', 'o'),
+      S('danbi', '작전 2를 떠올려 봐. 범인은 수백만 개의 작은 그림자였지. 작은 행동이 모여 문제가 됐다면, 작은 실천이 모여 해결도 될 수 있어.', 'smile'),
+      M('week', {
+        days: [
+          { day: '월', em: '🏫', sit: '10분 거리 학원에 가야 해요.', good: '걸어서 간다', bad: '엄마께 차로 태워 달라고 한다', ok: '삐빅! 걸어가면 자동차가 내보낼 이산화 탄소가 줄어들어.' },
+          { day: '화', em: '💻', sit: '방에서 나오는데 불과 컴퓨터가 켜져 있어요.', good: '끄고 나온다', bad: '금방 다시 올 거니까 그냥 둔다', ok: '삐빅! 전기를 아끼면 내보내는 이산화 탄소도 줄어들어. 탄소 저울 기억나지?' },
+          { day: '수', em: '🧋', sit: '친구들과 음료를 사러 가요.', good: '텀블러를 챙겨 간다', bad: '일회용 컵과 빨대를 받는다', ok: '삐빅! 일회용품을 줄이면 쓰레기도, 만드는 데 드는 에너지도 줄어.' },
+          { day: '목', em: '🍱', sit: '급식 시간에 밥을 받아요.', good: '먹을 만큼만 받아 남기지 않는다', bad: '많이 받고 반을 남긴다', ok: '삐빅! 남은 음식을 처리하는 데도 에너지가 들어. 잘했어!' },
+          { day: '금', em: '🧴', sit: '다 마신 페트병을 버려요.', good: '라벨을 떼고 분리배출한다', bad: '일반 쓰레기통에 넣는다', ok: '삐빅! 분리배출하면 다시 자원으로 쓸 수 있어.' },
+          { day: '토', em: '👕', sit: '작아진 옷과 다 읽은 책이 있어요.', good: '알뜰 시장에서 나누어 쓴다', bad: '모두 버리고 새것을 산다', ok: '삐빅! 나누어 쓰면 새 물건을 만들 때 나오는 이산화 탄소가 줄어.' },
+          { day: '일', em: '❄️', sit: '더운 날 거실에서 에어컨을 틀어요.', good: '창문을 닫고 알맞은 온도로 튼다', bad: '창문을 열어 둔 채 세게 튼다', ok: '삐빅! 에너지를 낭비하지 않는 똑똑한 선택이야!' }
+        ]
+      }),
+      S('danbi', '기후변화에 대응하려면 여러 사람의 노력이 필요해. 나 혼자가 아니라 주변 사람들에게도 **알려야** 해.', 'serious'),
+      M('campaign'),
+      S('luka', '우와, 본부 앞에 사람들이 모였어! 다들 텀블러를 들고 있어!', 'grin'),
+      S('danbi', '기억해. 기후변화에 대응하는 활동은 한 번이 아니라 **꾸준히** 실천해야 해. 그래야 빙하가 계속 단단하게 유지돼.', 'smile'),
+      S('thermo', '삐빅! 포리의 빙하가 무너지기 직전이야! 지금까지 모은 장비를 모두 가동한다!', 'alert'),
+      M('rush', {
+        good: ['나무를 심어요', '전기를 아껴요', '걸어서 가요', '텀블러를 써요', '분리배출해요', '숲을 보존해요', '갯벌을 지켜요', '바다 숲을 살려요', '자전거를 타요', '급식을 남기지 않아요', '물을 아껴 써요', '친환경 기술 개발'],
+        bad: ['일회용품을 자주 써요', '숲을 베어 내요', '빈방에 불을 켜 둬요', '가까운 곳도 차를 타요', '물을 틀어 놔요', '필요 없는 물건을 사요']
+      }),
+      N('얼음 다리가 반짝이며 이어지고, 포리가 달려가 엄마 품에 안깁니다.'),
+      F(async () => { sfx.win(); flash(); }),
+      S('pori', '엄마! 대원님들이 얼음을 돌려주셨어요! {name} 대원님, 고마워요!', 'joy'),
+      Q([
+        { q: '가까운 거리는 걷거나 ( )를 이용해요.', hint: 'ㅈㅈㄱ', a: '자전거', opts: ['자전거', '자동차', '비행기', '오토바이'] },
+        { q: '기후변화에 대응하는 활동은 한 번이 아니라 ( ) 실천해야 해요.', hint: 'ㄲㅈㅎ', a: '꾸준히', opts: ['꾸준히', '가끔', '한 번만', '나중에'] },
+        { q: '다음 중 기후변화에 대응하는 방법이 아닌 것은? ( )', a: '일회용품 자주 쓰기', opts: ['일회용품 자주 쓰기', '에너지 사용 줄이기', '자연환경 보존하기', '분리배출하기'] }
+      ]),
+      S('danbi', '작전 성공이다. 이제 임명식을 준비하자.', 'smile'),
+      R('badge')
+    ]
+  },
+  // ---------- 에필로그 ----------
+  {
+    label: '에필로그', title: '임명식', goal: '실천 약속을 정하고 북극곰 구조대 임명장을 받아요.', bg: 'arctic', clues: [],
+    steps: [
+      S('thermo', '삐빅! 대원, 한 가지가 남았어. 빙하는 한 번 얼렸다고 영원히 지켜지지 않아.'),
+      S('danbi', '구조대원의 진짜 임무는 지금부터야. 일주일 동안 지킬 실천 목표 세 가지를 정해 줘.', 'smile'),
+      M('pledge'),
+      S('pori', '대원님, 다음에 또 놀러 와요! 그때는 얼음이 더 두껍고 단단했으면 좋겠어요.', 'joy'),
+      S('luka', '나도 오토바이 대신 자전거 탈 거야. 일주일 뒤에 누가 더 잘 지켰는지 대결하자!', 'grin'),
+      S('danbi', '{name} 대원, 앞으로. 북극곰 구조대장으로서 너를 정식 대원으로 임명한다!', 'smile'),
+      F(async () => { flash(); sfx.win(); hideDlg(); }),
+      M('ceremony')
+    ]
+  }
+];
+
+// 원인 연결 고리 순서 맞추기
+MISSIONS.chain = () => new Promise(res => {
+  const steps = ['인간의 활동이 늘어나요', '온실가스(이산화 탄소 등)가 많이 나와요', '지구 온난화가 일어나요', '기후변화 현상이 심해져요'];
+  const em = ['🏭', '☁️', '🌡️', '🌪️'];
+  const body = panel('미션 2-2+', '연결 고리 맞추기', '카드를 일어나는 순서대로 눌러 연결 고리를 완성하세요.', 860);
+  let next = 0;
+  body.innerHTML = `<div class="row center" id="slots" style="gap:6px;margin-bottom:14px">${steps.map((s, i) => `<div class="note" style="min-width:150px;min-height:70px;text-align:center;border:3px dashed #c9b29a;flex:1" data-i="${i}">${i + 1}</div>${i < 3 ? '<b style="font-size:26px">→</b>' : ''}`).join('')}</div>
+    <div class="grid2">${shuffle(steps.map((s, i) => ({ s, i }))).map(x => `<button class="opt" type="button" data-i="${x.i}" style="text-align:center"><span style="font-size:28px">${em[x.i]}</span><br>${x.s}</button>`).join('')}</div>`;
+  react('thermo', '삐빅! 무엇이 먼저 일어나는지 생각해 봐.');
+  body.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const i = +b.dataset.i;
+    if (i === next) {
+      right(); b.disabled = true; b.classList.add('ok');
+      const slot = body.querySelector(`#slots [data-i="${i}"]`); slot.innerHTML = `<span style="font-size:26px">${em[i]}</span><br>${steps[i]}`; slot.style.borderStyle = 'solid'; slot.style.background = '#d4f7e3';
+      next++;
+      if (next === 4) { react('danbi', '완벽해! 인간의 활동 → 온실가스 → 지구 온난화 → 기후변화. 이게 빙하를 녹인 연결 고리야.', 'smile'); doneBtn(body, '연결 고리 완성!').then(res); }
+    } else { wrong(); b.classList.add('no'); setTimeout(() => b.classList.remove('no'), 450); react('luka', '음, 그건 조금 더 나중에 일어나는 일 같아!'); }
+  });
+});
+
+// ===== 시작 =====
+window.addEventListener('DOMContentLoaded', () => {
+  load(); buildUI(); setBg('arctic'); renderPips(); showTitle();
+});
+
+</script>
+</body>
+</html>

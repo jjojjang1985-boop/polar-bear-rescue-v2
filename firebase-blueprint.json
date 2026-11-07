@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "북극곰 구조대 미션을 완료한 대원의 순위 기록",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "대원 이름",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "code": {
+          "type": "string",
+          "description": "소속 및 암호명",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "score": {
+          "type": "integer",
+          "description": "총 획득 점수"
+        },
+        "stars": {
+          "type": "integer",
+          "description": "총 획득 별점"
+        },
+        "avatar": {
+          "type": "string",
+          "description": "선택한 대원 캐릭터 아바타",
+          "enum": ["a", "b", "c"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "기록 등록 일시"
+        }
+      },
+      "required": ["name", "code", "score", "stars", "avatar", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/leaderboard/{entryId}": {
+      "schema": {
+        "$ref": "#/entities/LeaderboardEntry"
+      },
+      "description": "실시간 최우수 대원 명예의 전당 순위표 컬렉션"
+    }
+  }
+}

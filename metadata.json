@@ -1,0 +1,6 @@
+{
+  "name": "북극곰 구조대 - 빙하를 지켜라!",
+  "description": "4학년 과학 기후변화와 우리 생활: 아기 북극곰 포리를 구하고 빙하를 되찾는 인터랙티브 과학 탐정 어드벤처",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
