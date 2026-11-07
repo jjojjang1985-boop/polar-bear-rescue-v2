@@ -445,45 +445,48 @@ export default function App() {
 
   const advanceStep = () => {
     setReaction(null);
-    const nextIdx = stepIdx + 1;
-    if (nextIdx < curStage.steps.length) {
-      const nextStep = curStage.steps[nextIdx];
+    let idx = stepIdx + 1;
 
-      // Execute immediate side-effects
-      if (nextStep.type === 'bg') {
-        setCurrentBg(nextStep.bg);
-        setStepIdx(nextIdx + 1);
-        return;
+    // 배경·효과 단계는 화면에 보여줄 내용이 없으므로 연달아 처리하고 넘어간다
+    while (idx < curStage.steps.length) {
+      const step = curStage.steps[idx];
+
+      if (step.type === 'bg') {
+        setCurrentBg(step.bg);
+        idx++;
+        continue;
       }
-      if (nextStep.type === 'fx') {
-        if (nextStep.name === 'flash' || nextStep.name === 'winFlash') triggerFlash();
-        if (nextStep.name === 'stageCrack') {
+      if (step.type === 'fx') {
+        if (step.name === 'flash' || step.name === 'winFlash') triggerFlash();
+        if (step.name === 'stageCrack') {
           sfx.crack();
           triggerShake();
         }
-        if (nextStep.name === 'towerOn') {
+        if (step.name === 'towerOn') {
           setGame(g => ({ ...g, towerOn: true, blocks: 6 }));
           sfx.win();
         }
-        setStepIdx(nextIdx + 1);
-        return;
+        idx++;
+        continue;
       }
-      if (nextStep.type === 'reward') {
+      if (step.type === 'reward') {
+        // 보상 창을 닫으면 advanceStep이 다시 호출되어 다음 단계로 진행된다
         sfx.win();
         setGame(g => ({
           ...g,
-          gear: g.gear.includes(nextStep.gear) ? g.gear : [...g.gear, nextStep.gear]
+          gear: g.gear.includes(step.gear) ? g.gear : [...g.gear, step.gear]
         }));
-        setShowReward(nextStep.gear);
-        setStepIdx(nextIdx + 1);
+        setShowReward(step.gear);
+        setStepIdx(idx);
         return;
       }
 
-      setStepIdx(nextIdx);
-    } else {
-      // Completed current stage
-      finishStage(game.cur);
+      setStepIdx(idx);
+      return;
     }
+
+    // Completed current stage
+    finishStage(game.cur);
   };
 
   const finishStage = (stageIdx: number) => {
@@ -1005,7 +1008,10 @@ export default function App() {
       {showReward && (
         <RewardModal
           gearId={showReward}
-          onClose={() => setShowReward(null)}
+          onClose={() => {
+            setShowReward(null);
+            if (curStep?.type === 'reward') advanceStep();
+          }}
         />
       )}
 
