@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { OL } from '../../svgs';
+import { SEA_IMAGES } from '../../assets';
+
+// sea-floor 그림 속 하얀 바위 6개의 가로 위치(%)
+const SPOT_X = [10.9, 26.8, 42.7, 58.2, 74.1, 89.3];
 import { sfx } from '../../audio';
 
 export function MissionSeaForest({
@@ -49,125 +52,51 @@ export function MissionSeaForest({
         바다 숲을 살려라
       </h2>
       <p className="guide">
-        하얗게 변한 바위를 눌러 인공 어초를 설치하고, 한 번 더 눌러 바닷말을 심으세요. (5월 10일 바다 식목일)
+        하얗게 변한 바위를 눌러 인공 어초를 내리고, 한 번 더 눌러 바닷말을 심어 바다 숲을 되살리세요. (5월 10일 바다 식목일)
       </p>
 
-      {/* Sea Forest Canvas SVG */}
-      <svg
-        viewBox="0 0 760 280"
-        width="100%"
-        className="max-h-[260px] rounded-2xl border-3 border-amber-950 my-2"
-        style={{ background: 'linear-gradient(#7fd3ff, #2a6fb8)' }}
+      <div
+        className="seafloor"
+        style={{ ['--life' as any]: (spots.reduce((a, b) => a + b, 0) / 12).toFixed(2) }}
       >
-        {/* Sandy Sea Floor */}
-        <path d="M0 230 Q190 210 380 230 T760 225 V280 H0Z" fill="#f2d49b" stroke={OL} strokeWidth="4" />
+        <img className="seafloor-bg" src={SEA_IMAGES.floor} alt="하얗게 변한 바닷속" draggable={false} />
 
-        {/* Swimming Fish according to grown count */}
+        {/* 바다 숲이 살아날 때마다 물고기가 한 마리씩 */}
         {Array.from({ length: grownCount }, (_, i) => (
-          <g
-            key={i}
-            style={{
-              animation: `swim ${3 + i}s ease-in-out infinite alternate`,
-              transformOrigin: 'center'
-            }}
-          >
-            <ellipse
-              cx={100 + i * 110}
-              cy={60 + (i % 3) * 30}
-              rx="18"
-              ry="10"
-              fill="#ffb36b"
-              stroke={OL}
-              strokeWidth="3"
-            />
-            <path
-              d={`M${118 + i * 110} ${60 + (i % 3) * 30} l12 -8 v16z`}
-              fill="#ffb36b"
-              stroke={OL}
-              strokeWidth="3"
-            />
-            <circle
-              cx={92 + i * 110}
-              cy={57 + (i % 3) * 30}
-              r="2.5"
-              fill={OL}
-            />
-          </g>
+          <img
+            key={`f${i}`}
+            className={`sea-fish ${i % 2 ? 'rev' : ''}`}
+            src={SEA_IMAGES.fish}
+            alt=""
+            draggable={false}
+            style={{ top: `${12 + ((i * 17) % 40)}%`, animationDuration: `${9 + (i % 3) * 3}s`, animationDelay: `${-i * 1.7}s` }}
+          />
         ))}
 
-        {/* 6 Replanted Spots */}
-        {spots.map((state, i) => {
-          const x = 70 + i * 124;
-          return (
-            <g
-              key={i}
-              onClick={() => handleSpotClick(i)}
-              className="cursor-pointer"
-            >
-              {/* State 0: Bleached Rock */}
-              {state === 0 && (
-                <>
-                  <ellipse cx={x} cy="222" rx="42" ry="16" fill="#f4f4f4" stroke={OL} strokeWidth="4" />
-                  <text
-                    x={x}
-                    y="200"
-                    textAnchor="middle"
-                    fontFamily="Jua"
-                    fontSize="16"
-                    fill="#fff"
-                  >
-                    눌러요
-                  </text>
-                </>
-              )}
-
-              {/* State 1 or 2: Artificial Reef Structure */}
-              {state >= 1 && (
-                <>
-                  <path
-                    d={`M${x - 34} 230 L${x - 24} 186 L${x + 24} 186 L${x + 34} 230Z`}
-                    fill="#b8b0a6"
-                    stroke={OL}
-                    strokeWidth="4"
-                  />
-                  <rect
-                    x={x - 10}
-                    y="198"
-                    width="20"
-                    height="16"
-                    fill="#8a8178"
-                    stroke={OL}
-                    strokeWidth="3"
-                  />
-                </>
-              )}
-
-              {/* State 2: Flourishing Seaweed */}
-              {state === 2 && (
-                <>
-                  <path
-                    d={`M${x - 14} 188 q-14 -40 4 -80 M${x} 188 q12 -50 -4 -100 M${x + 14} 188 q14 -36 -2 -70`}
-                    fill="none"
-                    stroke="#3aa65a"
-                    strokeWidth="9"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d={`M${x - 14} 188 q-14 -40 4 -80 M${x} 188 q12 -50 -4 -100 M${x + 14} 188 q14 -36 -2 -70`}
-                    fill="none"
-                    stroke={OL}
-                    strokeWidth="2"
-                    opacity="0.4"
-                  />
-                </>
-              )}
-
-              {/* Invisible clickable overlay */}
-              <rect x={x - 50} y="80" width="100" height="160" fill="transparent" />
-            </g>
-          );
-        })}
-      </svg>
+        {spots.map((state, i) => (
+          <button
+            key={i}
+            type="button"
+            className={`reef-spot s${state}`}
+            style={{ left: `${SPOT_X[i]}%` }}
+            onClick={() => handleSpotClick(i)}
+            disabled={state >= 2}
+            aria-label={state === 0 ? '인공 어초 설치하기' : state === 1 ? '바닷말 심기' : '바다 숲 완성'}
+          >
+            {state === 0 && <span className="reef-hint">어초 설치</span>}
+            {state >= 1 && (
+              <>
+                <img className="reef-img" src={SEA_IMAGES.reef} alt="" draggable={false} />
+                <span className="bubbles" aria-hidden="true">
+                  <i /><i /><i /><i /><i />
+                </span>
+              </>
+            )}
+            {state === 1 && <span className="reef-hint plant">바닷말 심기</span>}
+            {state === 2 && <img className="weed-img" src={SEA_IMAGES.weed} alt="" draggable={false} />}
+          </button>
+        ))}
+      </div>
 
       <div className="mt-3">
         <div className="flex justify-between items-center mb-1">
