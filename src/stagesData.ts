@@ -40,7 +40,8 @@ export interface StageStepMission {
     | 'rush'
     | 'pledge'
     | 'ceremony'
-    | 'boss';
+    | 'boss'
+    | 'shoot';
   options?: any;
 }
 
@@ -281,11 +282,11 @@ export const STAGES: StageDefinition[] = [
       { type: 'mission', id: 'campaign' },
       { type: 'say', who: 'luka', text: '우와, 본부 앞에 사람들이 모였어! 다들 텀블러를 들고 있어!', mood: 'grin' },
       { type: 'say', who: 'danbi', text: '기억해. 기후변화에 대응하는 활동은 한 번이 아니라 **꾸준히** 실천해야 해. 그래야 빙하가 계속 단단하게 유지돼.', mood: 'smile' },
-      { type: 'say', who: 'thermo', text: '삐빅! 포리의 빙하가 무너지기 직전이야! 지금까지 익힌 힘을 모두 모은다!', mood: 'alert' },
-      { type: 'mission', id: 'rush' },
-      { type: 'say', who: 'narr', text: '얼음 다리가 반짝이며 이어지고, 포리가 달려가 엄마 품에 안깁니다.' },
-      { type: 'fx', name: 'winFlash' },
-      { type: 'say', who: 'pori', text: '엄마! 대원님들이 얼음을 돌려주셨어요! {name} 수련생님, 고마워요!', mood: 'joy' },
+      { type: 'say', who: 'thermo', text: '삐빅! 포리의 빙하가 무너지기 직전이야! 하늘에서 열기 덩어리가 쏟아지고 있어!', mood: 'alert' },
+      { type: 'say', who: 'danbi', text: '포리가 얼음 조각을 타고 엄마에게 가는 동안, 지구를 데우는 열기는 얼음 빔으로 막고 좋은 실천은 꼭 받아 내!', mood: 'serious' },
+      { type: 'mission', id: 'shoot' },
+      { type: 'say', who: 'narr', text: '열기 덩어리를 모두 막아 내자, 저 멀리 얼음 위에서 손을 흔드는 엄마 곰이 보여요.' },
+      { type: 'say', who: 'luka', text: '거의 다 왔어! 조금만 더 가면 포리가 엄마를 만날 수 있어!', mood: 'grin' },
       {
         type: 'quiz',
         items: [
@@ -306,15 +307,20 @@ export const STAGES: StageDefinition[] = [
     bg: 'arctic',
     clues: [],
     steps: [
+      { type: 'say', who: 'pori', text: '엄마! 지금 갈게요!', mood: 'joy' },
       { type: 'say', who: 'thermo', text: '삐빅! 비상, 비상! 흩어졌던 그림자들이 다시 한곳으로 모이고 있어!', mood: 'alert' },
       { type: 'fx', name: 'bossRise' },
-      { type: 'say', who: 'narr', text: '버려진 연기와 매연을 먹고, 그림자가 거대한 탄소 대마왕이 되어 나타났어요.' },
-      { type: 'say', who: 'luka', text: '저, 저게 뭐야! 포리네 빙하 쪽으로 가고 있어!', mood: 'o' },
+      { type: 'say', who: 'narr', text: '버려진 연기와 매연을 먹고, 그림자가 거대한 탄소 대마왕이 되어 포리와 엄마 사이를 가로막았어요.' },
+      { type: 'say', who: 'pori', text: '으앙, 엄마한테 갈 수가 없어요!', mood: 'scared' },
+      { type: 'say', who: 'luka', text: '저, 저게 뭐야! 포리가 엄마한테 못 가잖아!', mood: 'o' },
       { type: 'say', who: 'danbi', text: '{name} 수련생, 마지막 시험이다. 대마왕의 공격을 잘 보고, 알맞은 기후 마법으로 막아 내!', mood: 'serious' },
       { type: 'say', who: 'thermo', text: '삐빅! 공격마다 막을 수 있는 기술이 정해져 있어. 네가 고른 기술로 막을 수 없는 공격이 오면 🧱 버티기로 피해를 줄여!', mood: 'happy' },
       { type: 'mission', id: 'boss' },
       { type: 'say', who: 'narr', text: '탄소 대마왕이 빛 속에서 작은 그림자들로 흩어졌어요. 그림자들은 이제 텀블러와 자전거를 든 사람들의 모습이에요.' },
-      { type: 'say', who: 'pori', text: '대원님 최고예요! 이제 빙하가 더 단단해질 거예요!', mood: 'joy' },
+      { type: 'bg', bg: 'reunion' },
+      { type: 'say', who: 'narr', text: '얼음 다리가 반짝이며 이어지고, 포리가 달려가 엄마 품에 꼭 안겨요.' },
+      { type: 'fx', name: 'winFlash' },
+      { type: 'say', who: 'pori', text: '엄마! 지구수비대 수련생님들이 빙하를 지켜 주셨어요! {name} 수련생님, 정말 고마워요!', mood: 'joy' },
       { type: 'say', who: 'danbi', text: '잘했다. 혼자 싸운 게 아니야. 작은 실천을 함께한 모두의 힘이었어. 이제 임명식을 준비하자.', mood: 'smile' }
     ]
   },

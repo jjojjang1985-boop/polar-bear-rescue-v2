@@ -50,6 +50,7 @@ import { MissionRush } from './components/missions/MissionRush';
 import { MissionPledge } from './components/missions/MissionPledge';
 import { MissionCeremony } from './components/missions/MissionCeremony';
 import { MissionBoss } from './components/missions/MissionBoss';
+import { MissionShoot } from './components/missions/MissionShoot';
 import { SkillArt, SkillBookModal, SkillPickModal } from './components/Skills';
 import { SKILLS, STAGE_PICKS } from './skills';
 import { QuizComponent } from './components/missions/QuizComponent';
@@ -822,6 +823,16 @@ export default function App() {
           <MissionBoss
             owned={game.gear}
             onHeal={(n: number) => addBlock(n)}
+            onCorrect={() => handleCorrect()}
+            onWrong={handleWrong}
+            onFinish={advanceStep}
+            onReact={handleReact}
+          />
+        );
+
+      case 'shoot':
+        return (
+          <MissionShoot
             onCorrect={() => handleCorrect()}
             onWrong={handleWrong}
             onFinish={advanceStep}

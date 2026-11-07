@@ -9,6 +9,11 @@ export const TITLE_IMAGE = img('title');
 export const MAP_IMAGE = img('map');
 export const SHADOW_IMAGE = img('shadow');
 export const SOS_MAP_IMAGE = img('sos-map');
+export const SHOOT_IMAGES = {
+  pori: img('shoot-pori'),
+  heat: img('shoot-heat'),
+  mom: img('shoot-mom')
+};
 export const SEA_IMAGES = {
   floor: img('sea-floor'),
   reef: img('sea-reef'),
@@ -22,7 +27,8 @@ export const SCENE_IMAGES: Record<string, string> = {
   hq: img('bg-hq'),
   arctic: img('bg-arctic'),
   ocean: img('bg-ocean'),
-  town: img('bg-town')
+  town: img('bg-town'),
+  reunion: img('bg-reunion')
 };
 
 const FACE_IMAGES: Partial<Record<SpeakerId, string>> = {
