@@ -77,3 +77,10 @@ export const SKILL_ART_READY: string[] = [
 export function getSkillArt(id: string): string | null {
   return SKILL_ART_READY.includes(id) ? img(`skill-${id}`) : null;
 }
+
+/** 작전 2 수사 장소 그림 (hunt-<id>.webp). 그림이 들어오면 이 목록에 id를 추가한다. */
+export const HUNT_ART_READY: string[] = ['factory', 'forest', 'road', 'home', 'school'];
+
+export function getHuntArt(id: string): string | null {
+  return HUNT_ART_READY.includes(id) ? img(`hunt-${id}`) : null;
+}

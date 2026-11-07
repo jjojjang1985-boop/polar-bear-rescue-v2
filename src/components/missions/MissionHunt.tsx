@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { sfx } from '../../audio';
+import { sfx, cue } from '../../audio';
+import { getHuntArt } from '../../assets';
 
 interface ObjItem {
   em: string;
@@ -10,6 +11,7 @@ interface ObjItem {
 }
 
 interface PlaceData {
+  id: string;
   name: string;
   em: string;
   bg: string;
@@ -21,6 +23,7 @@ interface PlaceData {
 
 const PLACES: PlaceData[] = [
   {
+    id: 'factory',
     name: '공장 지대',
     em: '🏭',
     bg: 'linear-gradient(#cfd8e6,#f6e3d3)',
@@ -28,15 +31,16 @@ const PLACES: PlaceData[] = [
     evid: '산업 활동',
     testimony: '요즘 사람들이 물건을 아주 많이 사서, 공장을 밤낮없이 돌려요. 공장에서 많은 물건을 생산하고 또 소비하지요.',
     objs: [
-      { em: '🏭', x: 28, y: 45, label: '굴뚝 연기', bad: 1 },
-      { em: '📦', x: 70, y: 70, label: '쌓인 물건 더미', bad: 1 },
-      { em: '🌼', x: 86, y: 28, label: '꽃' },
-      { em: '🐦', x: 52, y: 20, label: '새' },
-      { em: '🚲', x: 14, y: 80, label: '자전거' },
-      { em: '🌲', x: 90, y: 74, label: '나무' }
+      { em: '🏭', x: 25, y: 22, label: '굴뚝 연기', bad: 1 },
+      { em: '📦', x: 74, y: 68, label: '쌓인 물건 더미', bad: 1 },
+      { em: '🌼', x: 88, y: 22, label: '꽃' },
+      { em: '🐦', x: 54, y: 21, label: '새' },
+      { em: '🚲', x: 16, y: 81, label: '자전거' },
+      { em: '🌲', x: 93, y: 80, label: '나무' }
     ]
   },
   {
+    id: 'forest',
     name: '숲',
     em: '🌳',
     bg: 'linear-gradient(#d8f5c4,#a8dc8a)',
@@ -44,15 +48,16 @@ const PLACES: PlaceData[] = [
     evid: '산림 훼손',
     testimony: '여기 있던 나무를 다 베고 태워서, 땅을 개발한대요. 우리 집도 없어졌어요.',
     objs: [
-      { em: '🪵', x: 34, y: 66, label: '베어 낸 나무 밑동', bad: 1 },
-      { em: '🔥', x: 74, y: 48, label: '불탄 자리', bad: 1 },
-      { em: '🌳', x: 14, y: 36, label: '나무' },
-      { em: '🍄', x: 56, y: 82, label: '버섯' },
-      { em: '🦋', x: 50, y: 22, label: '나비' },
-      { em: '🌷', x: 88, y: 80, label: '꽃' }
+      { em: '🪵', x: 28, y: 70, label: '베어 낸 나무 밑동', bad: 1 },
+      { em: '🔥', x: 66, y: 62, label: '불탄 자리', bad: 1 },
+      { em: '🌳', x: 17, y: 35, label: '나무' },
+      { em: '🍄', x: 57, y: 87, label: '버섯' },
+      { em: '🦋', x: 52, y: 20, label: '나비' },
+      { em: '🌷', x: 89, y: 77, label: '꽃' }
     ]
   },
   {
+    id: 'road',
     name: '도로와 공항',
     em: '🛣️',
     bg: 'linear-gradient(#c8e6ff,#d9d4cc)',
@@ -60,15 +65,16 @@ const PLACES: PlaceData[] = [
     evid: '교통수단 이용',
     testimony: '가까운 거리도 다들 자동차를 타서 길이 늘 막혀요. 비행기도 하루 종일 뜨고 내리고요.',
     objs: [
-      { em: '🚗', x: 40, y: 74, label: '줄지은 자동차', bad: 1 },
-      { em: '✈️', x: 72, y: 24, label: '비행기', bad: 1 },
-      { em: '🚦', x: 14, y: 50, label: '신호등' },
-      { em: '🚶', x: 86, y: 76, label: '걷는 사람' },
-      { em: '🌳', x: 58, y: 52, label: '가로수' },
-      { em: '🏪', x: 24, y: 24, label: '가게' }
+      { em: '🚗', x: 28, y: 78, label: '줄지은 자동차', bad: 1 },
+      { em: '✈️', x: 76, y: 15, label: '비행기', bad: 1 },
+      { em: '🚦', x: 32, y: 40, label: '신호등' },
+      { em: '🚶', x: 71, y: 82, label: '걷는 사람' },
+      { em: '🌳', x: 47, y: 45, label: '가로수' },
+      { em: '🏪', x: 12, y: 36, label: '가게' }
     ]
   },
   {
+    id: 'home',
     name: '우리 동네 집',
     em: '🏠',
     bg: 'linear-gradient(#fff1d6,#ffd9b0)',
@@ -76,15 +82,16 @@ const PLACES: PlaceData[] = [
     evid: '물과 에너지 낭비',
     testimony: '아무도 없는 방에 불이 하루 종일 켜져 있더구나. 수도꼭지에서는 물이 콸콸 흐르고.',
     objs: [
-      { em: '💡', x: 30, y: 26, label: '빈방에 켜 둔 불', bad: 1 },
-      { em: '🚰', x: 72, y: 62, label: '틀어 둔 수도꼭지', bad: 1 },
-      { em: '🛋️', x: 46, y: 74, label: '소파' },
-      { em: '🪴', x: 88, y: 34, label: '화분' },
-      { em: '🐈', x: 16, y: 74, label: '고양이' },
-      { em: '📚', x: 60, y: 30, label: '책' }
+      { em: '💡', x: 18, y: 28, label: '빈방에 켜 둔 불', bad: 1 },
+      { em: '🚰', x: 80, y: 66, label: '틀어 둔 수도꼭지', bad: 1 },
+      { em: '🛋️', x: 41, y: 63, label: '소파' },
+      { em: '🪴', x: 90, y: 28, label: '화분' },
+      { em: '🐈', x: 12, y: 86, label: '고양이' },
+      { em: '📚', x: 57, y: 28, label: '책' }
     ]
   },
   {
+    id: 'school',
     name: '학교',
     em: '🏫',
     bg: 'linear-gradient(#e8f3ff,#d6ecd2)',
@@ -92,12 +99,12 @@ const PLACES: PlaceData[] = [
     evid: '쓰레기 증가',
     testimony: '멀쩡한 물건이랑 일회용품이 매일 산더미처럼 버려져요. 필요 없는 물건도 많이 사고요.',
     objs: [
-      { em: '🗑️', x: 24, y: 68, label: '넘치는 쓰레기통', bad: 1 },
-      { em: '🛍️', x: 70, y: 40, label: '뜯지도 않은 새 학용품', bad: 1 },
-      { em: '✏️', x: 50, y: 78, label: '연필' },
-      { em: '🎒', x: 86, y: 74, label: '가방' },
-      { em: '🏀', x: 14, y: 28, label: '공' },
-      { em: '📗', x: 44, y: 30, label: '교과서' }
+      { em: '🗑️', x: 18, y: 72, label: '넘치는 쓰레기통', bad: 1 },
+      { em: '🛍️', x: 74, y: 38, label: '뜯지도 않은 새 학용품', bad: 1 },
+      { em: '✏️', x: 51, y: 87, label: '연필' },
+      { em: '🎒', x: 79, y: 81, label: '가방' },
+      { em: '🏀', x: 10, y: 21, label: '공' },
+      { em: '📗', x: 46, y: 38, label: '교과서' }
     ]
   }
 ];
@@ -131,6 +138,8 @@ export function MissionHunt({
     setTimeLeft(30);
     setShowAllHeat(false);
     setFoundObjs({});
+    setHeat(0);
+    cue.goggle();
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -147,13 +156,35 @@ export function MissionHunt({
     return () => clearInterval(timer);
   }, [activePlaceIdx, testimonyMode]);
 
+  const lastBeep = useRef(0);
+  const [heat, setHeat] = useState(0); // 0~1: 렌즈가 흔적에 얼마나 가까운가
+
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || activePlaceIdx === null) return;
     const rect = containerRef.current.getBoundingClientRect();
-    setPointerPos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setPointerPos({ x, y });
+
+    // 아직 못 찾은 흔적까지의 거리로 '온도'를 잰다
+    const objs = PLACES[activePlaceIdx].objs;
+    let best = Infinity;
+    objs.forEach((ob, i) => {
+      if (!ob.bad || foundObjs[i]) return;
+      const dx = (ob.x / 100) * rect.width - x;
+      const dy = (ob.y / 100) * rect.height - y;
+      best = Math.min(best, Math.hypot(dx, dy) / rect.width);
     });
+    const h = best === Infinity ? 0 : Math.max(0, 1 - best / 0.35);
+    setHeat(h);
+
+    // 가까울수록 삐삐 소리가 빨라진다
+    const now = performance.now();
+    const gap = 900 - h * 780;
+    if (h > 0.05 && now - lastBeep.current > gap) {
+      lastBeep.current = now;
+      cue.heatBeep(h);
+    }
   };
 
   const handleObjClick = (objIdx: number) => {
@@ -198,6 +229,7 @@ export function MissionHunt({
   // If in a place's investigation
   if (activePlaceIdx !== null) {
     const place = PLACES[activePlaceIdx];
+    const art = getHuntArt(place.id);
     const foundCount = Object.keys(foundObjs).length;
 
     if (testimonyMode) {
@@ -236,52 +268,61 @@ export function MissionHunt({
           </div>
         </div>
         <p className="guide">
-          렌즈를 움직여 붉게 빛나는 흔적 2개를 찾아 누르세요. 다른 물건을 누르면 시간이 3초 줄어요!
+          🥽 고글 렌즈를 움직여 보세요. 지구를 데우는 흔적은 렌즈 안에서 붉게 빛나요. 온도계가 올라가고 삐삐 소리가 빨라지면 가까워진 거예요! (엉뚱한 곳을 누르면 3초 줄어요)
         </p>
 
         <div
           ref={containerRef}
           onPointerMove={handlePointerMove}
           onPointerDown={handlePointerMove}
-          className="hunt"
-          style={{ background: place.bg }}
+          className={`hunt goggle-view ${art ? 'has-art' : ''} ${showAllHeat ? 'reveal' : ''}`}
+          style={{
+            background: art ? '#1d2a3a' : place.bg,
+            ['--x' as any]: `${pointerPos.x}px`,
+            ['--y' as any]: `${pointerPos.y}px`,
+            ['--heat' as any]: heat
+          }}
         >
+          {art && <img className="hunt-art" src={art} alt={`${place.name} 그림`} draggable={false} />}
+
+          {/* 물건 (그림이 있으면 그림 위의 투명한 누르는 자리) */}
           {place.objs.map((ob, i) => (
             <button
               key={i}
               type="button"
-              className={`obj ${foundObjs[i] ? 'found' : ''}`}
+              className={`obj ${art ? 'spot' : ''} ${foundObjs[i] ? 'found' : ''}`}
               style={{ left: `${ob.x}%`, top: `${ob.y}%` }}
               onClick={() => handleObjClick(i)}
               aria-label={ob.label}
             >
-              {ob.em}
+              {!art && ob.em}
+              {foundObjs[i] && <span className="found-tag">{ob.label}</span>}
             </button>
           ))}
 
-          {/* Thermal mask layer */}
-          <div
-            className={`heat ${showAllHeat ? 'all' : ''}`}
-            style={{
-              ['--x' as any]: `${pointerPos.x}px`,
-              ['--y' as any]: `${pointerPos.y}px`
-            }}
-          >
-            {place.objs
-              .filter(ob => ob.bad)
-              .map((ob, i) => (
-                <b key={i} style={{ left: `${ob.x}%`, top: `${ob.y}%` }} />
-              ))}
+          {/* 고글 밖: 어둡게 / 고글 안: 열화상 */}
+          <div className="goggle-dim" />
+          <div className="thermal" />
+          <div className="heat-layer">
+            {place.objs.map((ob, i) =>
+              ob.bad && !foundObjs[i] ? <b key={i} style={{ left: `${ob.x}%`, top: `${ob.y}%` }} /> : null
+            )}
           </div>
 
-          {/* Moving Lens */}
-          <div
-            className="lens"
-            style={{
-              ['--x' as any]: `${pointerPos.x}px`,
-              ['--y' as any]: `${pointerPos.y}px`
-            }}
-          />
+          {/* 고글 렌즈 테 + 조준선 + 스캔선 */}
+          <div className={`goggle-lens ${heat > 0.75 ? 'hot' : ''}`}>
+            <i className="reticle" />
+            <i className="scan" />
+          </div>
+
+          {/* 온도계 */}
+          <div className="heat-meter" aria-hidden="true">
+            <span>🌡️</span>
+            <div className="heat-bar">
+              <i style={{ height: `${Math.round(heat * 100)}%` }} />
+            </div>
+            <b>{heat > 0.75 ? '뜨거워!' : heat > 0.4 ? '따뜻해' : '차가워'}</b>
+          </div>
         </div>
       </div>
     );

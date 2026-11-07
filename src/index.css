@@ -2953,3 +2953,204 @@ h1, h2, h3, h4 {
 .sos-map .pin span {
   font-size: clamp(11px, 1.4vw, 14px);
 }
+
+/* =========================================================================
+   작전 2: 기후 관측 고글 (열화상 렌즈)
+   ========================================================================= */
+.hunt.goggle-view {
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-height: 52vh;
+  width: 100%;
+  cursor: none;
+  --r: clamp(70px, 13vw, 120px);
+}
+.hunt-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* 그림 위의 투명한 누르는 자리 */
+.hunt .obj.spot {
+  width: 13%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 0;
+  z-index: 1;
+}
+.hunt .obj.spot:hover {
+  transform: translate(-50%, -50%);
+}
+.hunt .obj.found {
+  z-index: 6;
+}
+.hunt .obj.spot.found {
+  box-shadow: 0 0 0 4px #ff4b4b, 0 0 24px 8px rgba(255, 60, 60, 0.7);
+}
+.hunt .obj.spot.found::after {
+  right: 2px;
+  top: 2px;
+}
+.found-tag {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 4px);
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: #fff;
+  background: #d63a3a;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  padding: 1px 10px;
+  pointer-events: none;
+}
+
+/* 고글 밖은 어둡고 푸르게 */
+.goggle-dim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: rgba(8, 18, 40, 0.62);
+  -webkit-mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), transparent 96%, #000 100%);
+  mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), transparent 96%, #000 100%);
+}
+/* 고글 안은 열화상: 차가운 것은 파랗게 */
+.thermal {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  backdrop-filter: grayscale(1) contrast(1.25) brightness(0.85);
+  -webkit-backdrop-filter: grayscale(1) contrast(1.25) brightness(0.85);
+  background: rgba(40, 90, 200, 0.22);
+  clip-path: circle(var(--r) at var(--x) var(--y));
+}
+/* 뜨거운 흔적: 렌즈 안에서만 보인다 */
+.heat-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  clip-path: circle(var(--r) at var(--x) var(--y));
+}
+.reveal .heat-layer {
+  clip-path: none;
+}
+@keyframes heatPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.15); }
+}
+.heat-layer b {
+  position: absolute;
+  width: 16%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, #fff6b0 0%, #ffd23f 18%, #ff8a2b 40%, rgba(255, 50, 50, 0.75) 60%, rgba(200, 0, 60, 0) 72%);
+  mix-blend-mode: screen;
+  animation: heatPulse 1s ease-in-out infinite;
+}
+/* 렌즈 테, 조준선, 스캔선 */
+.goggle-lens {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  left: var(--x);
+  top: var(--y);
+  width: calc(var(--r) * 2);
+  height: calc(var(--r) * 2);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 6px solid #2b3d5a;
+  box-shadow: 0 0 0 3px #8fd6ff, inset 0 0 22px rgba(140, 220, 255, 0.6), 0 0 18px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.goggle-lens.hot {
+  box-shadow: 0 0 0 3px #ff6b6b, inset 0 0 30px rgba(255, 90, 90, 0.8), 0 0 26px rgba(255, 60, 60, 0.7);
+}
+.goggle-lens .reticle {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(170, 230, 255, 0.7), rgba(170, 230, 255, 0.7)) center / 2px 60% no-repeat,
+    linear-gradient(rgba(170, 230, 255, 0.7), rgba(170, 230, 255, 0.7)) center / 60% 2px no-repeat,
+    radial-gradient(circle, transparent 18%, rgba(170, 230, 255, 0.55) 19%, transparent 21%);
+}
+.goggle-lens.hot .reticle {
+  filter: hue-rotate(160deg) saturate(3);
+}
+@keyframes lensScan {
+  from { transform: translateY(-10%); }
+  to { transform: translateY(1000%); }
+}
+.goggle-lens .scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 10%;
+  background: linear-gradient(transparent, rgba(150, 230, 255, 0.45), transparent);
+  animation: lensScan 1.6s linear infinite;
+}
+/* 온도계 */
+.heat-meter {
+  position: absolute;
+  z-index: 6;
+  right: 10px;
+  top: 10px;
+  bottom: 10px;
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  font-family: var(--font-display);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.heat-meter b {
+  font-weight: 400;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.heat-bar {
+  flex: 1;
+  width: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+.heat-bar i {
+  display: block;
+  width: 100%;
+  background: linear-gradient(0deg, #4fb0e8, #ffd23f 50%, #ff3b3b);
+  background-size: 100% 300%;
+  background-position: bottom;
+  transition: height 0.15s;
+}
+/* 시간이 다 되면 고글을 걷고 흔적을 모두 보여 준다 */
+.reveal .goggle-dim,
+.reveal .goggle-lens,
+.reveal .thermal {
+  display: none;
+}
+.hunt.goggle-view.reveal {
+  cursor: pointer;
+}
+@media (hover: none) {
+  .hunt.goggle-view {
+    cursor: auto;
+  }
+}

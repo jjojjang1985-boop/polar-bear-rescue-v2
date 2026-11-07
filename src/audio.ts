@@ -233,6 +233,10 @@ export const cue = {
     [1319, 1568, 2093, 2637].forEach((f, i) => tone(f, 0.7, 'sine', 0.045, i * 0.09));
     pad(659, 1.4, 'triangle', 0.025, 0.1);
   },
+  /** 고글 온도 탐지음: 뜨거울수록 높고 크게 */
+  heatBeep(h: number) {
+    tone(700 + h * 900, 0.06, 'square', 0.012 + h * 0.025);
+  },
   /** 탄소 대마왕 등장 */
   bossRise() {
     pad(55, 3, 'sawtooth', 0.04);
