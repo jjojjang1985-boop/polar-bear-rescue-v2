@@ -3311,3 +3311,8 @@ h1, h2, h3, h4 {
   transform: scaleX(-1);
   animation-name: fishSwimRev, fishBob;
 }
+
+.council-face {
+  object-fit: cover;
+  animation: pop 0.35s ease-out;
+}

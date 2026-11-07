@@ -686,6 +686,10 @@ export const CHARACTER_INFO: Record<SpeakerId, { name: string; bg: string }> = {
   janitor: { name: '미화원 아저씨', bg: '#e2f7ea' },
   villager: { name: '마을 주민', bg: '#fff0de' },
   rep: { name: '대표', bg: '#f0eaff' },
+  repGreen: { name: '초록 나라 대표', bg: '#dff5e3' },
+  repBlue: { name: '파랑 나라 대표', bg: '#dfeeff' },
+  repYellow: { name: '노랑 나라 대표', bg: '#fff3cf' },
+  repPink: { name: '분홍 나라 대표', bg: '#ffe6ef' },
   narr: { name: '', bg: 'transparent' }
 };
 

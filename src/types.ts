@@ -15,6 +15,10 @@ export type SpeakerId =
   | 'janitor'
   | 'villager'
   | 'rep'
+  | 'repGreen'
+  | 'repBlue'
+  | 'repYellow'
+  | 'repPink'
   | 'narr';
 
 export type MoodType = 'happy' | 'joy' | 'sad' | 'scared' | 'smile' | 'grin' | 'serious' | 'alert' | 'o';

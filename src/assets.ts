@@ -37,7 +37,11 @@ const FACE_IMAGES: Partial<Record<SpeakerId, string>> = {
   grandma: img('face-grandma'),
   janitor: img('face-janitor'),
   villager: img('face-villager'),
-  rep: img('face-rep')
+  rep: img('face-rep'),
+  repGreen: img('face-rep-green'),
+  repBlue: img('face-rep-blue'),
+  repYellow: img('face-rep-yellow'),
+  repPink: img('face-rep-pink')
 };
 
 export const PORI_FACE = img('face-pori');
