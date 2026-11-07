@@ -4,10 +4,26 @@ import { SHADOW_IMAGE } from '../../assets';
 import { cue } from '../../audio';
 import { shuffle } from '../../shuffle';
 import { SkillArt } from '../Skills';
+import confetti from 'canvas-confetti';
+import { createPortal } from 'react-dom';
+
+/** 기술별 적중 효과 색과 흩어지는 조각 */
+const IMPACT: Record<string, { c1: string; c2: string; bits: string[] }> = {
+  saver: { c1: '#fff36b', c2: '#ffb700', bits: ['⚡', '✦', '🔌'] },
+  bike: { c1: '#b8ffcf', c2: '#2fbf71', bits: ['💨', '🍃', '✦'] },
+  guard: { c1: '#d9ffb8', c2: '#4caf50', bits: ['🍃', '🌿', '✦'] },
+  tree: { c1: '#c8ff9e', c2: '#3aa65a', bits: ['🌱', '🍃', '🌳'] },
+  seaforest: { c1: '#a8f0ff', c2: '#1e88e5', bits: ['🫧', '🐟', '🌊'] },
+  solar: { c1: '#fff7c2', c2: '#ff9f1c', bits: ['☀️', '✦', '✨'] },
+  recycle: { c1: '#c9ffd8', c2: '#20a060', bits: ['♻️', '✦', '🍃'] },
+  bag: { c1: '#ffe6c2', c2: '#e07a2f', bits: ['🛍️', '✦', '✨'] },
+  plate: { c1: '#ffffff', c2: '#d4a017', bits: ['✨', '✦', '🍽️'] }
+};
+const DEF_IMPACT = { c1: '#ffffff', c2: '#7fd3ff', bits: ['✦', '✨'] };
 
 const BOSS_HP = 6;
 
-type Phase = 'incoming' | 'choose' | 'hit' | 'brace' | 'miss' | 'won';
+type Phase = 'incoming' | 'choose' | 'hit' | 'brace' | 'miss' | 'dying' | 'won' | 'victory';
 
 /** 어느 작전에서 고를 수 있었던 기술인지 */
 const stageOf = (id: string) =>
@@ -50,6 +66,8 @@ export function MissionBoss({
   const [hintMsg, setHintMsg] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [turn, setTurn] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [stats, setStats] = useState({ blocked: 0, bestCombo: 0, damage: 0, used: {} as Record<string, number> });
   const timers = useRef<number[]>([]);
 
   const attack = queue[0];
@@ -100,6 +118,8 @@ export function MissionBoss({
     a.counters.map(c => `${SKILLS[c].ic} ${SKILLS[c].name}(작전 ${stageOf(c)})`).join(' 또는 ');
 
   const takeDamage = (n: number) => {
+    setCombo(0);
+    setStats(st => ({ ...st, damage: st.damage + n }));
     for (let i = 0; i < n; i++) later(onWrong, i * 350);
   };
 
@@ -113,17 +133,40 @@ export function MissionBoss({
     if (attack.counters.includes(choice)) {
       setPhase('hit');
       cue.skillHit();
+      later(() => cue.impact(), 330);
       onCorrect();
       const nextHp = hp - 1;
       setHp(nextHp);
+      const nextCombo = combo + 1;
+      setCombo(nextCombo);
+      setStats(st => ({
+        ...st,
+        blocked: st.blocked + 1,
+        bestCombo: Math.max(st.bestCombo, nextCombo),
+        used: { ...st.used, [choice]: (st.used[choice] || 0) + 1 }
+      }));
       const sk = SKILLS[choice];
       onReact('thermo', `삐빅! ${sk.ic} ${sk.name} 명중! ${attack.why}`, 'happy');
       if (nextHp <= 0) {
+        // 쓰러지는 연출 → 흩어짐 → 승리 화면
+        later(() => {
+          setPhase('dying');
+          cue.bossCrumble();
+        }, 1300);
         later(() => {
           setPhase('won');
           cue.bossDefeat();
-        }, 900);
-        later(onFinish, 3600);
+        }, 3500);
+        later(() => {
+          setPhase('victory');
+          const burst = (x: number) =>
+            confetti({ particleCount: 90, spread: 75, startVelocity: 45, origin: { x, y: 0.7 }, colors: ['#ffd84d', '#7fd3ff', '#7be6b0', '#ffffff', '#f2735a'] });
+          burst(0.2);
+          burst(0.8);
+          later(() => burst(0.5), 500);
+          later(() => burst(0.3), 1100);
+          later(() => burst(0.7), 1500);
+        }, 5000);
       } else {
         later(() => nextTurn(rest), 1700);
       }
@@ -192,7 +235,7 @@ export function MissionBoss({
         탄소 대마왕을 막아라!
       </h2>
 
-      <div className={`boss-arena phase-${phase}`}>
+      <div className={`boss-arena phase-${phase} ${phase === 'hit' ? 'shake-hard' : ''}`}>
         <div className="boss-hp" aria-label={`탄소 대마왕 체력 ${hp} / ${BOSS_HP}`}>
           <span className="boss-hp-label">탄소 대마왕</span>
           <div className="boss-hp-bar">
@@ -210,7 +253,7 @@ export function MissionBoss({
               CO₂
             </b>
           ))}
-          {phase === 'won' && (
+          {(phase === 'won' || phase === 'victory') && (
             <div className="boss-scatter">
               {Array.from({ length: 16 }, (_, i) => (
                 <span
@@ -220,31 +263,37 @@ export function MissionBoss({
                     ['--dy' as string]: `${Math.sin((i / 16) * 6.28) * 110}px`
                   }}
                 >
-                  {['🧒', '👧', '🧑', '👦'][i % 4]}
+                  {['🧒', '👧', '🌱', '🧑', '👦', '🍃'][i % 6]}
                 </span>
               ))}
             </div>
           )}
         </div>
 
-        {attack && phase !== 'won' && (
+        {attack && !['dying', 'won', 'victory'].includes(phase) && (
           <div key={turn} className="boss-attack">
             <span className="em">{attack.em}</span>
             <span className="nm">{attack.name}!</span>
           </div>
         )}
 
-        {phase === 'hit' && picked && (
-          <div className="skill-blast">
-            <SkillArt id={picked} />
+        {phase === 'hit' && picked && <SkillImpact key={`imp${turn}`} id={picked} combo={combo} />}
+        {phase === 'dying' && (
+          <div className="boss-dying-fx">
+            {Array.from({ length: 10 }, (_, i) => (
+              <i key={i} style={{ transform: `rotate(${i * 36}deg)`, animationDelay: `${i * 0.12}s` }} />
+            ))}
           </div>
         )}
+        {(phase === 'won' || phase === 'victory') && <div className="boss-whiteout" />}
         {phase === 'brace' && <div className="brace-shield">🧱</div>}
         {(phase === 'miss' || phase === 'brace') && <div className={`attack-hit ${phase === 'brace' ? 'soft' : ''}`} />}
-        {phase === 'won' && <div className="boss-won">승리! 🎉</div>}
+
       </div>
 
-      {phase !== 'won' && (
+      {phase === 'victory' && createPortal(<VictoryScreen stats={stats} onNext={onFinish} />, document.body)}
+
+      {!['dying', 'won', 'victory'].includes(phase) && (
         <>
           <div className="boss-timer" aria-hidden="true">
             <i
@@ -306,6 +355,120 @@ export function MissionBoss({
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/** 기술 적중: 날아가는 마법 → 폭발 → 충격파·빛줄기·조각 → 데미지 숫자 */
+function SkillImpact({ id, combo }: { id: string; combo: number }) {
+  const fx = IMPACT[id] || DEF_IMPACT;
+  const bits = useMemo(
+    () =>
+      Array.from({ length: 18 }, (_, i) => {
+        const a = (i / 18) * Math.PI * 2 + Math.random() * 0.3;
+        const d = 120 + Math.random() * 120;
+        return {
+          ch: fx.bits[i % fx.bits.length],
+          dx: `${Math.cos(a) * d}px`,
+          dy: `${Math.sin(a) * d * 0.7}px`,
+          r: `${Math.random() * 360}deg`,
+          delay: `${0.33 + Math.random() * 0.1}s`
+        };
+      }),
+    [id]
+  );
+  return (
+    <div className="impact" style={{ ['--c1' as string]: fx.c1, ['--c2' as string]: fx.c2 }}>
+      <div className="imp-flash" />
+      <div className="imp-projectile">
+        <SkillArt id={id} />
+      </div>
+      <div className="imp-core">
+        <div className="imp-rays" />
+        <i className="imp-ring" />
+        <i className="imp-ring r2" />
+        <div className="imp-art">
+          <SkillArt id={id} />
+        </div>
+        {bits.map((b, i) => (
+          <span
+            key={i}
+            className="imp-bit"
+            style={{ ['--dx' as string]: b.dx, ['--dy' as string]: b.dy, ['--r' as string]: b.r, animationDelay: b.delay }}
+          >
+            {b.ch}
+          </span>
+        ))}
+      </div>
+      <div className="imp-dmg">-1</div>
+      <div className="imp-word">{combo >= 2 ? `${combo}연속 명중!` : '명중!'}</div>
+    </div>
+  );
+}
+
+/** 승리 축하 화면 */
+function VictoryScreen({
+  stats,
+  onNext
+}: {
+  stats: { blocked: number; bestCombo: number; damage: number; used: Record<string, number> };
+  onNext: () => void;
+}) {
+  const stars = stats.damage <= 1 ? 3 : stats.damage <= 4 ? 2 : 1;
+  const used = Object.entries(stats.used).sort((a, b) => b[1] - a[1]);
+  const mvp = used[0]?.[0];
+  return (
+    <div className="victory">
+      <div className="victory-rays" />
+      <div className="victory-card">
+        <div className="victory-crown">🏆</div>
+        <h3 className="victory-title">탄소 대마왕 격파!</h3>
+        <p className="victory-sub">작은 실천이 모여 지구를 지켜 냈어요</p>
+        <div className="victory-stars">
+          {[0, 1, 2].map(i => (
+            <span key={i} className={i < stars ? 'on' : ''} style={{ animationDelay: `${0.5 + i * 0.25}s` }}>
+              ★
+            </span>
+          ))}
+        </div>
+        <div className="victory-stats">
+          <div>
+            <b>{stats.blocked}</b>
+            <small>막아 낸 공격</small>
+          </div>
+          <div>
+            <b>{stats.bestCombo}</b>
+            <small>최고 연속 명중</small>
+          </div>
+          <div>
+            <b>{stats.damage}</b>
+            <small>받은 피해</small>
+          </div>
+        </div>
+        {mvp && (
+          <div className="victory-mvp">
+            <SkillArt id={mvp} className="victory-mvp-art" />
+            <div>
+              <small>가장 활약한 기술</small>
+              <b>
+                {SKILLS[mvp].ic} {SKILLS[mvp].name}
+              </b>
+            </div>
+          </div>
+        )}
+        {used.length > 1 && (
+          <div className="victory-parade">
+            {used.map(([sid], i) => (
+              <span key={sid} style={{ animationDelay: `${1.2 + i * 0.15}s` }}>
+                <SkillArt id={sid} />
+              </span>
+            ))}
+          </div>
+        )}
+        <button type="button" className="big victory-btn" onClick={onNext}>
+          포리에게 가기 ▶
+        </button>
+      </div>
     </div>
   );
 }

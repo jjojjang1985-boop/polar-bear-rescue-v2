@@ -16,7 +16,7 @@ export interface StageStepBg {
 
 export interface StageStepFx {
   type: 'fx';
-  name: 'flash' | 'towerOn' | 'twist' | 'shadowPeek' | 'stageCrack' | 'winFlash' | 'bookGlow' | 'alarm' | 'goggle' | 'bossRise';
+  name: 'flash' | 'towerOn' | 'twist' | 'shadowPeek' | 'stageCrack' | 'winFlash' | 'bookGlow' | 'alarm' | 'goggle' | 'bossRise' | 'momAppear' | 'poriRun';
 }
 
 export interface StageStepMission {
@@ -285,7 +285,9 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'thermo', text: '삐빅! 포리의 빙하가 무너지기 직전이야! 하늘에서 열기 덩어리가 쏟아지고 있어!', mood: 'alert' },
       { type: 'say', who: 'danbi', text: '포리가 얼음 조각을 타고 엄마에게 가는 동안, 지구를 데우는 열기는 얼음 빔으로 막고 좋은 실천은 꼭 받아 내!', mood: 'serious' },
       { type: 'mission', id: 'shoot' },
-      { type: 'say', who: 'narr', text: '열기 덩어리를 모두 막아 내자, 저 멀리 얼음 위에서 손을 흔드는 엄마 곰이 보여요.' },
+      { type: 'fx', name: 'momAppear' },
+      { type: 'say', who: 'narr', text: '열기 덩어리를 모두 막아 내자, 얼음 위에서 손을 흔드는 엄마 곰이 보여요!' },
+      { type: 'say', who: 'pori', text: '엄마다! 엄마가 저기 있어요!', mood: 'joy' },
       { type: 'say', who: 'luka', text: '거의 다 왔어! 조금만 더 가면 포리가 엄마를 만날 수 있어!', mood: 'grin' },
       {
         type: 'quiz',
@@ -307,9 +309,12 @@ export const STAGES: StageDefinition[] = [
     bg: 'arctic',
     clues: [],
     steps: [
-      { type: 'say', who: 'pori', text: '엄마! 지금 갈게요!', mood: 'joy' },
-      { type: 'say', who: 'thermo', text: '삐빅! 비상, 비상! 흩어졌던 그림자들이 다시 한곳으로 모이고 있어!', mood: 'alert' },
+      { type: 'fx', name: 'momAppear' },
+      { type: 'say', who: 'pori', text: '엄마! 지금 갈게요~!', mood: 'joy' },
+      { type: 'fx', name: 'poriRun' },
+      { type: 'say', who: 'narr', text: '포리가 얼음 위를 통통 뛰어 엄마에게 달려갑니다. 그런데 그때…' },
       { type: 'fx', name: 'bossRise' },
+      { type: 'say', who: 'thermo', text: '삐빅! 비상, 비상! 흩어졌던 그림자들이 한곳으로 모여들고 있어!', mood: 'alert' },
       { type: 'say', who: 'narr', text: '버려진 연기와 매연을 먹고, 그림자가 거대한 탄소 대마왕이 되어 포리와 엄마 사이를 가로막았어요.' },
       { type: 'say', who: 'pori', text: '으앙, 엄마한테 갈 수가 없어요!', mood: 'scared' },
       { type: 'say', who: 'luka', text: '저, 저게 뭐야! 포리가 엄마한테 못 가잖아!', mood: 'o' },

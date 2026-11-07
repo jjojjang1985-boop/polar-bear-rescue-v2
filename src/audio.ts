@@ -259,6 +259,46 @@ export const cue = {
     noise(0.3, 0.05, 3000, 800, 'bandpass', 0.25, 0.01);
     tone(80, 0.3, 'sine', 0.1, 0.25);
   },
+  /** 엄마 곰 등장: 따뜻하고 반가운 화음 */
+  momAppear() {
+    [523, 659, 784].forEach(f => pad(f, 2, 'triangle', 0.035));
+    [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.5, 'sine', 0.05, 0.3 + i * 0.16));
+  },
+  /** 포리가 통통 뛰어감 */
+  poriRun() {
+    for (let i = 0; i < 6; i++) {
+      tone(660 + (i % 2) * 220, 0.08, 'triangle', 0.05, i * 0.22);
+      tone(330, 0.05, 'sine', 0.05, i * 0.22);
+    }
+  },
+  /** 보스 등장 음악: 북소리와 낮게 내려가는 단조 선율 */
+  bossTheme() {
+    const beat = 0.42;
+    for (let i = 0; i < 8; i++) {
+      tone(55, 0.3, 'sine', 0.18, 0.9 + i * beat);
+      noise(0.12, 0.06, 900, 200, 'lowpass', 0.9 + i * beat, 0.003);
+    }
+    const mel: [number, number][] = [
+      [220, 0], [208, 1], [196, 2], [185, 3], [175, 4], [165, 5], [156, 6], [147, 7]
+    ];
+    mel.forEach(([f, k]) => tone(f, beat * 0.95, 'sawtooth', 0.035, 0.9 + k * beat));
+    [110, 131, 156].forEach(f => pad(f, 3.8, 'sawtooth', 0.03, 0.9));
+    tone(98, 1.4, 'square', 0.04, 0.9 + 8 * beat);
+    tone(92.5, 1.4, 'square', 0.04, 0.9 + 8 * beat);
+  },
+  /** 마법이 보스에 꽂히는 순간의 폭발 */
+  impact() {
+    tone(55, 0.45, 'sine', 0.16);
+    noise(0.5, 0.1, 4000, 300, 'lowpass', 0, 0.005);
+    [1568, 2093, 2637].forEach((f, i) => tone(f, 0.35, 'sine', 0.035, 0.05 + i * 0.05));
+  },
+  /** 대마왕이 흔들리며 무너지기 시작 */
+  bossCrumble() {
+    pad(49, 2.2, 'sawtooth', 0.05);
+    noise(2.0, 0.07, 200, 1800, 'lowpass', 0, 0.4);
+    for (let i = 0; i < 8; i++) noise(0.15, 0.06, 2500, 800, 'bandpass', 0.2 + i * 0.22, 0.005);
+    sweep(400, 60, 1.8, 'square', 0.025, 0.2);
+  },
   /** 막지 못해서 공격을 맞음 */
   bossHurtsYou() {
     noise(0.5, 0.09, 1200, 200, 'lowpass', 0, 0.01);

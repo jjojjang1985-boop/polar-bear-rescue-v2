@@ -14,7 +14,7 @@ import { sfx, cue, setSoundEnabled, isSoundEnabled, getAudioContext } from './au
 import confetti from 'canvas-confetti';
 import { SceneFx, type SceneFxName, type SceneFxState } from './components/SceneFx';
 import { BACKGROUNDS } from './svgs';
-import { SCENE_IMAGES, preloadImages } from './assets';
+import { SCENE_IMAGES, SHOOT_IMAGES, preloadImages } from './assets';
 import { STAGES, StageStep } from './stagesData';
 
 // Screens & UI components
@@ -144,6 +144,8 @@ export default function App() {
   // FX & Visual states
   const [isFlashing, setIsFlashing] = useState(false);
   const [sceneFx, setSceneFx] = useState<SceneFxState | null>(null);
+  // 대사 여러 줄 동안 화면에 남아 있는 등장인물 (엄마 곰, 달려가는 포리)
+  const [actors, setActors] = useState<{ mom: boolean; pori: 'none' | 'run' | 'scared'; boss?: boolean } | null>(null);
   const sceneFxIdRef = useRef(0);
   const sceneFxTimerRef = useRef<number | undefined>(undefined);
   const [isShaking, setIsShaking] = useState(false);
@@ -365,6 +367,7 @@ export default function App() {
     setCurrentBg(stageDef.bg);
     setStepIdx(0);
     setReaction(null);
+    setActors(null);
     setViewScreen('game');
 
     if (idx !== 0) {
@@ -506,9 +509,19 @@ export default function App() {
       case 'towerOn':
         cue.tower();
         break;
+      case 'momAppear':
+        cue.momAppear();
+        setActors({ mom: true, pori: 'none' });
+        break;
+      case 'poriRun':
+        cue.poriRun();
+        setActors({ mom: true, pori: 'run' });
+        break;
       case 'bossRise':
         cue.bossRise();
+        cue.bossTheme();
         triggerShake();
+        setActors(a => (a ? { ...a, pori: 'scared', boss: true } : a));
         showSceneFx('bossRise');
         break;
       case 'winFlash':
@@ -537,7 +550,9 @@ export default function App() {
     while (idx < curStage.steps.length) {
       const step = curStage.steps[idx];
 
+      if (step.type === 'mission') setActors(null);
       if (step.type === 'bg') {
+        setActors(null);
         setCurrentBg(step.bg);
         idx++;
         continue;
@@ -979,6 +994,14 @@ export default function App() {
           />
         )}
         <div className="scene-shade" />
+        {actors && (
+          <div className={`actors ${actors.boss ? 'boss-came' : ''}`}>
+            {actors.mom && <img className="actor-mom" src={SHOOT_IMAGES.mom} alt="엄마 곰" draggable={false} />}
+            {actors.pori !== 'none' && (
+              <img className={`actor-pori ${actors.pori}`} src={SHOOT_IMAGES.pori} alt="포리" draggable={false} />
+            )}
+          </div>
+        )}
         <SceneFx fx={sceneFx} />
         {isFlashing && <div className="flash" />}
       </div>
