@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import type { AvatarType, MoodType, SpeakerId } from '../types';
 import { CHARACTER_INFO, getCharacterSVG } from '../svgs';
+import { getFaceImage } from '../assets';
 import { sfx } from '../audio';
 
 interface DialogueBoxProps {
@@ -125,74 +126,38 @@ export function DialogueBox({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFinished, mustClue, clues, totalChars]);
 
-  const portraitSvg = !isNarrator ? getCharacterSVG(who, mood, avatar) : '';
+  const faceImg = !isNarrator ? getFaceImage(who, avatar) : null;
+  const portraitSvg = !isNarrator && !faceImg ? getCharacterSVG(who, mood, avatar) : '';
 
   return (
     <footer
       id="dlg"
       onClick={handleClick}
-      className={`relative grid items-center select-none cursor-pointer ${
-        isFinished ? 'ready' : ''
-      }`}
-      style={{
-        background: '#fffaf0',
-        borderRadius: '26px',
-        minHeight: '148px',
-        padding: '12px 20px 12px 14px',
-        border: '3.5px solid var(--line)',
-        boxShadow: '0 6px 0 var(--line), 0 14px 26px rgba(74,42,18,.25)',
-        gridTemplateColumns: isNarrator ? '1fr' : '110px 1fr',
-        gap: '16px'
-      }}
+      className={`dlg ${isNarrator ? 'is-narr' : ''} ${isFinished ? 'ready' : ''}`}
     >
       {!isNarrator && (
         <div
           id="portrait"
-          className="talk"
-          style={{
-            width: '110px',
-            height: '110px',
-            borderRadius: '24px',
-            background: `radial-gradient(circle at 40% 30%, #fff, ${speakerMeta.bg})`,
-            display: 'grid',
-            placeItems: 'center',
-            overflow: 'hidden',
-            border: '3px solid var(--line)'
-          }}
-          dangerouslySetInnerHTML={{ __html: portraitSvg }}
-        />
+          className="dlg-face talk"
+          style={{ background: speakerMeta.bg }}
+        >
+          {faceImg ? (
+            <img src={faceImg} alt={displayName} draggable={false} />
+          ) : (
+            <div className="dlg-face-svg" dangerouslySetInnerHTML={{ __html: portraitSvg }} />
+          )}
+        </div>
       )}
 
-      <div className="flex-1">
+      <div className="dlg-body">
         {!isNarrator && (
-          <div
-            id="who"
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '18px',
-              color: 'var(--line)',
-              background: 'var(--sun)',
-              display: 'inline-block',
-              padding: '2px 14px',
-              borderRadius: '999px',
-              marginBottom: '6px',
-              border: '2.5px solid var(--line)'
-            }}
-          >
+          <div id="who" className="dlg-name">
             {displayName}
           </div>
         )}
         <div
           id="text"
-          className={isNarrator ? 'narr' : ''}
-          style={{
-            fontSize: '19px',
-            lineHeight: '1.6',
-            minHeight: '3em',
-            wordBreak: 'keep-all',
-            fontWeight: isNarrator ? 400 : 700,
-            color: isNarrator ? '#7a5a43' : 'var(--ink)'
-          }}
+          className={`dlg-text ${isNarrator ? 'narr' : ''}`}
         >
           {tokens.map((tok, ti) => {
             if (tok.startIdx >= revealedChars) return null;
@@ -230,22 +195,18 @@ export function DialogueBox({
         </div>
       )}
 
-      {isFinished && (
-        <div
-          id="next"
-          style={{
-            position: 'absolute',
-            right: '18px',
-            bottom: '10px',
-            fontFamily: 'var(--font-display)',
-            fontSize: '15px',
-            color: 'var(--coral)',
-            animation: 'nudge 1s infinite'
-          }}
-        >
-          눌러서 계속 ▶
-        </div>
-      )}
+      <button
+        type="button"
+        id="next"
+        className={`dlg-next ${isFinished ? 'on' : ''}`}
+        onClick={e => {
+          e.stopPropagation();
+          handleClick();
+        }}
+        aria-label="다음 대사"
+      >
+        다음 ▶
+      </button>
     </footer>
   );
 }

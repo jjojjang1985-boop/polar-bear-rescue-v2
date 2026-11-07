@@ -1,5 +1,5 @@
 import React from 'react';
-import { poriSVG } from '../svgs';
+import { PORI_FACE } from '../assets';
 
 interface TowerAsideProps {
   blocks: number;
@@ -9,98 +9,38 @@ interface TowerAsideProps {
   happy: boolean;
 }
 
-export function TowerAside({
-  blocks,
-  towerOn,
-  poriMood,
-  wobble,
-  happy
-}: TowerAsideProps) {
-  const maxBlocks = 12;
+const MAX_BLOCKS = 12;
 
-  const resolvedMood =
-    blocks <= 2 ? 'scared' : blocks >= 9 ? 'joy' : poriMood;
+export function TowerAside({ blocks, towerOn, poriMood, wobble, happy }: TowerAsideProps) {
+  if (!towerOn) return null;
+
+  const mood = blocks <= 2 ? 'scared' : blocks >= 9 ? 'joy' : poriMood;
+  const badge = mood === 'scared' ? '💦' : mood === 'joy' ? '✨' : '';
 
   return (
-    <aside
-      id="tower"
-      className={towerOn ? '' : 'off'}
-      style={{
-        position: 'relative',
-        borderRadius: '26px',
-        background: 'linear-gradient(180deg, #c3b2ee 0%, #f6c2b6 55%, #ffe0a6 100%)',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        padding: '8px 8px 44px',
-        border: '4px solid var(--line)',
-        boxShadow: '0 6px 0 var(--line)',
-        minHeight: '260px'
-      }}
-    >
-      <h3
-        style={{
-          position: 'absolute',
-          top: '10px',
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          fontSize: '16px',
-          color: 'var(--sun)',
-          WebkitTextStroke: '4px var(--line)',
-          paintOrder: 'stroke fill'
-        }}
-      >
-        빙하 탑
-      </h3>
-
-      <div
-        id="tcount"
-        style={{
-          position: 'absolute',
-          top: '34px',
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          fontFamily: 'var(--font-display)',
-          fontSize: '14px',
-          color: 'var(--line)',
-          fontWeight: 700
-        }}
-      >
-        블록 {blocks} / {maxBlocks}
+    <aside id="tower" className={`tower mood-${mood}`} aria-label={`빙하 탑 블록 ${blocks}개`}>
+      <div className="tower-head">
+        <h3>빙하 탑</h3>
+        <div className="tower-count">
+          {blocks}
+          <small> / {MAX_BLOCKS}</small>
+        </div>
       </div>
 
-      <div
-        id="poriTop"
-        className={`${wobble ? 'wobble' : ''} ${happy ? 'happy' : ''}`}
-        style={{
-          width: '90px',
-          height: '90px',
-          transition: 'transform 0.4s',
-          marginBottom: '-6px',
-          zIndex: 2
-        }}
-        dangerouslySetInnerHTML={{ __html: poriSVG(resolvedMood) }}
-      />
+      <div className="tower-body">
+        <div id="blocks" className="tower-blocks">
+          {Array.from({ length: blocks }, (_, idx) => (
+            <div key={idx} className="ice" />
+          ))}
+        </div>
 
-      <div
-        id="blocks"
-        style={{
-          display: 'flex',
-          flexDirection: 'column-reverse',
-          alignItems: 'center',
-          gap: '4px'
-        }}
-      >
-        {Array.from({ length: blocks }, (_, idx) => (
-          <div key={idx} className="ice" />
-        ))}
+        <div id="poriTop" className={`tower-pori ${wobble ? 'wobble' : ''} ${happy ? 'happy' : ''}`}>
+          <img src={PORI_FACE} alt="포리" draggable={false} />
+          {badge && <span className="tower-badge">{badge}</span>}
+        </div>
       </div>
 
-      <div id="sea"></div>
+      <div className="tower-sea" />
     </aside>
   );
 }

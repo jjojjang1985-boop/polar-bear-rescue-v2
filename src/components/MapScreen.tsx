@@ -1,5 +1,6 @@
 import React from 'react';
 import { sfx } from '../audio';
+import { MAP_IMAGE } from '../assets';
 
 interface MapScreenProps {
   name: string;
@@ -23,6 +24,18 @@ const STAGE_INFOS = [
   ['에필로그', '임명식', '정식 임명장 발급과 최우수 대원 기록']
 ];
 
+// map.webp 위 빙하 섬의 위치(가로 %, 세로 %). 마지막은 깃발이 꽂힌 꼭대기.
+const NODE_POS: [number, number][] = [
+  [11, 80],
+  [27, 54],
+  [43, 36],
+  [62, 58],
+  [76, 36],
+  [85.5, 13]
+];
+
+const NODE_ICON = ['📡', '🌍', '🔍', '⚖️', '🧊', '🎖️'];
+
 export function MapScreen({
   name,
   code,
@@ -44,89 +57,99 @@ export function MapScreen({
     onSelectStage(i);
   };
 
+  const statusOf = (i: number) => {
+    const isDone = !!done[i];
+    if (isDone) return 'done';
+    if (i > unlocked) return 'lock';
+    if (i === unlocked) return 'cur';
+    return 'open';
+  };
+
+  const statusText = (i: number) => {
+    const st = statusOf(i);
+    if (st === 'done') {
+      const n = stars[i] || 0;
+      return i > 0 && i < 5 ? '★'.repeat(n) + '☆'.repeat(3 - n) : '✓ 완료';
+    }
+    if (st === 'lock') return '🔒 잠김';
+    return '출동 ▶';
+  };
+
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4 overflow-y-auto bg-gradient-to-b from-[#a99be6] via-[#f2a9b4] via-70% to-[#ffe7a8]">
-      <div className="max-w-4xl w-full text-center py-4">
-        <h1 className="logo text-4xl sm:text-6xl mb-2">작전 지도</h1>
+    <div className="screen map-screen">
+      <img className="screen-art map-blur" src={MAP_IMAGE} alt="" draggable={false} />
 
-        <div className="pill text-sm sm:text-lg mb-4">
-          {name} 대원 · 코드네임 {code} · 총점 {totalScore.toLocaleString()}점
+      <header className="map-head">
+        <h1 className="logo map-logo">작전 지도</h1>
+        <div className="pill map-pill">
+          {name} 대원 · {code} · 총점 {totalScore.toLocaleString()}점
         </div>
+      </header>
 
-        {/* 6 Grid Nodes */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 my-4 text-left">
-          {STAGE_INFOS.map((info, i) => {
-            const isLocked = i > unlocked;
-            const isCurrent = i === unlocked && !done[i];
-            const isDone = !!done[i];
-            const starCount = stars[i] || 0;
+      <div className="map-board">
+        <img className="map-art" src={MAP_IMAGE} alt="북극 바다 작전 지도" draggable={false} />
 
-            return (
+        {STAGE_INFOS.map((info, i) => {
+          const st = statusOf(i);
+          const [x, y] = NODE_POS[i];
+          return (
+            <button
+              key={i}
+              type="button"
+              disabled={st === 'lock'}
+              onClick={() => handleNodeClick(i)}
+              className={`map-node ${st}`}
+              style={{ left: `${x}%`, top: `${y}%` }}
+            >
+              <span className="map-node-icon" aria-hidden="true">
+                {st === 'lock' ? '🔒' : NODE_ICON[i]}
+              </span>
+              <span className="map-node-card">
+                <b>{info[0]}</b>
+                <em>{info[1]}</em>
+                <small>{statusText(i)}</small>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 좁은 화면에서는 지도 아래에 목록으로도 보여 준다 */}
+      <ol className="map-list">
+        {STAGE_INFOS.map((info, i) => {
+          const st = statusOf(i);
+          return (
+            <li key={i}>
               <button
-                key={i}
                 type="button"
-                disabled={isLocked}
+                disabled={st === 'lock'}
                 onClick={() => handleNodeClick(i)}
-                className={`node transition-transform ${
-                  isLocked ? 'lock opacity-60' : 'cursor-pointer hover:-translate-y-1'
-                } ${isCurrent ? 'cur' : ''}`}
-                style={{
-                  background: isCurrent ? '#fff3c4' : '#fffaf0',
-                  boxShadow: isCurrent ? '0 6px 0 var(--line), 0 0 0 5px var(--coral)' : undefined
-                }}
+                className={`map-row ${st}`}
               >
-                <span className="n">{info[0]}</span>
-                <h3 className="text-xl font-bold mt-1 text-amber-950">{info[1]}</h3>
-                <p className="text-sm text-stone-600 font-semibold">{info[2]}</p>
-
-                <div className="mt-auto pt-2 flex items-center justify-between">
-                  {isDone && i > 0 && i < 5 ? (
-                    <span className="text-amber-500 font-bold text-lg">
-                      {'★'.repeat(starCount)}
-                      {'☆'.repeat(3 - starCount)}
-                    </span>
-                  ) : isDone ? (
-                    <span className="text-emerald-700 font-bold text-sm">✓ 완료</span>
-                  ) : isLocked ? (
-                    <span className="text-stone-500 text-xs font-bold">🔒 잠김</span>
-                  ) : (
-                    <span className="text-coral text-xs font-bold animate-pulse">
-                      출동 대기 ▶
-                    </span>
-                  )}
-                </div>
+                <span className="map-node-icon" aria-hidden="true">
+                  {st === 'lock' ? '🔒' : NODE_ICON[i]}
+                </span>
+                <span className="map-row-text">
+                  <b>{info[0]}</b> {info[1]}
+                  <small>{info[2]}</small>
+                </span>
+                <span className="map-row-status">{statusText(i)}</span>
               </button>
-            );
-          })}
-        </div>
+            </li>
+          );
+        })}
+      </ol>
 
-        {/* Bottom controls */}
-        <div className="flex justify-center gap-3 mt-4 flex-wrap">
-          <button
-            className="big ghost"
-            type="button"
-            onClick={onShowLeaderboard}
-          >
-            최우수 대원 순위표 🏆
-          </button>
-          <button
-            className="big ghost"
-            type="button"
-            onClick={onGoTitle}
-          >
-            처음 화면으로
-          </button>
-        </div>
-
-        <div className="mt-3">
-          <button
-            className="text-stone-600 text-xs underline font-bold"
-            type="button"
-            onClick={onUnlockAll}
-          >
-            선생님용: 모든 작전 열기
-          </button>
-        </div>
+      <div className="map-actions">
+        <button className="big ghost" type="button" onClick={onShowLeaderboard}>
+          🏆 순위표
+        </button>
+        <button className="big ghost" type="button" onClick={onGoTitle}>
+          처음 화면으로
+        </button>
+        <button className="teacher-link" type="button" onClick={onUnlockAll}>
+          선생님용: 모든 작전 열기
+        </button>
       </div>
     </div>
   );

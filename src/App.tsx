@@ -12,6 +12,7 @@ import {
 } from './firebase';
 import { sfx, setSoundEnabled, isSoundEnabled, getAudioContext } from './audio';
 import { BACKGROUNDS } from './svgs';
+import { SCENE_IMAGES, preloadImages } from './assets';
 import { STAGES, StageStep } from './stagesData';
 
 // Screens & UI components
@@ -166,6 +167,11 @@ export default function App() {
   // Note button reference for sparkle flying target
   const noteBtnRef = useRef<HTMLButtonElement>(null);
   const sparkleIdRef = useRef(0);
+
+  // Preload illustrations so scene changes don't flicker
+  useEffect(() => {
+    preloadImages();
+  }, []);
 
   // Real-time Firestore Leaderboard Subscription
   useEffect(() => {
@@ -758,8 +764,12 @@ export default function App() {
     }
   };
 
+  const sceneImage = SCENE_IMAGES[currentBg];
+  const showDialogue = viewScreen === 'game' && !stageIntroActive && (!!reaction || curStep?.type === 'say');
+  const STAGE_LABELS = ['프롤로그', '작전 1', '작전 2', '작전 3', '작전 4', '에필로그'];
+
   return (
-    <div className="h-full flex flex-col max-w-[1320px] mx-auto overflow-hidden">
+    <div className="app">
       {/* Toast Alert */}
       {toastMsg && <div className="toast">{toastMsg}</div>}
 
@@ -833,96 +843,91 @@ export default function App() {
         />
       )}
 
-      {/* Top Header Bar */}
-      <header id="top" className="flex items-center gap-3 px-4 py-2.5 flex-shrink-0">
-        <div id="brand" className="cursor-pointer" onClick={() => setViewScreen('map')}>
-          북극곰 구조대
-        </div>
+      {/* Scene background (full screen illustration) */}
+      <div id="scene" className={`scene ${isShaking ? 'shake' : ''}`} aria-hidden="true">
+        {sceneImage ? (
+          <img key={currentBg} className="scene-img" src={sceneImage} alt="" draggable={false} />
+        ) : (
+          <div
+            className="scene-svg"
+            dangerouslySetInnerHTML={{ __html: BACKGROUNDS[currentBg] || BACKGROUNDS.classroom }}
+          />
+        )}
+        <div className="scene-shade" />
+        {isFlashing && <div className="flash" />}
+      </div>
 
-        <div id="pips" className="hidden sm:flex gap-1.5 ml-2">
-          {['프롤로그', '작전 1', '작전 2', '작전 3', '작전 4', '에필로그'].map((name, i) => (
-            <span
+      {/* Top Header Bar */}
+      <header id="top" className="topbar">
+        <button type="button" id="brand" className="brand" onClick={() => setViewScreen('map')}>
+          🐻‍❄️ <span>북극곰 구조대</span>
+        </button>
+
+        <ol id="pips" className="pips" aria-label="진행 단계">
+          {STAGE_LABELS.map((label, i) => (
+            <li
               key={i}
               className={`pip ${game.done[i] ? 'done' : ''} ${game.cur === i ? 'on' : ''}`}
+              title={label}
             >
-              {name}
-            </span>
+              <span className="pip-dot" />
+              <span className="pip-label">{label}</span>
+            </li>
           ))}
+        </ol>
+
+        <div className="topbar-btns">
+          <button
+            ref={noteBtnRef}
+            className="tbtn"
+            id="noteBtn"
+            type="button"
+            onClick={() => setShowNotes(true)}
+            aria-label="단서 수첩"
+          >
+            📒 <span className="tbtn-label">단서 수첩</span>
+            <span id="noteCount" className="tbtn-count">{Object.keys(game.clues).length}</span>
+          </button>
+
+          <button className="tbtn" type="button" onClick={() => setViewScreen('map')} aria-label="작전 지도">
+            🗺️ <span className="tbtn-label">작전 지도</span>
+          </button>
+
+          <button
+            className="tbtn"
+            type="button"
+            aria-label={game.sound ? '소리 끄기' : '소리 켜기'}
+            onClick={() => {
+              const nextSound = !game.sound;
+              setGame(g => ({ ...g, sound: nextSound }));
+              setSoundEnabled(nextSound);
+              sfx.tick();
+            }}
+          >
+            {game.sound ? '🔊' : '🔇'}
+          </button>
         </div>
-
-        <div className="flex-1" />
-
-        <button
-          ref={noteBtnRef}
-          className="tbtn"
-          id="noteBtn"
-          type="button"
-          onClick={() => setShowNotes(true)}
-        >
-          단서 수첩 <span id="noteCount">{Object.keys(game.clues).length}</span>
-        </button>
-
-        <button
-          className="tbtn"
-          type="button"
-          onClick={() => setViewScreen('map')}
-        >
-          작전 지도
-        </button>
-
-        <button
-          className="tbtn"
-          type="button"
-          onClick={() => {
-            const nextSound = !game.sound;
-            setGame(g => ({ ...g, sound: nextSound }));
-            setSoundEnabled(nextSound);
-            sfx.tick();
-          }}
-        >
-          {game.sound ? '소리 켬' : '소리 끔'}
-        </button>
       </header>
 
-      {/* Main Play Area */}
-      <main id="main" className="grid grid-cols-[1fr_86px] sm:grid-cols-[1fr_150px] gap-3 px-3 sm:px-4 flex-1 min-h-0">
-        <section
-          id="stage"
-          className={`relative rounded-3xl overflow-hidden min-h-0 border-4 border-amber-950 shadow-xl ${
-            isShaking ? 'shake' : ''
-          }`}
-        >
-          {/* Background SVG */}
-          <div
-            id="bg"
-            className="absolute inset-0 pointer-events-none"
-            dangerouslySetInnerHTML={{
-              __html: BACKGROUNDS[currentBg] || BACKGROUNDS.classroom
-            }}
-          />
-
-          {/* Layer: Mission or Stage Intro Banner */}
-          <div
-            id="layer"
-            className="absolute inset-0 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
-          >
+      {/* Main Play Area: mission panels + ice tower */}
+      <main id="main" className={`playfield ${game.towerOn ? 'has-tower' : ''}`}>
+        <section id="stage" className="stage">
+          <div id="layer" className="layer">
             {stageIntroActive ? (
-              <div className="panel max-w-xl text-center">
+              <div className="panel intro-card">
                 <span className="tag">{curStage.label}</span>
-                <h2 className="justify-center text-3xl my-3">{curStage.title}</h2>
-                <p className="guide text-lg">{curStage.goal}</p>
-                <div className="flex justify-center mt-4">
-                  <button
-                    className="big"
-                    type="button"
-                    onClick={() => {
-                      sfx.ok();
-                      setStageIntroActive(false);
-                    }}
-                  >
-                    출동하기! 🚀
-                  </button>
-                </div>
+                <h2>{curStage.title}</h2>
+                <p className="guide">{curStage.goal}</p>
+                <button
+                  className="big"
+                  type="button"
+                  onClick={() => {
+                    sfx.ok();
+                    setStageIntroActive(false);
+                  }}
+                >
+                  출동하기! 🚀
+                </button>
               </div>
             ) : curStep?.type === 'quiz' ? (
               <QuizComponent
@@ -936,12 +941,8 @@ export default function App() {
               renderCurrentMission()
             )}
           </div>
-
-          {/* Flash FX */}
-          {isFlashing && <div className="flash" />}
         </section>
 
-        {/* Ice Tower Aside */}
         <TowerAside
           blocks={game.blocks}
           towerOn={game.towerOn}
@@ -952,8 +953,8 @@ export default function App() {
       </main>
 
       {/* Bottom Dialogue Box */}
-      {viewScreen === 'game' && !stageIntroActive && (
-        <div className="px-3 sm:px-4 py-2.5">
+      {showDialogue && (
+        <div className="dlg-dock">
           {reaction ? (
             <DialogueBox
               who={reaction.who}
@@ -979,9 +980,7 @@ export default function App() {
               onKeywordClick={handleCollectClue}
               onAdvance={advanceStep}
             />
-          ) : (
-            <div className="h-4" />
-          )}
+          ) : null}
         </div>
       )}
 

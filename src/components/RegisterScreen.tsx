@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { AvatarType } from '../types';
 import { heroSVG } from '../svgs';
 import { sfx } from '../audio';
+import { ME_FACE, SCENE_IMAGES } from '../assets';
 
 interface RegisterScreenProps {
   onRegister: (name: string, code: string, avatar: AvatarType) => void;
@@ -28,13 +29,14 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4 overflow-y-auto bg-gradient-to-b from-[#a99be6] via-[#f2a9b4] via-70% to-[#ffe7a8]">
-      <div className="max-w-xl w-full text-center">
-        <h1 className="logo text-4xl sm:text-6xl mb-4">구조대 등록</h1>
+    <div className="screen register-screen">
+      <img className="screen-art register-art" src={SCENE_IMAGES.hq} alt="" draggable={false} />
+      <div className="register-wrap">
+        <h1 className="logo register-logo">구조대 등록</h1>
 
         <form
           onSubmit={handleSubmit}
-          className="panel text-left p-6 max-w-lg mx-auto"
+          className="panel register-panel text-left"
         >
           {/* Name input */}
           <label htmlFor="nmIn" className="font-display text-lg text-amber-950 block mb-1">
@@ -92,8 +94,9 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
                   sfx.tick();
                 }}
                 aria-label="단발머리 대원"
-                dangerouslySetInnerHTML={{ __html: heroSVG('happy', 'a') }}
-              />
+              >
+                <img src={ME_FACE} alt="" className="av-img" draggable={false} />
+              </button>
               <span className="text-xs font-bold text-amber-950">단발 대원</span>
             </div>
             <div className="flex flex-col items-center gap-1">
