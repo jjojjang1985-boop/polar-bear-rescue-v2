@@ -15,7 +15,7 @@ export interface StageStepBg {
 
 export interface StageStepFx {
   type: 'fx';
-  name: 'flash' | 'towerOn' | 'twist' | 'shadowPeek' | 'stageCrack' | 'winFlash';
+  name: 'flash' | 'towerOn' | 'twist' | 'shadowPeek' | 'stageCrack' | 'winFlash' | 'bookGlow' | 'alarm' | 'goggle';
 }
 
 export interface StageStepMission {
@@ -89,6 +89,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'narr', text: '친구와 함께 도서관에서 빌린 책을 펼친 날이었어요.' },
       { type: 'say', who: 'friend', text: '이 사진 좀 봐. 북극곰이 쉴 곳을 잃고 먹잇감도 못 찾고 있대.', mood: 'sad' },
       { type: 'say', who: 'me', text: '어? 북극은 원래 엄청 추운 곳 아니야? 왜 얼음이 녹고 있지?', mood: 'o' },
+      { type: 'fx', name: 'bookGlow' },
       { type: 'say', who: 'narr', text: '그때, 책 속 북극곰 사진이 파랗게 빛나기 시작했어요.' },
       { type: 'fx', name: 'flash' },
       { type: 'bg', bg: 'hq' },
@@ -119,6 +120,7 @@ export const STAGES: StageDefinition[] = [
     bg: 'hq',
     clues: ['날씨', '기후', '평년', '기후변화', '기온 변화', '강수량 변화', '해수면 상승'],
     steps: [
+      { type: 'fx', name: 'alarm' },
       { type: 'say', who: 'narr', text: '삐삐! 본부 대형 화면의 세계 지도에 빨간 불빛이 하나씩 켜집니다.' },
       { type: 'say', who: 'thermo', text: '삐빅! 경고, 경고! 지구 곳곳에서 이상 신호가 감지되고 있어.', mood: 'alert' },
       { type: 'say', who: 'luka', text: '이상 신호? 불빛이 여기저기 다 켜져 있잖아!', mood: 'o' },
@@ -177,6 +179,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'mission', id: 'hunt' },
       { type: 'bg', bg: 'hq' },
       { type: 'mission', id: 'evidence-board' },
+      { type: 'fx', name: 'goggle' },
       { type: 'say', who: 'narr', text: '고글이 갑자기 삐삐 울립니다. 붉은 흔적이 바로 본부 안에서 보여요.' },
       { type: 'say', who: 'luka', text: '어…? 대장님, 본부 에어컨이 아무도 없는 방에서 켜져 있어요. 현관 불도요.', mood: 'o' },
       { type: 'say', who: 'luka', text: '그리고 아까 나는 편의점까지 오토바이를 타고 갔고… 음료수 컵도 세 개나 버렸어.', mood: 'sad' },

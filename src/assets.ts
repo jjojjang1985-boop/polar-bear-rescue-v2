@@ -7,6 +7,7 @@ const img = (name: string) => `${BASE}assets/img/${name}.webp`;
 
 export const TITLE_IMAGE = img('title');
 export const MAP_IMAGE = img('map');
+export const SHADOW_IMAGE = img('shadow');
 
 /** 대사 장면 배경 (stagesData의 bg 값과 같은 이름) */
 export const SCENE_IMAGES: Record<string, string> = {
@@ -53,7 +54,7 @@ export function getFaceImage(who: SpeakerId, avatar: AvatarType): string | null 
 
 /** 장면이 바뀔 때 깜박이지 않도록 배경 그림을 미리 받아 둔다. */
 export function preloadImages() {
-  [TITLE_IMAGE, MAP_IMAGE, ...Object.values(SCENE_IMAGES), ...Object.values(FACE_IMAGES), ...Object.values(AVATAR_FACES)].forEach(
+  [TITLE_IMAGE, MAP_IMAGE, SHADOW_IMAGE, ...Object.values(SCENE_IMAGES), ...Object.values(FACE_IMAGES), ...Object.values(AVATAR_FACES)].forEach(
     src => {
       const im = new Image();
       im.src = src;

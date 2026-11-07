@@ -10,7 +10,9 @@ import {
   saveScoreToFirestore,
   deleteScoreFromFirestore
 } from './firebase';
-import { sfx, setSoundEnabled, isSoundEnabled, getAudioContext } from './audio';
+import { sfx, cue, setSoundEnabled, isSoundEnabled, getAudioContext } from './audio';
+import confetti from 'canvas-confetti';
+import { SceneFx, type SceneFxName, type SceneFxState } from './components/SceneFx';
 import { BACKGROUNDS } from './svgs';
 import { SCENE_IMAGES, preloadImages } from './assets';
 import { STAGES, StageStep } from './stagesData';
@@ -137,6 +139,9 @@ export default function App() {
 
   // FX & Visual states
   const [isFlashing, setIsFlashing] = useState(false);
+  const [sceneFx, setSceneFx] = useState<SceneFxState | null>(null);
+  const sceneFxIdRef = useRef(0);
+  const sceneFxTimerRef = useRef<number | undefined>(undefined);
   const [isShaking, setIsShaking] = useState(false);
   const [wobblePori, setWobblePori] = useState(false);
   const [happyPori, setHappyPori] = useState(false);
@@ -449,9 +454,72 @@ export default function App() {
   const curStage = STAGES[game.cur];
   const curStep: StageStep | undefined = curStage?.steps[stepIdx];
 
+  // 대사에 맞춰 화면 효과와 음악을 함께 재생한다.
+  // 이어지는 대사 동안 유지되는 효과(빛·경보·고글)는 다음으로 넘어갈 때 꺼진다.
+  const STICKY_FX: SceneFxName[] = ['bookGlow', 'alarm', 'goggle'];
+  const showSceneFx = (name: SceneFxName, ms?: number) => {
+    window.clearTimeout(sceneFxTimerRef.current);
+    sceneFxIdRef.current += 1;
+    setSceneFx({ name, id: sceneFxIdRef.current });
+    if (ms) {
+      sceneFxTimerRef.current = window.setTimeout(() => setSceneFx(null), ms);
+    }
+  };
+
+  const playStoryCue = (name: string) => {
+    switch (name) {
+      case 'bookGlow':
+        cue.bookGlow();
+        showSceneFx('bookGlow');
+        break;
+      case 'flash':
+        cue.portal();
+        showSceneFx('portal', 1700);
+        break;
+      case 'alarm':
+        cue.alarm();
+        showSceneFx('alarm');
+        break;
+      case 'shadowPeek':
+        cue.shadow();
+        showSceneFx('shadowPeek', 2700);
+        break;
+      case 'goggle':
+        cue.goggle();
+        showSceneFx('goggle');
+        break;
+      case 'twist':
+        cue.twist();
+        showSceneFx('twist', 3600);
+        break;
+      case 'stageCrack':
+        cue.crack();
+        showSceneFx('crack', 2300);
+        break;
+      case 'towerOn':
+        cue.tower();
+        break;
+      case 'winFlash':
+        cue.fanfare();
+        showSceneFx('win', 2300);
+        try {
+          confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 }, colors: ['#ffd84d', '#7fd3ff', '#ffffff', '#f2735a'] });
+        } catch {
+          // ignore
+        }
+        break;
+    }
+  };
+
   const advanceStep = () => {
     setReaction(null);
-    let idx = stepIdx + 1;
+    setSceneFx(cur => (cur && STICKY_FX.includes(cur.name) ? null : cur));
+    runStepsFrom(stepIdx + 1);
+  };
+
+  /** startIdx부터 배경·효과 단계를 처리하고, 화면에 보여 줄 첫 단계에서 멈춘다. */
+  const runStepsFrom = (startIdx: number) => {
+    let idx = startIdx;
 
     // 배경·효과 단계는 화면에 보여줄 내용이 없으므로 연달아 처리하고 넘어간다
     while (idx < curStage.steps.length) {
@@ -463,14 +531,10 @@ export default function App() {
         continue;
       }
       if (step.type === 'fx') {
-        if (step.name === 'flash' || step.name === 'winFlash') triggerFlash();
-        if (step.name === 'stageCrack') {
-          sfx.crack();
-          triggerShake();
-        }
+        playStoryCue(step.name);
+        if (step.name === 'stageCrack') triggerShake();
         if (step.name === 'towerOn') {
           setGame(g => ({ ...g, towerOn: true, blocks: 6 }));
-          sfx.win();
         }
         idx++;
         continue;
@@ -854,6 +918,7 @@ export default function App() {
           />
         )}
         <div className="scene-shade" />
+        <SceneFx fx={sceneFx} />
         {isFlashing && <div className="flash" />}
       </div>
 
@@ -924,6 +989,7 @@ export default function App() {
                   onClick={() => {
                     sfx.ok();
                     setStageIntroActive(false);
+                    runStepsFrom(0);
                   }}
                 >
                   출동하기! 🚀
