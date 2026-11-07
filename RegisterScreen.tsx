@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import type { AvatarType } from '../types';
-import { heroSVG } from '../svgs';
 import { sfx } from '../audio';
-import { ME_FACE, SCENE_IMAGES } from '../assets';
+import { AVATAR_FACES, SCENE_IMAGES } from '../assets';
 
 interface RegisterScreenProps {
   onRegister: (name: string, code: string, avatar: AvatarType) => void;
@@ -32,7 +31,7 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
     <div className="screen register-screen">
       <img className="screen-art register-art" src={SCENE_IMAGES.hq} alt="" draggable={false} />
       <div className="register-wrap">
-        <h1 className="logo register-logo">구조대 등록</h1>
+        <h1 className="logo register-logo">지구수비대 수련생 등록</h1>
 
         <form
           onSubmit={handleSubmit}
@@ -95,7 +94,7 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
                 }}
                 aria-label="단발머리 대원"
               >
-                <img src={ME_FACE} alt="" className="av-img" draggable={false} />
+                <img src={AVATAR_FACES.a} alt="" className="av-img" draggable={false} />
               </button>
               <span className="text-xs font-bold text-amber-950">단발 대원</span>
             </div>
@@ -108,8 +107,9 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
                   sfx.tick();
                 }}
                 aria-label="짧은 머리 대원"
-                dangerouslySetInnerHTML={{ __html: heroSVG('happy', 'b') }}
-              />
+              >
+                <img src={AVATAR_FACES.b} alt="" className="av-img" draggable={false} />
+              </button>
               <span className="text-xs font-bold text-amber-950">소년 대원</span>
             </div>
             <div className="flex flex-col items-center gap-1">
@@ -121,15 +121,16 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
                   sfx.tick();
                 }}
                 aria-label="친구 대원"
-                dangerouslySetInnerHTML={{ __html: heroSVG('happy', 'c') }}
-              />
+              >
+                <img src={AVATAR_FACES.c} alt="" className="av-img" draggable={false} />
+              </button>
               <span className="text-xs font-bold text-amber-950">친구 대원</span>
             </div>
           </div>
 
           <div className="flex justify-center">
             <button className="big w-full py-3" type="submit">
-              구조대 입대하기! 🎖️
+              수련생으로 입단하기! 🎖️
             </button>
           </div>
         </form>
