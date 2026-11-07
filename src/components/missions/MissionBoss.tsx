@@ -255,16 +255,36 @@ export function MissionBoss({
           ))}
           {(phase === 'won' || phase === 'victory') && (
             <div className="boss-scatter">
-              {Array.from({ length: 16 }, (_, i) => (
-                <span
-                  key={i}
+              {Array.from({ length: 14 }, (_, i) => {
+                const a = (i / 14) * Math.PI * 2;
+                return (
+                  <span
+                    key={`p${i}`}
+                    className="light-person"
+                    style={{
+                      ['--dx' as string]: `${Math.cos(a) * 170}px`,
+                      ['--dy' as string]: `${Math.sin(a) * 105}px`,
+                      animationDelay: `${(i % 4) * 0.06}s`
+                    }}
+                  >
+                    <svg viewBox="0 0 40 70" aria-hidden="true">
+                      <circle cx="20" cy="12" r="10" />
+                      <path d="M4 68 Q4 28 20 26 Q36 28 36 68 Z" />
+                    </svg>
+                  </span>
+                );
+              })}
+              {Array.from({ length: 26 }, (_, i) => (
+                <i
+                  key={`m${i}`}
+                  className={`light-mote ${i % 3 === 0 ? 'flake' : ''}`}
                   style={{
-                    ['--dx' as string]: `${Math.cos((i / 16) * 6.28) * 180}px`,
-                    ['--dy' as string]: `${Math.sin((i / 16) * 6.28) * 110}px`
+                    ['--dx' as string]: `${(((i * 53) % 100) - 50) * 4}px`,
+                    animationDelay: `${0.2 + (i % 9) * 0.15}s`
                   }}
                 >
-                  {['🧒', '👧', '🌱', '🧑', '👦', '🍃'][i % 6]}
-                </span>
+                  {i % 3 === 0 ? '❄' : ''}
+                </i>
               ))}
             </div>
           )}
