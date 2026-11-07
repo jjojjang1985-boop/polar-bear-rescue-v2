@@ -1788,7 +1788,7 @@ h1, h2, h3, h4 {
     margin-top: -4px;
   }
   .title-art {
-    object-position: 72% 50%;
+    object-position: 52% 50%;
   }
   .title-scrim {
     background: linear-gradient(180deg, rgba(255, 236, 205, 0.7) 0%, rgba(255, 236, 205, 0) 45%, rgba(40, 40, 80, 0) 70%, rgba(40, 40, 80, 0.45) 100%);

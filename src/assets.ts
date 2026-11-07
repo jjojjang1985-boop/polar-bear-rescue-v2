@@ -22,24 +22,38 @@ const FACE_IMAGES: Partial<Record<SpeakerId, string>> = {
   thermo: img('face-thermo'),
   danbi: img('face-danbi'),
   luka: img('face-luka'),
-  squirrel: img('face-raccoon')
+  squirrel: img('face-raccoon'),
+  friend: img('face-friend'),
+  factory: img('face-factory'),
+  police: img('face-police'),
+  grandma: img('face-grandma'),
+  janitor: img('face-janitor'),
+  villager: img('face-villager'),
+  rep: img('face-rep')
 };
 
 export const PORI_FACE = img('face-pori');
 export const ME_FACE = img('face-me');
 
+/** 등록 화면에서 고르는 신입 대원 얼굴 (a: 단발, b: 소년, c: 친구) */
+export const AVATAR_FACES: Record<AvatarType, string> = {
+  a: ME_FACE,
+  b: img('face-boy'),
+  c: img('face-friend')
+};
+
 /**
- * 말하는 캐릭터의 얼굴 그림 주소. 그림이 없는 인물(공장장, 할머니 등)과
- * 직접 고른 다른 아바타는 null을 돌려주며, 이때는 기존 SVG 얼굴을 쓴다.
+ * 말하는 캐릭터의 얼굴 그림 주소. 그림이 없는 인물(예: 그림자)은 null을
+ * 돌려주며, 이때는 기존 SVG 얼굴을 쓴다.
  */
 export function getFaceImage(who: SpeakerId, avatar: AvatarType): string | null {
-  if (who === 'me') return avatar === 'a' ? ME_FACE : null;
+  if (who === 'me') return AVATAR_FACES[avatar] ?? ME_FACE;
   return FACE_IMAGES[who] ?? null;
 }
 
 /** 장면이 바뀔 때 깜박이지 않도록 배경 그림을 미리 받아 둔다. */
 export function preloadImages() {
-  [TITLE_IMAGE, MAP_IMAGE, ...Object.values(SCENE_IMAGES), ...Object.values(FACE_IMAGES), ME_FACE].forEach(
+  [TITLE_IMAGE, MAP_IMAGE, ...Object.values(SCENE_IMAGES), ...Object.values(FACE_IMAGES), ...Object.values(AVATAR_FACES)].forEach(
     src => {
       const im = new Image();
       im.src = src;
