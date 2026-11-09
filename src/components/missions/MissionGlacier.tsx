@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { OL } from '../../svgs';
+import React, { useRef, useState } from 'react';
+import { GLACIER_IMAGES } from '../../assets';
 import { sfx } from '../../audio';
 
 export function MissionGlacier({
@@ -11,49 +11,34 @@ export function MissionGlacier({
 }) {
   const [sliderVal, setSliderVal] = useState(50);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const dragging = useRef(false);
 
   const scene = (hasIce: boolean) => (
-    <svg viewBox="0 0 700 320" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
-      <rect width="700" height="320" fill="#bfe6ff" />
-      <path
-        d="M0 260 L120 80 L230 200 L350 40 L470 190 L580 70 L700 240 V320 H0Z"
-        fill="#9b8a7a"
-        stroke={OL}
-        strokeWidth="5"
-      />
-      {hasIce ? (
-        <>
-          <path
-            d="M210 320 Q240 200 300 120 L350 60 L400 120 Q460 200 490 320Z"
-            fill="#f4fbff"
-            stroke={OL}
-            strokeWidth="5"
-          />
-          <path d="M110 100 L130 80 L150 110Z M560 90 L580 70 L600 100Z" fill="#fff" stroke={OL} strokeWidth="4" />
-        </>
-      ) : (
-        <>
-          <path
-            d="M330 90 L350 60 L372 92 Q350 110 330 90Z"
-            fill="#f4fbff"
-            stroke={OL}
-            strokeWidth="4"
-          />
-          <path
-            d="M220 320 Q300 270 350 250 Q400 270 480 320Z"
-            fill="#5fb8e8"
-            stroke={OL}
-            strokeWidth="4"
-          />
-        </>
-      )}
-      <rect y="290" width="700" height="30" fill="#6fae5c" />
-    </svg>
+    <img
+      src={hasIce ? GLACIER_IMAGES.past : GLACIER_IMAGES.now}
+      alt={hasIce ? '1910년, 골짜기를 가득 채운 빙하' : '2021년, 빙하가 녹고 호수가 생긴 골짜기'}
+      className="w-full h-full object-cover pointer-events-none"
+      draggable={false}
+    />
   );
 
+  const moveTo = (clientX: number) => {
+    const box = boxRef.current;
+    if (!box) return;
+    const r = box.getBoundingClientRect();
+    const val = Math.round(Math.min(100, Math.max(0, ((clientX - r.left) / r.width) * 100)));
+    updateVal(val);
+  };
+
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
+    updateVal(Number(e.target.value));
+  };
+
+  const updateVal = (val: number) => {
     setSliderVal(val);
+    if (!touched) setTouched(true);
     if (!hasInteracted && (val <= 15 || val >= 85)) {
       setHasInteracted(true);
       onReact('luka', '우와, 슬라이더를 당겨보니 빙하가 거의 다 사라졌잖아!', 'o');
@@ -68,10 +53,27 @@ export function MissionGlacier({
         빙하 비교 사진
       </h2>
       <p className="guide">
-        가운데 막대를 좌우로 움직여 같은 장소의 옛날(1910년)과 오늘(2021년)을 비교해 보세요.
+        사진 가운데의 <b>노란 손잡이</b>를 좌우로 끌어서 같은 장소의 옛날(1910년)과 오늘(2021년)을 비교해 보세요.
       </p>
 
-      <div className="relative h-[280px] border-3 border-amber-950 rounded-2xl overflow-hidden my-2">
+      <div
+        ref={boxRef}
+        className="glacier-compare relative aspect-[16/10] max-h-[400px] w-full border-3 border-amber-950 rounded-2xl overflow-hidden my-2"
+        onPointerDown={e => {
+          dragging.current = true;
+          (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+          moveTo(e.clientX);
+        }}
+        onPointerMove={e => {
+          if (dragging.current) moveTo(e.clientX);
+        }}
+        onPointerUp={() => {
+          dragging.current = false;
+        }}
+        onPointerCancel={() => {
+          dragging.current = false;
+        }}
+      >
         {/* Background: Modern (2021) without ice */}
         <div className="absolute inset-0">{scene(false)}</div>
         {/* Foreground: Vintage (1910) with thick glacier clipped by slider */}
@@ -82,13 +84,17 @@ export function MissionGlacier({
           {scene(true)}
         </div>
 
-        <span className="tag absolute left-3 top-3 font-display">1910년 (빙하 가득)</span>
-        <span className="tag absolute right-3 top-3 font-display !bg-sky-500">2021년 (빙하 소멸)</span>
+        <span className="tag absolute left-3 top-3 font-display">❄️ 1910년</span>
+        <span className="tag absolute right-3 top-3 font-display !bg-sky-500">💧 2021년</span>
 
-        <div
-          className="absolute top-0 bottom-0 w-1.5 bg-yellow-300 border border-amber-950 pointer-events-none"
-          style={{ left: `${sliderVal}%`, transform: 'translateX(-50%)' }}
-        />
+        <div className="gc-line" style={{ left: `${sliderVal}%` }}>
+          <div className={`gc-knob ${touched ? '' : 'gc-knob-hint'}`}>◀ ▶</div>
+        </div>
+        {!touched && (
+          <div className="gc-hint" style={{ left: `${sliderVal}%` }}>
+            👆 손잡이를 좌우로 끌어 보세요!
+          </div>
+        )}
       </div>
 
       <input
@@ -102,7 +108,7 @@ export function MissionGlacier({
       />
 
       <p className="text-xs text-stone-600 mb-4">
-        미국 글레이셔 국립 공원의 1910년과 2021년 모습을 그림으로 나타냈어요 (교과서 93쪽).
+        미국 글레이셔 국립 공원처럼 같은 장소의 1910년과 2021년 모습을 그림으로 나타냈어요 (교과서 93쪽).
       </p>
 
       <div className="flex justify-center">

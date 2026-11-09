@@ -876,6 +876,7 @@ export default function App() {
         return (
           <MissionBoss
             owned={game.gear}
+            avatar={game.avatar}
             onHeal={(n: number) => addBlock(n)}
             onCorrect={() => handleCorrect()}
             onWrong={handleWrong}

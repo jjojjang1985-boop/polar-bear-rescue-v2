@@ -253,6 +253,12 @@ export const cue = {
     tone(98, 0.4, 'square', 0.03, 0.55);
   },
   /** 기후 마법 명중 */
+  /** 기술 쓰기 전 기 모으기 */
+  charge() {
+    sweep(150, 900, 0.85, 'sawtooth', 0.025);
+    sweep(300, 1800, 0.85, 'sine', 0.04);
+    for (let i = 0; i < 8; i++) tone(700 + i * 120, 0.06, 'triangle', 0.025, 0.1 + i * 0.09);
+  },
   skillHit() {
     sweep(500, 2000, 0.25, 'triangle', 0.05);
     [1047, 1319, 1568].forEach((f, i) => tone(f, 0.3, 'sine', 0.06, 0.22 + i * 0.07));

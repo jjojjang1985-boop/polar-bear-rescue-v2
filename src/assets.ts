@@ -63,6 +63,17 @@ export const AVATAR_FACES: Record<AvatarType, string> = {
   d: img('face-glasses')
 };
 
+/** 최종 결전에서 기술을 쓰기 전 힘을 모으는 모습 */
+export const CAST_IMAGES: Record<AvatarType, string> = {
+  a: img('cast-a'),
+  b: img('cast-b'),
+  c: img('cast-c'),
+  d: img('cast-d')
+};
+
+/** 미션 1-4 빙하 비교 (같은 장소, 같은 구도) */
+export const GLACIER_IMAGES = { past: img('glacier-1910'), now: img('glacier-2021') };
+
 /** 임명식 뒤 변신하는 지구레인저 슈트 (캐릭터마다 테마가 다르다) */
 export const SUIT_IMAGES: Record<AvatarType, string> = {
   a: img('suit-a'),

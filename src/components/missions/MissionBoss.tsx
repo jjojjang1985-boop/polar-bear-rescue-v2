@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ATTACKS, DEFAULT_SKILLS, SKILLS, STAGE_PICKS, type Attack } from '../../skills';
-import { SHADOW_IMAGE } from '../../assets';
+import { CAST_IMAGES, SHADOW_IMAGE } from '../../assets';
+import type { AvatarType } from '../../types';
 import { cue } from '../../audio';
 import { shuffle } from '../../shuffle';
 import { SkillArt } from '../Skills';
@@ -22,6 +23,8 @@ const IMPACT: Record<string, { c1: string; c2: string; bits: string[] }> = {
 const DEF_IMPACT = { c1: '#ffffff', c2: '#7fd3ff', bits: ['✦', '✨'] };
 
 const BOSS_HP = 6;
+/** 기술을 쓰기 전 내 캐릭터가 힘을 모으는 시간 */
+const CHARGE_MS = 900;
 
 type Phase = 'incoming' | 'choose' | 'hit' | 'brace' | 'miss' | 'dying' | 'won' | 'victory';
 
@@ -31,6 +34,7 @@ const stageOf = (id: string) =>
 
 export function MissionBoss({
   owned,
+  avatar = 'a',
   onHeal,
   onCorrect,
   onWrong,
@@ -38,6 +42,7 @@ export function MissionBoss({
   onReact
 }: {
   owned: string[];
+  avatar?: AvatarType;
   onHeal: (n: number) => void;
   onCorrect: () => void;
   onWrong: () => void;
@@ -132,8 +137,9 @@ export function MissionBoss({
     // 1) 알맞은 기술로 막음
     if (attack.counters.includes(choice)) {
       setPhase('hit');
-      cue.skillHit();
-      later(() => cue.impact(), 330);
+      cue.charge();
+      later(() => cue.skillHit(), CHARGE_MS);
+      later(() => cue.impact(), CHARGE_MS + 330);
       onCorrect();
       const nextHp = hp - 1;
       setHp(nextHp);
@@ -152,11 +158,11 @@ export function MissionBoss({
         later(() => {
           setPhase('dying');
           cue.bossCrumble();
-        }, 1300);
+        }, CHARGE_MS + 1500);
         later(() => {
           setPhase('won');
           cue.bossDefeat();
-        }, 3500);
+        }, CHARGE_MS + 3700);
         later(() => {
           setPhase('victory');
           const burst = (x: number) =>
@@ -166,9 +172,9 @@ export function MissionBoss({
           later(() => burst(0.5), 500);
           later(() => burst(0.3), 1100);
           later(() => burst(0.7), 1500);
-        }, 5000);
+        }, CHARGE_MS + 5200);
       } else {
-        later(() => nextTurn(rest), 1700);
+        later(() => nextTurn(rest), CHARGE_MS + 1700);
       }
       return;
     }
@@ -297,7 +303,7 @@ export function MissionBoss({
           </div>
         )}
 
-        {phase === 'hit' && picked && <SkillImpact key={`imp${turn}`} id={picked} combo={combo} />}
+        {phase === 'hit' && picked && createPortal(<SkillImpact key={`imp${turn}`} id={picked} combo={combo} avatar={avatar} />, document.body)}
         {phase === 'dying' && (
           <div className="boss-dying-fx">
             {Array.from({ length: 10 }, (_, i) => (
@@ -311,6 +317,7 @@ export function MissionBoss({
 
       </div>
 
+      {(phase === 'dying' || phase === 'won') && createPortal(<BossDeathOverlay phase={phase} />, document.body)}
       {phase === 'victory' && createPortal(<VictoryScreen stats={stats} onNext={onFinish} />, document.body)}
 
       {!['dying', 'won', 'victory'].includes(phase) && (
@@ -380,17 +387,23 @@ export function MissionBoss({
 }
 
 /** 기술 적중: 날아가는 마법 → 폭발 → 충격파·빛줄기·조각 → 데미지 숫자 */
-function SkillImpact({ id, combo }: { id: string; combo: number }) {
+function SkillImpact({ id, combo, avatar }: { id: string; combo: number; avatar: AvatarType }) {
   const fx = IMPACT[id] || DEF_IMPACT;
+  const [fired, setFired] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setFired(true), CHARGE_MS);
+    return () => window.clearTimeout(t);
+  }, []);
+  const sk = SKILLS[id];
   const bits = useMemo(
     () =>
-      Array.from({ length: 18 }, (_, i) => {
-        const a = (i / 18) * Math.PI * 2 + Math.random() * 0.3;
-        const d = 120 + Math.random() * 120;
+      Array.from({ length: 36 }, (_, i) => {
+        const a = (i / 36) * Math.PI * 2 + Math.random() * 0.3;
+        const d = 28 + Math.random() * 30;
         return {
           ch: fx.bits[i % fx.bits.length],
-          dx: `${Math.cos(a) * d}px`,
-          dy: `${Math.sin(a) * d * 0.7}px`,
+          dx: `${Math.cos(a) * d}vmax`,
+          dy: `${Math.sin(a) * d * 0.8}vmax`,
           r: `${Math.random() * 360}deg`,
           delay: `${0.33 + Math.random() * 0.1}s`
         };
@@ -398,8 +411,35 @@ function SkillImpact({ id, combo }: { id: string; combo: number }) {
     [id]
   );
   return (
-    <div className="impact" style={{ ['--c1' as string]: fx.c1, ['--c2' as string]: fx.c2 }}>
+    <div className={`impact impact-full ${fired ? 'fired' : 'charging'}`} style={{ ['--c1' as string]: fx.c1, ['--c2' as string]: fx.c2 }}>
+      <div className="imp-dim" />
+      <div className="cast">
+        <img className="cast-me" src={CAST_IMAGES[avatar] ?? CAST_IMAGES.a} alt="" draggable={false} />
+        <div className="cast-hands">
+          <div className="cast-aura" />
+          <i className="cast-ring" />
+          <i className="cast-ring c2" />
+          {Array.from({ length: 16 }, (_, i) => (
+            <b
+              key={i}
+              className="cast-mote"
+              style={{ ['--a' as string]: `${i * 22.5}deg`, animationDelay: `${(i % 8) * 0.06}s` }}
+            >
+              {fx.bits[i % fx.bits.length]}
+            </b>
+          ))}
+          <div className="cast-orb">
+            <SkillArt id={id} />
+          </div>
+        </div>
+        <div className="cast-shout">
+          {sk?.ic} {sk?.name}!
+        </div>
+      </div>
+      {fired && (
+      <>
       <div className="imp-flash" />
+      <div className="imp-speed" />
       <div className="imp-projectile">
         <SkillArt id={id} />
       </div>
@@ -407,6 +447,7 @@ function SkillImpact({ id, combo }: { id: string; combo: number }) {
         <div className="imp-rays" />
         <i className="imp-ring" />
         <i className="imp-ring r2" />
+        <i className="imp-ring r3" />
         <div className="imp-art">
           <SkillArt id={id} />
         </div>
@@ -422,6 +463,8 @@ function SkillImpact({ id, combo }: { id: string; combo: number }) {
       </div>
       <div className="imp-dmg">-1</div>
       <div className="imp-word">{combo >= 2 ? `${combo}연속 명중!` : '명중!'}</div>
+      </>
+      )}
     </div>
   );
 }
@@ -489,6 +532,73 @@ function VictoryScreen({
           포리에게 가기 ▶
         </button>
       </div>
+    </div>
+  );
+}
+
+/** 대마왕이 쓰러질 때 화면 전체를 덮는 연출 */
+function BossDeathOverlay({ phase }: { phase: 'dying' | 'won' }) {
+  return (
+    <div className={`bdo bdo-${phase}`} aria-hidden="true">
+      <div className="bdo-bg" />
+      {phase === 'dying' && (
+        <>
+          <div className="bdo-rays">
+            {Array.from({ length: 14 }, (_, i) => (
+              <i key={i} style={{ transform: `rotate(${i * (360 / 14)}deg)`, animationDelay: `${(i % 7) * 0.13}s` }} />
+            ))}
+          </div>
+          <img className="bdo-boss" src={SHADOW_IMAGE} alt="" draggable={false} />
+          {Array.from({ length: 12 }, (_, i) => (
+            <b
+              key={i}
+              className="bdo-co2"
+              style={{
+                ['--dx' as string]: `${Math.cos((i / 12) * Math.PI * 2) * 42}vmin`,
+                ['--dy' as string]: `${Math.sin((i / 12) * Math.PI * 2) * 36}vmin`,
+                animationDelay: `${0.3 + (i % 4) * 0.25}s`
+              }}
+            >
+              CO₂
+            </b>
+          ))}
+          <div className="bdo-word">크아아악…!</div>
+        </>
+      )}
+      {phase === 'won' && (
+        <>
+          <div className="bdo-white" />
+          <div className="bdo-burst" />
+          {Array.from({ length: 22 }, (_, i) => {
+            const a = (i / 22) * Math.PI * 2;
+            return (
+              <span
+                key={`p${i}`}
+                className="bdo-person"
+                style={{
+                  ['--dx' as string]: `${Math.cos(a) * (30 + (i % 3) * 8)}vmax`,
+                  ['--dy' as string]: `${Math.sin(a) * (22 + (i % 3) * 6)}vmax`,
+                  animationDelay: `${(i % 5) * 0.05}s`
+                }}
+              >
+                <svg viewBox="0 0 40 70">
+                  <circle cx="20" cy="12" r="10" />
+                  <path d="M4 68 Q4 28 20 26 Q36 28 36 68 Z" />
+                </svg>
+              </span>
+            );
+          })}
+          {Array.from({ length: 40 }, (_, i) => (
+            <i
+              key={`m${i}`}
+              className={`bdo-mote ${i % 3 === 0 ? 'flake' : ''}`}
+              style={{ left: `${(i * 37) % 100}%`, animationDelay: `${(i % 10) * 0.09}s` }}
+            >
+              {i % 3 === 0 ? '❄' : ''}
+            </i>
+          ))}
+        </>
+      )}
     </div>
   );
 }
