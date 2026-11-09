@@ -10,7 +10,7 @@ import {
   saveScoreToFirestore,
   deleteScoreFromFirestore
 } from './firebase';
-import { sfx, cue, setSoundEnabled, isSoundEnabled, getAudioContext } from './audio';
+import { sfx, cue, setSoundEnabled, isSoundEnabled, getAudioContext, startMusic, stopMusic } from './audio';
 import confetti from 'canvas-confetti';
 import { SceneFx, type SceneFxName, type SceneFxState } from './components/SceneFx';
 import { BACKGROUNDS } from './svgs';
@@ -1006,6 +1006,29 @@ export default function App() {
     : Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) +
       Math.max(game.scores[game.cur] || 0, game.pts);
   const hudSkills = game.gear.filter(id => SKILLS[id] && SKILLS[id].kind !== 'item');
+  // 배경음악: 처음 화면·등록 화면에서는 모험 테마, 엔딩 화면에서는 엔딩 테마
+  const musicTrack: 'title' | 'ending' | null =
+    !game.sound
+      ? null
+      : viewScreen === 'title' || viewScreen === 'register'
+        ? 'title'
+        : viewScreen === 'game' && curStep?.type === 'mission' && curStep.id === 'ending'
+          ? 'ending'
+          : null;
+  useEffect(() => {
+    if (musicTrack) startMusic(musicTrack);
+    else stopMusic();
+  }, [musicTrack]);
+  // 브라우저는 사용자가 한 번 누르기 전에는 소리를 막으므로, 첫 터치 때 다시 시도한다
+  useEffect(() => {
+    const unlock = () => {
+      getAudioContext();
+      if (musicTrack) startMusic(musicTrack);
+    };
+    window.addEventListener('pointerdown', unlock, { once: true });
+    return () => window.removeEventListener('pointerdown', unlock);
+  }, [musicTrack]);
+
   const showDialogue = viewScreen === 'game' && !stageIntroActive && (!!reaction || curStep?.type === 'say');
   const STAGE_LABELS = ['프롤로그', '작전 1', '작전 2', '작전 3', '작전 4', '최종 결전', '에필로그'];
 

@@ -355,3 +355,190 @@ export const cue = {
     noise(1.2, 0.03, 8000, 5000, 'highpass', 0.94, 0.01);
   }
 };
+
+/* =========================================================================
+   배경음악 (그림 파일 없이 소리를 직접 만들어 반복 재생)
+   ========================================================================= */
+type Song = {
+  bpm: number;
+  /** 8분음표 단위 마디 수 x 8 */
+  bars: number;
+  lead: string[];
+  chords: string[][];
+  leadType: OscillatorType;
+  leadVol: number;
+  arp?: boolean;
+};
+
+const NOTE_IDX: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+function noteFreq(n: string): number {
+  const m = /^([A-G])(b|#)?(\d)$/.exec(n);
+  if (!m) return 0;
+  let semi = NOTE_IDX[m[1]] + (m[2] === 'b' ? -1 : m[2] === '#' ? 1 : 0);
+  const midi = (Number(m[3]) + 1) * 12 + semi;
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+/** "E5:2 G5:2 - C6" → [시작(8분음표), 주파수, 길이] */
+function parseBar(bar: string, offset: number): [number, number, number][] {
+  const out: [number, number, number][] = [];
+  let pos = offset;
+  bar.trim().split(/\s+/).forEach(tok => {
+    const [n, l] = tok.split(':');
+    const len = Number(l || 1);
+    if (n !== '-') out.push([pos, noteFreq(n), len]);
+    pos += len;
+  });
+  return out;
+}
+
+const SONGS: Record<'title' | 'ending', Song> = {
+  // 처음 화면: 밝고 씩씩한 모험 테마 (C장조)
+  title: {
+    bpm: 112,
+    bars: 8,
+    leadType: 'triangle',
+    leadVol: 0.05,
+    lead: [
+      'E5:2 G5:2 C6:3 B5',
+      'D6:2 B5:2 G5:4',
+      'A5:2 C6:2 E6:2 D6 C6',
+      'A5:4 F5:2 G5:2',
+      'E5:2 G5:2 C6:3 D6',
+      'E6:2 D6:2 B5:4',
+      'C6 A5 F5 A5 C6:2 D6:2',
+      'B5:4 G5:2 -:2'
+    ],
+    chords: [
+      ['C3', 'C4', 'E4', 'G4'],
+      ['G2', 'B3', 'D4', 'G4'],
+      ['A2', 'A3', 'C4', 'E4'],
+      ['F2', 'A3', 'C4', 'F4'],
+      ['C3', 'C4', 'E4', 'G4'],
+      ['G2', 'B3', 'D4', 'G4'],
+      ['F2', 'A3', 'C4', 'F4'],
+      ['G2', 'B3', 'D4', 'F4']
+    ]
+  },
+  // 엔딩: 따뜻하고 뭉클한 테마 (F장조)
+  ending: {
+    bpm: 84,
+    bars: 8,
+    leadType: 'sine',
+    leadVol: 0.06,
+    arp: true,
+    lead: [
+      'A5:4 C6:2 A5:2',
+      'G5:6 E5:2',
+      'F5:2 A5:2 D6:3 C6',
+      'Bb5:6 -:2',
+      'A5:2 C6:2 F6:3 E6',
+      'E6:2 D6:2 C6:4',
+      'D6:2 Bb5:2 C6:2 E6:2',
+      'F6:6 -:2'
+    ],
+    chords: [
+      ['F2', 'F3', 'A3', 'C4'],
+      ['C3', 'E3', 'G3', 'C4'],
+      ['D3', 'D3', 'F3', 'A3'],
+      ['Bb2', 'Bb3', 'D4', 'F4'],
+      ['F2', 'F3', 'A3', 'C4'],
+      ['C3', 'E3', 'G3', 'C4'],
+      ['Bb2', 'Bb3', 'D4', 'F4'],
+      ['F2', 'F3', 'A3', 'C4']
+    ]
+  }
+};
+
+let musicGain: GainNode | null = null;
+let musicTimer: number | null = null;
+let musicName: 'title' | 'ending' | null = null;
+let musicStart = 0;
+let musicLoop = 0;
+
+function musicNote(a: AudioContext, out: GainNode, f: number, t: number, d: number, type: OscillatorType, vol: number, attack = 0.02) {
+  if (!f) return;
+  const o = a.createOscillator();
+  const g = a.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + attack);
+  g.gain.exponentialRampToValueAtTime(vol * 0.6, t + Math.max(attack + 0.01, d * 0.5));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(g);
+  g.connect(out);
+  o.start(t);
+  o.stop(t + d + 0.05);
+}
+
+function scheduleLoop(a: AudioContext, song: Song, loopStart: number) {
+  if (!musicGain) return;
+  const e = 60 / song.bpm / 2; // 8분음표 길이(초)
+  song.lead.forEach((bar, bi) => {
+    parseBar(bar, bi * 8).forEach(([pos, f, len]) => {
+      musicNote(a, musicGain!, f, loopStart + pos * e, len * e * 0.95, song.leadType, song.leadVol);
+    });
+  });
+  song.chords.forEach((ch, bi) => {
+    const t = loopStart + bi * 8 * e;
+    const [bass, ...rest] = ch.map(noteFreq);
+    // 베이스: 4분음표로 통통
+    for (let k = 0; k < 4; k++) musicNote(a, musicGain!, k % 2 ? bass * 2 : bass, t + k * 2 * e, 1.8 * e, 'triangle', 0.045);
+    if (song.arp) {
+      // 엔딩: 펼침화음
+      for (let k = 0; k < 8; k++) musicNote(a, musicGain!, rest[k % rest.length] * 2, t + k * e, 1.6 * e, 'sine', 0.018, 0.01);
+    } else {
+      // 처음 화면: 부드러운 화음 + 박자 맞춘 반짝임
+      rest.forEach(f => musicNote(a, musicGain!, f, t, 8 * e, 'sine', 0.014, 0.15));
+      for (let k = 1; k < 8; k += 2) musicNote(a, musicGain!, rest[2] * 4, t + k * e, 0.4 * e, 'square', 0.006, 0.005);
+    }
+  });
+}
+
+/** 배경음악 시작 (같은 곡이 이미 나오고 있으면 그대로 둔다) */
+export function startMusic(name: 'title' | 'ending') {
+  if (!soundEnabled) return;
+  if (musicName === name && musicTimer !== null) return;
+  stopMusic(0.4);
+  const a = getAudioContext();
+  if (!a) return;
+  const song = SONGS[name];
+  const loopLen = (60 / song.bpm / 2) * 8 * song.bars;
+  musicGain = a.createGain();
+  musicGain.gain.setValueAtTime(0.0001, a.currentTime);
+  musicGain.gain.exponentialRampToValueAtTime(name === 'title' ? 0.7 : 0.85, a.currentTime + 1.2);
+  musicGain.connect(a.destination);
+  musicName = name;
+  musicStart = a.currentTime + 0.15;
+  musicLoop = 0;
+  const tick = () => {
+    if (!musicGain) return;
+    // 다음 반복이 2초 안으로 다가오면 미리 예약한다
+    while (musicStart + musicLoop * loopLen < a.currentTime + 2) {
+      scheduleLoop(a, song, musicStart + musicLoop * loopLen);
+      musicLoop += 1;
+    }
+  };
+  tick();
+  musicTimer = window.setInterval(tick, 500);
+}
+
+/** 배경음악 멈춤 (fade 초 동안 서서히 줄인다) */
+export function stopMusic(fade = 0.8) {
+  if (musicTimer !== null) window.clearInterval(musicTimer);
+  musicTimer = null;
+  musicName = null;
+  const g = musicGain;
+  musicGain = null;
+  const a = audioCtx;
+  if (g && a) {
+    try {
+      g.gain.cancelScheduledValues(a.currentTime);
+      g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), a.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + fade);
+      window.setTimeout(() => g.disconnect(), fade * 1000 + 100);
+    } catch {
+      g.disconnect();
+    }
+  }
+}
