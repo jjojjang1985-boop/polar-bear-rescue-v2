@@ -14,7 +14,7 @@ import { sfx, cue, setSoundEnabled, isSoundEnabled, getAudioContext } from './au
 import confetti from 'canvas-confetti';
 import { SceneFx, type SceneFxName, type SceneFxState } from './components/SceneFx';
 import { BACKGROUNDS } from './svgs';
-import { SCENE_IMAGES, preloadImages } from './assets';
+import { SCENE_IMAGES, SHOOT_IMAGES, preloadImages } from './assets';
 import { STAGES, StageStep } from './stagesData';
 
 // Screens & UI components
@@ -50,6 +50,8 @@ import { MissionRush } from './components/missions/MissionRush';
 import { MissionPledge } from './components/missions/MissionPledge';
 import { MissionCeremony } from './components/missions/MissionCeremony';
 import { MissionBoss } from './components/missions/MissionBoss';
+import { MissionShoot } from './components/missions/MissionShoot';
+import { MissionEnding } from './components/missions/MissionEnding';
 import { SkillArt, SkillBookModal, SkillPickModal } from './components/Skills';
 import { SKILLS, STAGE_PICKS } from './skills';
 import { QuizComponent } from './components/missions/QuizComponent';
@@ -94,7 +96,8 @@ export default function App() {
           towerOn: parsed.towerOn || false,
           campaign: parsed.campaign || null,
           poster: parsed.poster || null,
-          evid: parsed.evid || []
+          evid: parsed.evid || [],
+          teacher: !!parsed.teacher
         };
       }
     } catch {
@@ -121,7 +124,8 @@ export default function App() {
       towerOn: false,
       campaign: null,
       poster: null,
-      evid: []
+      evid: [],
+      teacher: false
     };
   });
 
@@ -143,6 +147,8 @@ export default function App() {
   // FX & Visual states
   const [isFlashing, setIsFlashing] = useState(false);
   const [sceneFx, setSceneFx] = useState<SceneFxState | null>(null);
+  // 대사 여러 줄 동안 화면에 남아 있는 등장인물 (엄마 곰, 달려가는 포리)
+  const [actors, setActors] = useState<{ mom: boolean; pori: 'none' | 'run' | 'scared' | 'stand' | 'cross'; boss?: boolean; bridge?: boolean } | null>(null);
   const sceneFxIdRef = useRef(0);
   const sceneFxTimerRef = useRef<number | undefined>(undefined);
   const [isShaking, setIsShaking] = useState(false);
@@ -164,10 +170,14 @@ export default function App() {
     pts: number;
     blocks: number;
     mist: number;
+    emerg: number;
     clues: number;
     hasNext: boolean;
+    practice?: boolean;
   } | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  // 빙하 탑이 무너질 때마다 1씩 올라 무너짐 연출을 다시 보여 준다
+  const [towerCollapse, setTowerCollapse] = useState(0);
 
   // Firebase Real-time Leaderboard & Auth states
   const [firebaseLeaderboard, setFirebaseLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -237,7 +247,8 @@ export default function App() {
         towerOn: game.towerOn,
         campaign: game.campaign,
         poster: game.poster,
-        evid: game.evid
+        evid: game.evid,
+        teacher: !!game.teacher
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
     } catch {
@@ -277,11 +288,15 @@ export default function App() {
     setGame(g => {
       const next = Math.max(0, g.blocks - 1);
       if (next === 0) {
+        // 비상 얼음: 다시 3개를 채워 주는 대신 100점을 잃는다
         sfx.splash();
-        triggerToast('빙하가 다 녹을 뻔했어요! 써모가 비상 얼음 3개를 보냈어요.');
+        triggerShake();
+        setTowerCollapse(c => c + 1);
+        triggerToast('💥 빙하가 무너졌어요! 써모가 비상 얼음 3개를 보냈어요. (-100점)');
         setTimeout(() => {
           setGame(prev => ({ ...prev, blocks: 3 }));
         }, 900);
+        return { ...g, blocks: 0, pts: Math.max(0, g.pts - 100), emerg: (g.emerg || 0) + 1 };
       }
       return { ...g, blocks: next };
     });
@@ -352,18 +367,39 @@ export default function App() {
   };
 
   // Start a stage
+  // 이미 끝낸 작전을 다시 하는 중인지 (연습 모드). 연습 시작 때의 빙하 블록 수를 기억해 두었다가 되돌린다.
+  const practiceRef = useRef<{ blocks: number } | null>(null);
+  const isPractice = viewScreen === 'game' && !!game.done[game.cur];
+
+  const endPractice = () => {
+    if (practiceRef.current) {
+      const b = practiceRef.current.blocks;
+      practiceRef.current = null;
+      setGame(g => ({ ...g, blocks: b }));
+    }
+  };
+
+  // 연습 도중 지도나 처음 화면으로 나가도 블록을 되돌린다
+  useEffect(() => {
+    if (viewScreen !== 'game') endPractice();
+  }, [viewScreen]);
+
   const startStage = (idx: number) => {
     const stageDef = STAGES[idx];
+    endPractice();
+    if (game.done[idx]) practiceRef.current = { blocks: game.blocks };
     setGame(g => ({
       ...g,
       cur: idx,
       mist: 0,
+      emerg: 0,
       pts: 0,
       combo: 0
     }));
     setCurrentBg(stageDef.bg);
     setStepIdx(0);
     setReaction(null);
+    setActors(null);
     setViewScreen('game');
 
     if (idx !== 0) {
@@ -385,10 +421,11 @@ export default function App() {
     }
   };
 
-  const saveToLeaderboard = async () => {
+  /** 명예의 전당 저장. 이 기기 순위와 온라인 저장 결과를 돌려준다. */
+  const saveToLeaderboard = async (scoreOverride?: number): Promise<{ rank: number; online: boolean }> => {
     const starTotal = [1, 2, 3, 4, 5].reduce((a, i) => a + (game.stars[i] || 0), 0);
-    const currentTotalScore = totalScore;
-    const entryName = game.name || '북극대원';
+    const currentTotalScore = scoreOverride ?? totalScore;
+    const entryName = game.name || '북극레인저';
     const entryCode = game.code || '얼음별';
     const entryAvatar = game.avatar || 'a';
     const dateStr = new Date().toLocaleDateString('ko-KR');
@@ -411,26 +448,34 @@ export default function App() {
     } catch {
       // Ignore
     }
+    const rank = list.findIndex(x => x.name === entryName && x.code === entryCode) + 1;
 
     // 2. Realtime Firebase Firestore save
     try {
-      await saveScoreToFirestore({
+      // 인터넷이 느리거나 끊겨도 엔딩이 멈추지 않도록 5초까지만 기다린다.
+      // (그 뒤에도 Firebase가 연결되면 기록은 자동으로 올라간다)
+      const timeout = new Promise<never>((_, rej) => window.setTimeout(() => rej(new Error('timeout')), 5000));
+      await Promise.race([saveScoreToFirestore({
         name: entryName,
         code: entryCode,
         score: currentTotalScore,
         stars: starTotal,
         avatar: entryAvatar
-      });
-      triggerToast('🌟 파이어베이스 실시간 명예의 전당에 등록되었습니다!');
+      }), timeout]);
+      triggerToast('🌟 실시간 명예의 전당에 등록되었습니다!');
+      return { rank, online: true };
     } catch (e) {
       console.error('Failed to save score to Firebase:', e);
+      triggerToast('이 기기 순위표에 저장했어요. 온라인 기록은 연결되면 올라가요.');
+      return { rank, online: false };
     }
   };
+  const [endResult, setEndResult] = useState<{ rank: number; online: boolean; skipped?: 'teacher' | 'practice' } | null>(null);
 
   const handleSignInGoogle = async () => {
     try {
       const u = await signInWithGoogle();
-      triggerToast(`환영합니다, ${u.displayName || u.email} 대원님!`);
+      triggerToast(`환영합니다, ${u.displayName || u.email} 선생님!`);
     } catch (e) {
       console.error('Google sign in error:', e);
       triggerToast('구글 로그인에 실패했습니다.');
@@ -505,9 +550,27 @@ export default function App() {
       case 'towerOn':
         cue.tower();
         break;
+      case 'momAppear':
+        cue.momAppear();
+        setActors({ mom: true, pori: 'none' });
+        break;
+      case 'poriRun':
+        cue.poriRun();
+        setActors({ mom: true, pori: 'run' });
+        break;
+      case 'iceBridge':
+        cue.iceBridge();
+        setActors({ mom: true, pori: 'stand', bridge: true });
+        break;
+      case 'poriCross':
+        cue.poriRun();
+        setActors({ mom: true, pori: 'cross', bridge: true });
+        break;
       case 'bossRise':
         cue.bossRise();
+        cue.bossTheme();
         triggerShake();
+        setActors(a => (a ? { ...a, pori: 'scared', boss: true } : a));
         showSceneFx('bossRise');
         break;
       case 'winFlash':
@@ -536,7 +599,9 @@ export default function App() {
     while (idx < curStage.steps.length) {
       const step = curStage.steps[idx];
 
+      if (step.type === 'mission') setActors(null);
       if (step.type === 'bg') {
+        setActors(null);
         setCurrentBg(step.bg);
         idx++;
         continue;
@@ -551,6 +616,13 @@ export default function App() {
         continue;
       }
       if (step.type === 'pick') {
+        // 연습 모드(이미 끝낸 작전)에서는 처음 고른 기술을 그대로 두고 넘어간다
+        const already = (STAGE_PICKS[step.stage] || []).find(id => game.gear.includes(id));
+        if (game.done[game.cur] && already) {
+          triggerToast(`🔁 연습 모드라 기술은 처음 고른 ${SKILLS[already].ic} ${SKILLS[already].name} 그대로예요`);
+          idx++;
+          continue;
+        }
         // 후보 기술 중 하나를 고르면 handlePickSkill → advanceStep 으로 이어진다
         cue.tower();
         setShowPick(step.stage);
@@ -597,8 +669,10 @@ export default function App() {
     const bonus = game.blocks * 10;
     const finalStageScore = game.pts + bonus;
 
-    const newStars = { ...game.stars, [stageIdx]: Math.max(game.stars[stageIdx] || 0, st) };
-    const newScores = { ...game.scores, [stageIdx]: Math.max(game.scores[stageIdx] || 0, finalStageScore) };
+    // 첫 도전 점수만 인정: 이미 끝낸 작전을 다시 한 경우(연습) 기록은 그대로 둔다
+    const practice = !!game.done[stageIdx];
+    const newStars = practice ? game.stars : { ...game.stars, [stageIdx]: st };
+    const newScores = practice ? game.scores : { ...game.scores, [stageIdx]: finalStageScore };
     const nextUnlocked = Math.max(game.unlocked, stageIdx + 1);
 
     setGame(g => ({
@@ -610,9 +684,7 @@ export default function App() {
     }));
 
     if (stageIdx === STAGES.length - 1) {
-      // Epilogue finished
-      saveToLeaderboard();
-      setViewScreen('map');
+      // 엔딩 화면에서 끝나므로 결과 창은 띄우지 않는다 (점수 저장은 '임무 완료'에서 이미 함)
       return;
     }
 
@@ -622,10 +694,23 @@ export default function App() {
       pts: game.pts,
       blocks: game.blocks,
       mist: game.mist,
+      emerg: game.emerg || 0,
       clues: Object.keys(game.clues).length,
-      hasNext: stageIdx < STAGES.length - 1
+      hasNext: stageIdx < STAGES.length - 1,
+      practice
     });
+    if (practice) endPractice();
   };
+
+  /**
+   * 명예의 전당에 올리지 않는 경우:
+   * - 선생님용 '모든 작전 열기'를 쓴 경우
+   * - 앞 작전(프롤로그~최종 결전)을 다 끝내지 않고 에필로그에 온 경우
+   * - 에필로그를 다시 하는 경우(연습)
+   */
+  const allPlayed = STAGES.slice(0, -1).every((_, i) => !!game.done[i]);
+  const skipReason: 'teacher' | 'practice' | undefined =
+    game.teacher || !allPlayed ? 'teacher' : game.done[STAGES.length - 1] ? 'practice' : undefined;
 
   // Render current mission inside stage
   const renderCurrentMission = () => {
@@ -821,7 +906,18 @@ export default function App() {
         return (
           <MissionBoss
             owned={game.gear}
+            avatar={game.avatar}
             onHeal={(n: number) => addBlock(n)}
+            onCorrect={() => handleCorrect()}
+            onWrong={handleWrong}
+            onFinish={advanceStep}
+            onReact={handleReact}
+          />
+        );
+
+      case 'shoot':
+        return (
+          <MissionShoot
             onCorrect={() => handleCorrect()}
             onWrong={handleWrong}
             onFinish={advanceStep}
@@ -862,11 +958,41 @@ export default function App() {
             totalScore={totalScore}
             pledges={game.pledge}
             rank={myRank > 0 ? myRank : 1}
+            recordable={!skipReason}
             onShowLeaderboard={() => setShowLeaderboard(true)}
             onGoMap={() => setViewScreen('map')}
+            onComplete={async () => {
+              // 에필로그 점수까지 더한 최종 총점으로 기록한다 (finishStage와 같은 계산)
+              const epi = game.done[game.cur] ? game.scores[game.cur] || 0 : game.pts + game.blocks * 10;
+              const finalTotal =
+                Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) + epi;
+              // 선생님 모드나 다시 하기(연습)에서는 명예의 전당에 올리지 않는다
+              if (skipReason) {
+                setEndResult({ rank: 0, online: false, skipped: skipReason });
+              } else {
+                const r = await saveToLeaderboard(finalTotal);
+                setEndResult(r);
+              }
+              advanceStep();
+            }}
           />
         );
       }
+
+      case 'ending':
+        return (
+          <MissionEnding
+            name={game.name}
+            pledges={game.pledge}
+            totalScore={totalScore}
+            stars={game.stars}
+            result={endResult}
+            onMount={() => finishStage(game.cur)}
+            onShowLeaderboard={() => setShowLeaderboard(true)}
+            onGoTitle={() => setViewScreen('title')}
+            onGoMap={() => setViewScreen('map')}
+          />
+        );
 
       default:
         return null;
@@ -875,9 +1001,10 @@ export default function App() {
 
   const sceneImage = SCENE_IMAGES[currentBg];
   // 지금까지 얻은 점수: 끝낸 작전 점수 + 지금 하는 작전에서 얻고 있는 점수
-  const liveScore =
-    Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) +
-    Math.max(game.scores[game.cur] || 0, game.pts);
+  const liveScore = isPractice
+    ? totalScore
+    : Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) +
+      Math.max(game.scores[game.cur] || 0, game.pts);
   const hudSkills = game.gear.filter(id => SKILLS[id] && SKILLS[id].kind !== 'item');
   const showDialogue = viewScreen === 'game' && !stageIntroActive && (!!reaction || curStep?.type === 'say');
   const STAGE_LABELS = ['프롤로그', '작전 1', '작전 2', '작전 3', '작전 4', '최종 결전', '에필로그'];
@@ -909,6 +1036,7 @@ export default function App() {
         <TitleScreen
           hasSave={!!game.name}
           playerName={game.name}
+          isRanger={!!game.done[STAGES.length - 1]}
           onContinue={() => setViewScreen('map')}
           onNewGame={() => setViewScreen('register')}
           onOpenLeaderboard={() => setShowLeaderboard(true)}
@@ -924,6 +1052,7 @@ export default function App() {
               code,
               avatar,
               unlocked: 0,
+              teacher: false,
               done: {},
               blocks: 6,
               clues: {},
@@ -950,9 +1079,10 @@ export default function App() {
           onSelectStage={idx => startStage(idx)}
           onShowLeaderboard={() => setShowLeaderboard(true)}
           onGoTitle={() => setViewScreen('title')}
+          teacher={!!game.teacher}
           onUnlockAll={() => {
-            setGame(g => ({ ...g, unlocked: STAGES.length - 1 }));
-            triggerToast('모든 작전이 열렸습니다! (선생님 모드)');
+            setGame(g => ({ ...g, unlocked: STAGES.length - 1, teacher: true }));
+            triggerToast('모든 작전이 열렸습니다! (선생님 모드: 명예의 전당에는 기록되지 않아요)');
           }}
         />
       )}
@@ -968,14 +1098,45 @@ export default function App() {
           />
         )}
         <div className="scene-shade" />
+        {actors && (
+          <div className={`actors ${actors.boss ? 'boss-came' : ''} ${actors.bridge ? 'has-bridge' : ''}`}>
+            {actors.bridge && (
+              <div className="ice-bridge" aria-hidden="true">
+                {Array.from({ length: 10 }, (_, i) => (
+                  <span
+                    key={i}
+                    className="ib-block"
+                    style={{
+                      ['--i' as any]: i,
+                      ['--lift' as any]: `${Math.sin(((i + 0.5) / 10) * Math.PI) * 1}`
+                    }}
+                  >
+                    <i className="ib-spark">✦</i>
+                  </span>
+                ))}
+                <div className="ib-shine" />
+              </div>
+            )}
+            {actors.mom && <img className="actor-mom" src={SHOOT_IMAGES.mom} alt="엄마 곰" draggable={false} />}
+            {actors.pori !== 'none' && (
+              <img className={`actor-pori ${actors.pori}`} src={SHOOT_IMAGES.pori} alt="포리" draggable={false} />
+            )}
+          </div>
+        )}
         <SceneFx fx={sceneFx} />
         {isFlashing && <div className="flash" />}
+        {towerCollapse > 0 && (
+          <div key={towerCollapse} className="tower-collapse" aria-hidden="true">
+            <b>💥 빙하가 무너졌어요!</b>
+            <span>비상 얼음 3개 · -100점</span>
+          </div>
+        )}
       </div>
 
       {/* Top Header Bar */}
       <header id="top" className="topbar">
         <button type="button" id="brand" className="brand" onClick={() => setViewScreen('map')}>
-          🌏 <span>지구수비대</span>
+          🌏 <span>플래닛 가디언즈</span>
         </button>
 
         <ol id="pips" className="pips" aria-label="진행 단계">
@@ -1057,6 +1218,9 @@ export default function App() {
             {stageIntroActive ? (
               <div className="panel intro-card">
                 <span className="tag">{curStage.label}</span>
+                {isPractice && (
+                  <span className="practice-tag">🔁 연습 모드 · 점수는 첫 도전 기록이 그대로 남아요</span>
+                )}
                 <h2>{curStage.title}</h2>
                 <p className="guide">{curStage.goal}</p>
                 <button
@@ -1167,8 +1331,10 @@ export default function App() {
           pts={showStageResult.pts}
           blocks={showStageResult.blocks}
           mistakes={showStageResult.mist}
+          emergencies={showStageResult.emerg}
           cluesCount={showStageResult.clues}
           hasNext={showStageResult.hasNext}
+          practice={showStageResult.practice}
           onNext={() => {
             setShowStageResult(null);
             startStage(game.cur + 1);
