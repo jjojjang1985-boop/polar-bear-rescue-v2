@@ -284,7 +284,7 @@ export function LeaderboardModal({
           <div className="flex items-center gap-2">
             <span className="text-2xl">🏆</span>
             <h2 className="!mb-0 text-xl sm:text-2xl font-display text-amber-950">
-              최우수 대원 명예의 전당
+              지구레인저 명예의 전당
             </h2>
           </div>
           <div className="flex items-center gap-1.5 bg-emerald-100 text-emerald-900 border border-emerald-400 px-2.5 py-1 rounded-full text-xs font-bold">
@@ -339,7 +339,7 @@ export function LeaderboardModal({
               </>
             ) : (
               <span className="text-stone-600">
-                선생님 또는 대원 계정으로 로그인하면 관리자 권한을 사용할 수 있습니다.
+                선생님 계정으로 로그인하면 관리자 권한을 사용할 수 있습니다.
               </span>
             )}
           </div>
@@ -378,7 +378,7 @@ export function LeaderboardModal({
               <thead>
                 <tr className="text-xs text-stone-600 border-b border-amber-200">
                   <th className="py-1 px-2 text-left w-14">순위</th>
-                  <th className="py-1 px-2 text-left">대원</th>
+                  <th className="py-1 px-2 text-left">레인저</th>
                   <th className="py-1 px-2 text-center w-20">별점</th>
                   <th className="py-1 px-2 text-right w-24">점수</th>
                   <th className="py-1 px-2 text-right w-24 hidden sm:table-cell">날짜</th>
@@ -457,7 +457,7 @@ export function LeaderboardModal({
                 : '아직 이 기기에 저장된 기록이 없어요.'}
             </p>
             <p className="text-stone-600 text-xs">
-              에필로그까지 미션을 모두 완료하면 순위표에 명예의 대원으로 자동 등록됩니다!
+              에필로그까지 미션을 모두 완료하면 순위표에 지구레인저로 자동 등록됩니다!
             </p>
           </div>
         )}

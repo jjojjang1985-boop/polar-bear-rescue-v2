@@ -5,6 +5,7 @@ import { TITLE_IMAGE } from '../assets';
 interface TitleScreenProps {
   hasSave: boolean;
   playerName: string;
+  isRanger?: boolean;
   onContinue: () => void;
   onNewGame: () => void;
   onOpenLeaderboard: () => void;
@@ -13,6 +14,7 @@ interface TitleScreenProps {
 export function TitleScreen({
   hasSave,
   playerName,
+  isRanger = false,
   onContinue,
   onNewGame,
   onOpenLeaderboard
@@ -57,10 +59,10 @@ export function TitleScreen({
           {hasSave ? (
             <>
               <button className="big" type="button" onClick={() => handleStart(true)}>
-                {playerName} 대원, 이어서 하기 ▶
+                {playerName} {isRanger ? '레인저' : '수련생'}, 이어서 하기 ▶
               </button>
               <button className="big ghost" type="button" onClick={() => handleStart(false)}>
-                새 대원으로 시작
+                새로 시작하기
               </button>
             </>
           ) : (

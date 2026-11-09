@@ -1432,8 +1432,11 @@ h1, h2, h3, h4 {
   flex-shrink: 0;
 }
 .register-logo {
-  font-size: clamp(36px, 5vw, 60px);
+  font-size: clamp(30px, 5vw, 60px);
   margin: auto 0 14px;
+  word-break: keep-all;
+  text-align: center;
+  line-height: 1.15;
 }
 .register-panel {
   max-width: 520px;

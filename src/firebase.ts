@@ -141,7 +141,7 @@ export function subscribeToLeaderboard(
 
         results.push({
           id: docSnap.id,
-          name: data.name || '대원',
+          name: data.name || '레인저',
           code: data.code || '얼음별',
           score: typeof data.score === 'number' ? data.score : 0,
           stars: typeof data.stars === 'number' ? data.stars : 0,
@@ -175,7 +175,7 @@ export async function saveScoreToFirestore(entry: {
   avatar: 'a' | 'b' | 'c' | 'd';
 }): Promise<string> {
   // Defensive input sanitization
-  const cleanName = (entry.name || '북극대원').trim().slice(0, 20);
+  const cleanName = (entry.name || '북극레인저').trim().slice(0, 20);
   const cleanCode = (entry.code || '얼음별').trim().slice(0, 20);
   const cleanScore = Math.max(0, Math.min(100000, Math.round(entry.score)));
   const cleanStars = Math.max(0, Math.min(30, Math.round(entry.stars)));

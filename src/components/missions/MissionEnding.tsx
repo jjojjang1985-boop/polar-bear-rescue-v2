@@ -92,7 +92,7 @@ export function MissionEnding({
         </button>
       </div>
 
-      <p className="ending-credit">— 지구수비대 · 포리 · 단비 대장 · 루카 · 써모 —</p>
+      <p className="ending-credit">— 플래닛 가디언즈 · 포리 · 단비 대장 · 루카 · 써모 —</p>
     </div>
   );
 }

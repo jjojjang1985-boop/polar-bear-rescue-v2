@@ -142,7 +142,7 @@ export function MissionCeremony({
       ctx.font = `34px ${D}`;
       ctx.fillStyle = '#d0603f';
       ctx.textAlign = 'center';
-      ctx.fillText('지구수비대 정식 지구레인저', CX, 398);
+      ctx.fillText('플래닛 가디언즈 정식 지구레인저', CX, 398);
 
       // 이름
       ctx.font = `76px ${D}`;
@@ -164,7 +164,7 @@ export function MissionCeremony({
       [
         '위 수련생은 기후변화의 원인을 밝히고 기후 마법을 익혀',
         '탄소 대마왕을 물리치고 아기 북극곰 포리를 엄마 품으로 돌려보냈기에',
-        '지구수비대의 정식 지구레인저로 임명합니다.'
+        '플래닛 가디언즈의 정식 지구레인저로 임명합니다.'
       ].forEach((line, k) => ctx.fillText(line, CX, 615 + k * 46));
 
       // 작전 기록 · 실천 약속 상자
@@ -220,7 +220,7 @@ export function MissionCeremony({
       );
       ctx.font = `30px ${D}`;
       ctx.fillStyle = '#3b2414';
-      ctx.fillText('지구수비대장  단비', 930, 1085);
+      ctx.fillText('가디언즈 대장  단비', 930, 1085);
       // 도장 (배지)
       if (badge) {
         ctx.save();
@@ -301,7 +301,7 @@ export function MissionCeremony({
         <div className="suitup-stage">
           {phase === 'intro' || phase === 'transform' ? (
             <div className="suitup-me">
-              <img className="suitup-face" src={AVATAR_FACES[avatar] ?? AVATAR_FACES.a} alt={`${name} 대원`} />
+              <img className="suitup-face" src={AVATAR_FACES[avatar] ?? AVATAR_FACES.a} alt={`${name} 수련생`} />
               <img className="suitup-badge" src={BADGE_IMAGE} alt="지구레인저 배지" />
             </div>
           ) : (
@@ -319,7 +319,7 @@ export function MissionCeremony({
         </div>
         {phase === 'intro' && (
           <div className="suitup-text">
-            <p>지구수비대장 단비가 {name} 대원에게 지구레인저 배지를 건넸어요.</p>
+            <p>가디언즈 대장 단비가 {name} 수련생에게 지구레인저 배지를 건넸어요.</p>
             <button className="big" type="button" onClick={startTransform}>
               ⭐ 배지 달기!
             </button>

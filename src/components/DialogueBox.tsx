@@ -46,12 +46,12 @@ export function DialogueBox({
   const isNarrator = who === 'narr';
   const speakerMeta = CHARACTER_INFO[who] || CHARACTER_INFO.narr;
   const displayName = speakerMeta.name
-    .replace('{name}', playerName || '대원')
+    .replace('{name}', playerName || '수련생')
     .replace('{code}', playerCode || '얼음별');
 
   // Process tokens: split by **keyword**
   const formattedText = text
-    .replace(/{name}/g, playerName || '대원')
+    .replace(/{name}/g, playerName || '수련생')
     .replace(/{code}/g, playerCode || '얼음별');
 
   const cleanFullSentence = formattedText.replace(/\*\*/g, '');

@@ -88,7 +88,7 @@ export const STAGES: StageDefinition[] = [
   {
     label: '프롤로그',
     title: '구조 요청이 도착했다',
-    goal: '아기 북극곰 포리의 SOS를 받고 지구수비대 수련생이 되어요.',
+    goal: '아기 북극곰 포리의 SOS를 받고 플래닛 가디언즈의 수련생이 되어요.',
     bg: 'classroom',
     clues: ['빙하'],
     steps: [
@@ -99,14 +99,14 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'narr', text: '그때, 책 속 북극곰 사진이 파랗게 빛나기 시작했어요.' },
       { type: 'fx', name: 'flash' },
       { type: 'bg', bg: 'hq' },
-      { type: 'say', who: 'thermo', text: '삐빅! 수련생 도착 확인. 지구수비대 본부에 온 걸 환영해.', mood: 'happy' },
-      { type: 'say', who: 'luka', text: '와, 진짜 왔다! 반가워, 나는 선배 대원 루카야. 너 이름이 뭐야?', mood: 'grin' },
+      { type: 'say', who: 'thermo', text: '삐빅! 수련생 도착 확인. 플래닛 가디언즈 본부에 온 걸 환영해.', mood: 'happy' },
+      { type: 'say', who: 'luka', text: '와, 진짜 왔다! 반가워, 나는 선배 레인저 루카야. 너 이름이 뭐야?', mood: 'grin' },
       { type: 'say', who: 'me', text: '나는 {name}! 코드네임은 {code}야.', mood: 'happy' },
-      { type: 'say', who: 'danbi', text: '반갑다, {name} 수련생. 나는 지구수비대장 단비야. 방금 너에게 온 빛은 우리가 보낸 호출 신호였어. 기후를 궁금해하는 사람에게만 보이는 빛이지.', mood: 'smile' },
+      { type: 'say', who: 'danbi', text: '반갑다, {name} 수련생. 나는 플래닛 가디언즈 대장 단비야. 방금 너에게 온 빛은 우리가 보낸 호출 신호였어. 기후를 궁금해하는 사람에게만 보이는 빛이지.', mood: 'smile' },
       { type: 'say', who: 'danbi', text: '수련생의 첫 실전 임무가 도착했어. 써모, 통신 연결해 줘.', mood: 'serious' },
       { type: 'bg', bg: 'arctic' },
       { type: 'fx', name: 'stageCrack' },
-      { type: 'say', who: 'pori', text: '지구수비대님, 들리세요? 저는 포리예요. 엄마랑 사냥하러 나왔는데, 밟고 있던 얼음이 갑자기 갈라졌어요.', mood: 'scared' },
+      { type: 'say', who: 'pori', text: '플래닛 가디언즈, 들리세요? 저는 포리예요. 엄마랑 사냥하러 나왔는데, 밟고 있던 얼음이 갑자기 갈라졌어요.', mood: 'scared' },
       { type: 'say', who: 'pori', text: '얼음이 자꾸 녹아서 엄마한테 돌아갈 수가 없어요. 도와주세요!', mood: 'sad' },
       { type: 'say', who: 'luka', text: '대장님, 당장 헬기 타고 가서 포리를 구해 오면 되잖아요!', mood: 'o' },
       { type: 'say', who: 'danbi', text: '그러면 오늘은 포리를 구하겠지. 하지만 내일도, 다음 달에도 빙하는 계속 녹을 거야. 포리가 엄마와 다시 살려면, 빙하가 녹는 걸 멈춰야 해.', mood: 'serious' },
@@ -114,7 +114,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'thermo', text: '삐빅! 포리 주변에 빙하 블록 탑을 설치했어. 화면 오른쪽을 봐. 우리가 올바른 선택을 할 때마다 블록이 단단해지고, 틀리면 블록 하나가 녹아내려.', mood: 'happy' },
       { type: 'say', who: 'danbi', text: '{name} 수련생, 이것을 받아. 수련생 손목 통신기야. 대사 속에서 반짝이는 단어를 누르면 단서 수첩에 저장돼. 지금 **빙하**를 눌러 봐.', mood: 'smile', must: '빙하' },
       { type: 'say', who: 'thermo', text: '삐빅! 잘했어. 단서를 모두 모아야 작전 끝의 확인 퀴즈가 열려. 정답을 맞힐수록, 연속으로 맞힐수록 점수가 올라가.', mood: 'happy' },
-      { type: 'say', who: 'danbi', text: '수련 작전을 하나 마칠 때마다 기후 마법과 무기 중 하나를 골라 익히게 될 거야. 무엇을 고르느냐가 마지막 결전의 승패를 가른다. 지구수비대, 출동!', mood: 'smile' },
+      { type: 'say', who: 'danbi', text: '수련 작전을 하나 마칠 때마다 기후 마법과 무기 중 하나를 골라 익히게 될 거야. 무엇을 고르느냐가 마지막 결전의 승패를 가른다. 플래닛 가디언즈, 출동!', mood: 'smile' },
       { type: 'reward', gear: 'watch' }
     ]
   },
@@ -178,7 +178,7 @@ export const STAGES: StageDefinition[] = [
     bg: 'town',
     clues: ['최근 100여 년', '인간의 활동', '온실가스', '지구 온난화'],
     steps: [
-      { type: 'say', who: 'danbi', text: '대원들, 기후 관측 고글을 써. 고글을 끼면 지구를 데우는 흔적이 붉게 보여.', mood: 'serious' },
+      { type: 'say', who: 'danbi', text: '모두 기후 관측 고글을 써. 고글을 끼면 지구를 데우는 흔적이 붉게 보여.', mood: 'serious' },
       { type: 'say', who: 'thermo', text: '삐빅! 수사 브리핑을 시작할게. 기후는 자연적으로도 변해 왔어. 그런데 **최근 100여 년** 동안에는 유독 급격하게 변하고 있어.', mood: 'happy' },
       { type: 'say', who: 'luka', text: '100년 전부터 갑자기? 그때 무슨 일이 있었는데?', mood: 'o' },
       { type: 'say', who: 'thermo', text: '그걸 알아내는 게 이번 작전이야. 단서를 따라가 보자.', mood: 'happy' },
@@ -216,7 +216,7 @@ export const STAGES: StageDefinition[] = [
       },
       { type: 'say', who: 'danbi', text: '대장의 한마디. 공장에서 물건을 많이 만들고, 숲을 훼손하고, 교통수단을 많이 이용하고, 물과 에너지를 낭비하는 것. 이런 인간의 활동이 온실가스를 늘려 지구 온난화를 일으키고, 그 결과 기후변화가 심해지고 있어.', mood: 'smile' },
       { type: 'say', who: 'thermo', text: '삐빅! 다음 작전에서는 온실가스 중에서 가장 많이 나오는 기체를 자세히 조사할게요.', mood: 'happy' },
-      { type: 'say', who: 'pori', text: '대원님, 범인을 찾았다는 소식 들었어요! 그럼 이제 얼음을 되돌릴 수 있는 거죠?', mood: 'happy' },
+      { type: 'say', who: 'pori', text: '수련생님, 범인을 찾았다는 소식 들었어요! 그럼 이제 얼음을 되돌릴 수 있는 거죠?', mood: 'happy' },
       { type: 'pick', stage: 2 }
     ]
   },
@@ -246,7 +246,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'mission', id: 'seaforest' },
       { type: 'say', who: 'danbi', text: '바다 숲이 되살아나면 이산화 탄소를 더 많이 흡수해서 지구의 평균 기온이 높아지는 것을 막을 수 있어. 우리나라는 매년 5월 10일을 **바다 식목일**로 정해 바다 숲을 지키고 있지.', mood: 'smile' },
       { type: 'bg', bg: 'hq' },
-      { type: 'say', who: 'danbi', text: '이번엔 세계 지구수비대 연합 회의다. 여러 나라가 기후변화에 어떻게 대응하는지 들어 보자.', mood: 'serious' },
+      { type: 'say', who: 'danbi', text: '이번엔 세계 가디언즈 연합 회의다. 여러 나라가 기후변화에 어떻게 대응하는지 들어 보자.', mood: 'serious' },
       { type: 'mission', id: 'council' },
       {
         type: 'quiz',
@@ -272,7 +272,7 @@ export const STAGES: StageDefinition[] = [
     steps: [
       { type: 'say', who: 'narr', text: '포리가 선 빙하가 사방에서 갈라지는 소리가 들립니다.' },
       { type: 'fx', name: 'stageCrack' },
-      { type: 'say', who: 'pori', text: '대원님! 얼음이 너무 작아졌어요. 엄마가 저 멀리서 저를 부르고 있는데, 갈 수가 없어요!', mood: 'scared' },
+      { type: 'say', who: 'pori', text: '수련생님! 얼음이 너무 작아졌어요. 엄마가 저 멀리서 저를 부르고 있는데, 갈 수가 없어요!', mood: 'scared' },
       { type: 'say', who: 'danbi', text: '최종 작전을 시작한다. 이번 작전의 무대는 북극이 아니라, {name} 수련생의 일주일이야.', mood: 'serious' },
       { type: 'say', who: 'thermo', text: '삐빅! 기후변화에 대응하려면 **작은 행동부터** 실천해야 해. 가까운 거리는 **걷거나 자전거**를 타고, **전기를 아끼고**, **일회용품과 비닐**을 적게 쓰고, 재활용품을 **분리배출**하는 것처럼.', mood: 'happy' },
       { type: 'say', who: 'thermo', text: '이런 행동은 모두 내보내는 이산화 탄소를 줄여서, 탄소 저울을 맞추고 지구 온난화를 늦추는 데 도움이 돼.', mood: 'happy' },
@@ -326,7 +326,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'bg', bg: 'reunion' },
       { type: 'say', who: 'narr', text: '얼음 다리가 반짝이며 이어지고, 포리가 달려가 엄마 품에 꼭 안겨요.' },
       { type: 'fx', name: 'winFlash' },
-      { type: 'say', who: 'pori', text: '엄마! 지구수비대 수련생님들이 빙하를 지켜 주셨어요! {name} 수련생님, 정말 고마워요!', mood: 'joy' },
+      { type: 'say', who: 'pori', text: '엄마! 플래닛 가디언즈 수련생님들이 빙하를 지켜 주셨어요! {name} 수련생님, 정말 고마워요!', mood: 'joy' },
       { type: 'say', who: 'danbi', text: '잘했다. 혼자 싸운 게 아니야. 작은 실천을 함께한 모두의 힘이었어. 이제 임명식을 준비하자.', mood: 'smile' }
     ]
   },
@@ -341,7 +341,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'thermo', text: '삐빅! 수련생, 한 가지가 남았어. 빙하는 한 번 얼렸다고 영원히 지켜지지 않아.', mood: 'alert' },
       { type: 'say', who: 'danbi', text: '지구레인저의 진짜 임무는 지금부터야. 일주일 동안 지킬 실천 목표 세 가지를 정해 줘.', mood: 'smile' },
       { type: 'mission', id: 'pledge' },
-      { type: 'say', who: 'danbi', text: '{name} 수련생, 앞으로. 지구수비대장으로서 너를 정식 지구레인저로 임명한다!', mood: 'smile' },
+      { type: 'say', who: 'danbi', text: '{name} 수련생, 앞으로. 플래닛 가디언즈 대장으로서 너를 정식 지구레인저로 임명한다!', mood: 'smile' },
       { type: 'reward', gear: 'badge' },
       { type: 'fx', name: 'winFlash' },
       { type: 'mission', id: 'ceremony' },
@@ -349,7 +349,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'pori', text: '{name} 레인저님 덕분에 엄마랑 다시 만났어요. 다음에 또 놀러 와요! 그때는 얼음이 더 두껍고 단단했으면 좋겠어요.', mood: 'joy' },
       { type: 'say', who: 'luka', text: '나도 이제 가까운 곳은 오토바이 대신 자전거 탈 거야. 일주일 뒤에 누가 더 잘 지켰는지 대결하자!', mood: 'grin' },
       { type: 'say', who: 'thermo', text: '삐빅! 오늘 배운 것: 기후변화는 사람들의 활동 때문에 빨라졌고, 작은 실천이 모이면 막을 수 있어!', mood: 'happy' },
-      { type: 'say', who: 'danbi', text: '지구레인저의 진짜 임무는 오늘부터야. 교실에서, 집에서, 네가 고른 약속을 꼭 지켜 줘. 지구수비대는 언제나 너를 응원한다!', mood: 'smile' },
+      { type: 'say', who: 'danbi', text: '지구레인저의 진짜 임무는 오늘부터야. 교실에서, 집에서, 네가 고른 약속을 꼭 지켜 줘. 플래닛 가디언즈는 언제나 너를 응원한다!', mood: 'smile' },
       { type: 'mission', id: 'ending' }
     ]
   }

@@ -84,7 +84,7 @@ export function MapScreen({
       <header className="map-head">
         <h1 className="logo map-logo">작전 지도</h1>
         <div className="pill map-pill">
-          {name} 수련생 · {code} · 총점 {totalScore.toLocaleString()}점
+          {name} {done[STAGE_INFOS.length - 1] ? '레인저' : '수련생'} · {code} · 총점 {totalScore.toLocaleString()}점
         </div>
       </header>
 

@@ -414,7 +414,7 @@ export default function App() {
   const saveToLeaderboard = async (scoreOverride?: number): Promise<{ rank: number; online: boolean }> => {
     const starTotal = [1, 2, 3, 4, 5].reduce((a, i) => a + (game.stars[i] || 0), 0);
     const currentTotalScore = scoreOverride ?? totalScore;
-    const entryName = game.name || '북극대원';
+    const entryName = game.name || '북극레인저';
     const entryCode = game.code || '얼음별';
     const entryAvatar = game.avatar || 'a';
     const dateStr = new Date().toLocaleDateString('ko-KR');
@@ -464,7 +464,7 @@ export default function App() {
   const handleSignInGoogle = async () => {
     try {
       const u = await signInWithGoogle();
-      triggerToast(`환영합니다, ${u.displayName || u.email} 대원님!`);
+      triggerToast(`환영합니다, ${u.displayName || u.email} 선생님!`);
     } catch (e) {
       console.error('Google sign in error:', e);
       triggerToast('구글 로그인에 실패했습니다.');
@@ -999,6 +999,7 @@ export default function App() {
         <TitleScreen
           hasSave={!!game.name}
           playerName={game.name}
+          isRanger={!!game.done[STAGES.length - 1]}
           onContinue={() => setViewScreen('map')}
           onNewGame={() => setViewScreen('register')}
           onOpenLeaderboard={() => setShowLeaderboard(true)}
@@ -1073,7 +1074,7 @@ export default function App() {
       {/* Top Header Bar */}
       <header id="top" className="topbar">
         <button type="button" id="brand" className="brand" onClick={() => setViewScreen('map')}>
-          🌏 <span>지구수비대</span>
+          🌏 <span>플래닛 가디언즈</span>
         </button>
 
         <ol id="pips" className="pips" aria-label="진행 단계">
@@ -1205,6 +1206,7 @@ export default function App() {
               mood={reaction.mood || 'happy'}
               avatar={game.avatar}
               playerName={game.name}
+          isRanger={!!game.done[STAGES.length - 1]}
               playerCode={game.code}
               clues={game.clues}
               onKeywordClick={handleCollectClue}
@@ -1217,6 +1219,7 @@ export default function App() {
               mood={curStep.mood}
               avatar={game.avatar}
               playerName={game.name}
+          isRanger={!!game.done[STAGES.length - 1]}
               playerCode={game.code}
               clues={game.clues}
               mustClue={curStep.must}

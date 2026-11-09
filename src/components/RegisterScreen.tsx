@@ -61,7 +61,7 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
     <div className="screen register-screen">
       <img className="screen-art register-art" src={SCENE_IMAGES.hq} alt="" draggable={false} />
       <div className="register-wrap">
-        <h1 className="logo register-logo">지구수비대 수련생 등록</h1>
+        <h1 className="logo register-logo">플래닛 가디언즈 수련생 등록</h1>
 
         <form
           onSubmit={handleSubmit}
@@ -91,7 +91,7 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
           )}
           {warnedName && warnedName === name.trim() && (
             <div className="dup-name-note mb-3" role="alert">
-              <b>앗, 명예의 전당에 '{warnedName}' 대원이 이미 있어요!</b>
+              <b>앗, 명예의 전당에 '{warnedName}' 레인저가 이미 있어요!</b>
               <br />
               이름 뒤에 번호나 성을 붙여 볼까요? (예: {warnedName}3, 김{warnedName})
               <br />
@@ -143,7 +143,7 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
 
           <div className="flex justify-center">
             <button className="big w-full py-3" type="submit" disabled={checking}>
-              {checking ? '대원 명부 확인 중…' : warnedName && warnedName === name.trim() ? '이 이름 그대로 입단하기 🎖️' : '수련생으로 입단하기! 🎖️'}
+              {checking ? '수련생 명부 확인 중…' : warnedName && warnedName === name.trim() ? '이 이름 그대로 입단하기 🎖️' : '수련생으로 입단하기! 🎖️'}
             </button>
           </div>
         </form>
