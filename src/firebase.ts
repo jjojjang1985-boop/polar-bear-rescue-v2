@@ -15,6 +15,8 @@ import {
   query,
   orderBy,
   limit,
+  where,
+  getDocs,
   onSnapshot,
   setDoc,
   deleteDoc,
@@ -223,3 +225,14 @@ export async function logOut(): Promise<void> {
 }
 
 export { onAuthStateChanged };
+
+/** 명예의 전당에 같은 이름이 이미 있는지 확인한다 (연결이 안 되면 false). */
+export async function nameExistsOnline(name: string, timeoutMs = 3000): Promise<boolean> {
+  try {
+    const q = query(collection(db, 'leaderboard'), where('name', '==', name), limit(1));
+    const timer = new Promise<boolean>(res => setTimeout(() => res(false), timeoutMs));
+    return await Promise.race([getDocs(q).then(snap => !snap.empty), timer]);
+  } catch {
+    return false;
+  }
+}

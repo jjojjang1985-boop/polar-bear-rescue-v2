@@ -4450,3 +4450,4 @@ h1, h2, h3, h4 {
 .suitup-caption{font-family:Jua,sans-serif;font-size:clamp(1.5rem,5vw,2.1rem)!important;color:#ffd84d;-webkit-text-stroke:1.5px #5a3424;paint-order:stroke;margin-top:8px;animation:suitPop .5s .75s both}
 @keyframes suitPop{0%{transform:scale(0);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
 @media (prefers-reduced-motion:reduce){.suitup *{animation-duration:.01s!important}}
+.dup-name-note{background:#fff4d6;border:2px solid #e0a020;border-radius:14px;padding:8px 12px;font-size:.92rem;color:#5a3424;line-height:1.5}
