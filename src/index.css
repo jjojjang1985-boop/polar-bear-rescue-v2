@@ -4574,3 +4574,92 @@ h1, h2, h3, h4 {
 @keyframes castShout{0%{transform:translate(-50%,-100%) scale(2.2);opacity:0}25%{transform:translate(-50%,-100%) scale(1);opacity:1}100%{transform:translate(-50%,-100%) scale(1.06);opacity:1}}
 .impact-full .imp-projectile{bottom:22%}
 @keyframes impFlyFull{0%{transform:translate(-50%,0) scale(.6) rotate(-30deg);opacity:0}15%{opacity:1}100%{transform:translate(-50%,-33vh) scale(1.3) rotate(20deg);opacity:1}}
+
+/* ===== 미션 3-2 바다 숲 게임 ===== */
+.sea-game{touch-action:manipulation;user-select:none;max-height:none}
+.sea-drop{cursor:pointer}
+.sg-spot{position:absolute;bottom:23%;width:14%;height:52%;transform:translateX(-50%);pointer-events:none}
+.sg-reef{position:absolute;left:50%;bottom:4%;width:96%;transform:translateX(-50%);z-index:1;animation:sgLand .35s ease-out both}
+@keyframes sgLand{0%{transform:translateX(-50%) translateY(-8%) scaleY(.9)}60%{transform:translateX(-50%) translateY(2%) scaleY(1.04)}100%{transform:translateX(-50%)}}
+.sg-target{position:absolute;left:50%;bottom:2%;width:92%;aspect-ratio:1/.62;transform:translateX(-50%);border:3px dashed #fff;border-radius:50%;
+  box-shadow:0 0 0 4px rgba(255,255,255,.25),0 0 16px rgba(255,255,255,.6);animation:sgTarget 1s ease-in-out infinite}
+@keyframes sgTarget{50%{transform:translateX(-50%) scale(1.1);opacity:.6}}
+.sg-weed{position:absolute;left:50%;bottom:42%;width:118%;transform-origin:50% 100%;transform:translateX(-50%) scaleY(var(--g)) scaleX(calc(.6 + var(--g) * .4));
+  transition:transform .15s linear;animation:sgSway 3s ease-in-out infinite;z-index:0}
+@keyframes sgSway{0%,100%{rotate:-3deg}50%{rotate:3deg}}
+.sg-bar{position:absolute;left:12%;right:12%;bottom:-4%;height:8px;border-radius:999px;background:rgba(0,0,0,.35);border:2px solid #fff;overflow:hidden;z-index:2}
+.sg-bar i{display:block;height:100%;background:linear-gradient(90deg,#7be6b0,#2fbf71);transition:width .15s linear}
+.sg-bar.full{box-shadow:0 0 10px #7be6b0}
+.sg-boat{position:absolute;top:0;width:24%;transform:translateX(-50%);z-index:4;pointer-events:none}
+.sg-boat-svg{display:block;width:100%;animation:sgBob 1.6s ease-in-out infinite}
+@keyframes sgBob{50%{transform:translateY(4px) rotate(-1.5deg)}}
+.sg-hook-reef{position:absolute;left:37%;top:90%;width:52%;transform:translateX(-50%);filter:drop-shadow(0 4px 4px rgba(0,0,0,.3))}
+.sg-falling{position:absolute;width:13%;z-index:3;filter:drop-shadow(0 6px 6px rgba(0,30,60,.35))}
+.sg-current{position:absolute;left:10px;bottom:10px;z-index:5;font-family:var(--font-display);font-size:clamp(12px,1.8vw,16px);color:#fff;background:rgba(20,60,110,.75);
+  border:2px solid #fff;border-radius:999px;padding:3px 12px}
+.sg-tap{position:absolute;left:50%;top:44%;transform:translateX(-50%);z-index:5;white-space:nowrap;background:#fff;border:3px solid var(--line);border-radius:999px;
+  padding:4px 14px;font-family:var(--font-display);font-size:clamp(13px,2vw,17px);color:var(--line);pointer-events:none;animation:gcBob 1s ease-in-out infinite}
+.sg-splash{position:absolute;bottom:42%;z-index:5;transform:translateX(-50%);font-family:var(--font-display);font-size:clamp(16px,3vw,26px);
+  -webkit-text-stroke:5px var(--line);paint-order:stroke fill;pointer-events:none;animation:sgSplash 1s ease-out forwards}
+.sg-splash.ok{color:#ffd84d}.sg-splash.no{color:#bfe6ff}
+@keyframes sgSplash{0%{transform:translateX(-50%) scale(.4);opacity:0}25%{transform:translateX(-50%) scale(1.2);opacity:1}100%{transform:translateX(-50%) translateY(-30px);opacity:0}}
+.sg-urchin{position:absolute;bottom:22%;width:clamp(36px,7.5%,64px);aspect-ratio:1;transform:translateX(-50%);z-index:5;border:0;padding:0;background:none;cursor:pointer;
+  filter:drop-shadow(0 3px 3px rgba(0,0,0,.35));animation:sgCrawl .5s ease-in-out infinite}
+.sg-urchin svg{width:100%;height:100%}
+.sg-urchin::before{content:'';position:absolute;inset:-35%}
+@keyframes sgCrawl{50%{transform:translateX(-50%) translateY(-3px) rotate(6deg)}}
+.sg-urchin.eating{animation:sgEat .25s ease-in-out infinite}
+.sg-urchin.eating::after{content:'냠냠';position:absolute;left:50%;top:-55%;transform:translateX(-50%);font-family:var(--font-display);font-size:12px;color:#fff;
+  background:#e2533d;border-radius:999px;padding:0 6px;white-space:nowrap}
+@keyframes sgEat{50%{transform:translateX(-50%) scale(1.1,.92)}}
+.sg-urchin.poof{animation:sgPoof .45s ease-out forwards;pointer-events:none}
+@keyframes sgPoof{to{transform:translateX(-50%) translateY(-60%) scale(1.6) rotate(90deg);opacity:0}}
+.sg-timer{position:absolute;right:10px;top:10px;z-index:6;font-family:var(--font-display);font-size:clamp(12px,1.8vw,16px);color:#fff;background:rgba(20,60,110,.75);
+  border:2px solid #fff;border-radius:999px;padding:3px 12px}
+.sg-overlay{position:absolute;inset:0;z-index:8;display:grid;place-items:center;background:rgba(10,30,60,.55);padding:10px}
+.sg-card{background:#fffaf0;border:3px solid var(--line);border-radius:20px;padding:12px 16px;max-width:420px;text-align:center;box-shadow:0 6px 0 var(--line);animation:pop .35s ease-out}
+.sg-card b{font-family:var(--font-display);font-size:1.2rem}
+.sg-card p{font-size:.9rem;margin:6px 0 10px;line-height:1.45}
+.sg-card p b{font-size:inherit;color:#7b4a9e}
+.sg-card-urchin{width:52px;height:52px;margin:0 auto 4px;animation:sgCrawl .6s ease-in-out infinite}
+.sg-card-urchin svg{width:100%;height:100%}
+.sg-card-urchin{animation:sgWob .6s ease-in-out infinite}
+@keyframes sgWob{50%{transform:rotate(10deg) translateY(-3px)}}
+/* 배 그림: 크레인 밧줄 끝(그림 가로 15.8%, 세로 48.3%)이 기준점 */
+.sg-boat{width:30%;top:-2%}
+.sg-boat-img{display:block;width:100%;transform:translateX(-15.8%);animation:sgBob 1.6s ease-in-out infinite;transform-origin:15.8% 48%}
+@keyframes sgBob{0%,100%{translate:0 0;rotate:0deg}50%{translate:0 4px;rotate:-1.5deg}}
+.sg-boat .sg-hook-reef{left:0;top:46%;width:43%;transform:translateX(-50%)}
+.sg-urchin img,.sg-card-urchin img{width:100%;height:100%;object-fit:contain}
+.sg-urchin{width:clamp(40px,8.5%,72px)}
+.sg-boat{top:0}
+
+/* ===== 얼음 다리 ===== */
+.has-bridge .actor-mom{animation:momRise 1s cubic-bezier(.3,1.2,.5,1) both,momWave 2s 1s ease-in-out infinite}
+.actor-pori.stand{left:8%;animation:poriIn .6s ease-out both}
+@keyframes poriCross{0%{left:8%}100%{left:52%}}
+.actor-pori.cross{animation:poriCross 2.2s ease-in-out forwards,poriHop .34s ease-in-out infinite}
+.ice-bridge{position:absolute;left:17%;right:27%;bottom:21%;height:12%;display:flex;align-items:flex-end;z-index:0}
+.ib-block{position:relative;flex:1;height:58%;margin:0 -1px;transform:translateY(calc(-1 * var(--lift)));
+  background:linear-gradient(180deg,#ffffff 0%,#d9f3ff 45%,#9fd8f5 100%);border:3px solid #5a8fb8;border-radius:10px 10px 6px 6px;
+  box-shadow:inset 0 4px 0 rgba(255,255,255,.9),0 0 18px rgba(170,230,255,.9);
+  opacity:0;animation:ibIn .45s calc(.3s + var(--i) * .16s) cubic-bezier(.2,1.6,.4,1) both}
+@keyframes ibIn{0%{opacity:0;transform:translateY(calc(-1 * var(--lift) - 70px)) scale(.3) rotate(-20deg);filter:brightness(3)}
+  60%{opacity:1;filter:brightness(1.8)}100%{opacity:1;transform:translateY(calc(-1 * var(--lift))) scale(1);filter:brightness(1)}}
+.ib-spark{position:absolute;left:50%;top:-10px;transform:translate(-50%,-50%);font-style:normal;font-size:26px;color:#fff;
+  text-shadow:0 0 10px #8fe3ff,0 0 20px #fff;opacity:0;animation:ibSpark .8s calc(.4s + var(--i) * .16s) ease-out both}
+@keyframes ibSpark{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0)}40%{opacity:1;transform:translate(-50%,-90%) scale(1.4) rotate(90deg)}100%{opacity:0;transform:translate(-50%,-150%) scale(.6) rotate(180deg)}}
+.ib-shine{position:absolute;inset:-20px 0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.95) 50%,transparent 65%);background-size:250% 100%;
+  mix-blend-mode:screen;animation:ibShine 1.6s 2s ease-in-out infinite}
+@keyframes ibShine{0%{background-position:150% 0}100%{background-position:-60% 0}}
+@media (max-width:780px){.ice-bridge{left:24%;right:40%;bottom:25%}.actor-pori.stand{left:2%}@keyframes poriCross{0%{left:2%}100%{left:44%}}}
+.ice-bridge{--k:46px;height:9%;left:18%;right:28%}
+.ib-block{height:100%;transform:translateY(calc(-1 * var(--lift) * var(--k)));border-radius:14px 14px 8px 8px;
+  background:linear-gradient(180deg,#ffffff 0%,#e6f8ff 35%,#a8dcf5 75%,#7cc3e8 100%)}
+.ib-block::after{content:'';position:absolute;left:18%;top:14%;width:30%;height:22%;border-radius:999px;background:rgba(255,255,255,.95)}
+@keyframes ibIn{0%{opacity:0;transform:translateY(calc(-1 * var(--lift) * var(--k) - 80px)) scale(.3) rotate(-20deg);filter:brightness(3)}
+  60%{opacity:1;filter:brightness(1.8)}100%{opacity:1;transform:translateY(calc(-1 * var(--lift) * var(--k))) scale(1);filter:brightness(1)}}
+@keyframes poriCross{0%{left:8%;bottom:22%}25%{bottom:calc(22% + 30px)}50%{bottom:calc(22% + 46px)}75%{bottom:calc(22% + 30px)}100%{left:52%;bottom:22%}}
+@media (max-width:780px){.ice-bridge{--k:22px;height:4.5%;left:26%;right:42%;bottom:26%}
+  @keyframes poriCross{0%{left:2%;bottom:26%}50%{bottom:calc(26% + 22px)}100%{left:44%;bottom:26%}}}

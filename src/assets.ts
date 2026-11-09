@@ -20,7 +20,9 @@ export const SEA_IMAGES = {
   floor: img('sea-floor'),
   reef: img('sea-reef'),
   weed: img('sea-weed'),
-  fish: img('sea-fish')
+  fish: img('sea-fish'),
+  boat: img('sea-boat'),
+  urchin: img('sea-urchin')
 };
 
 /** 대사 장면 배경 (stagesData의 bg 값과 같은 이름) */

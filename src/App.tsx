@@ -146,7 +146,7 @@ export default function App() {
   const [isFlashing, setIsFlashing] = useState(false);
   const [sceneFx, setSceneFx] = useState<SceneFxState | null>(null);
   // 대사 여러 줄 동안 화면에 남아 있는 등장인물 (엄마 곰, 달려가는 포리)
-  const [actors, setActors] = useState<{ mom: boolean; pori: 'none' | 'run' | 'scared'; boss?: boolean } | null>(null);
+  const [actors, setActors] = useState<{ mom: boolean; pori: 'none' | 'run' | 'scared' | 'stand' | 'cross'; boss?: boolean; bridge?: boolean } | null>(null);
   const sceneFxIdRef = useRef(0);
   const sceneFxTimerRef = useRef<number | undefined>(undefined);
   const [isShaking, setIsShaking] = useState(false);
@@ -546,6 +546,14 @@ export default function App() {
       case 'poriRun':
         cue.poriRun();
         setActors({ mom: true, pori: 'run' });
+        break;
+      case 'iceBridge':
+        cue.iceBridge();
+        setActors({ mom: true, pori: 'stand', bridge: true });
+        break;
+      case 'poriCross':
+        cue.poriRun();
+        setActors({ mom: true, pori: 'cross', bridge: true });
         break;
       case 'bossRise':
         cue.bossRise();
@@ -1061,7 +1069,24 @@ export default function App() {
         )}
         <div className="scene-shade" />
         {actors && (
-          <div className={`actors ${actors.boss ? 'boss-came' : ''}`}>
+          <div className={`actors ${actors.boss ? 'boss-came' : ''} ${actors.bridge ? 'has-bridge' : ''}`}>
+            {actors.bridge && (
+              <div className="ice-bridge" aria-hidden="true">
+                {Array.from({ length: 10 }, (_, i) => (
+                  <span
+                    key={i}
+                    className="ib-block"
+                    style={{
+                      ['--i' as any]: i,
+                      ['--lift' as any]: `${Math.sin(((i + 0.5) / 10) * Math.PI) * 1}`
+                    }}
+                  >
+                    <i className="ib-spark">✦</i>
+                  </span>
+                ))}
+                <div className="ib-shine" />
+              </div>
+            )}
             {actors.mom && <img className="actor-mom" src={SHOOT_IMAGES.mom} alt="엄마 곰" draggable={false} />}
             {actors.pori !== 'none' && (
               <img className={`actor-pori ${actors.pori}`} src={SHOOT_IMAGES.pori} alt="포리" draggable={false} />

@@ -16,7 +16,7 @@ export interface StageStepBg {
 
 export interface StageStepFx {
   type: 'fx';
-  name: 'flash' | 'towerOn' | 'twist' | 'shadowPeek' | 'stageCrack' | 'winFlash' | 'bookGlow' | 'alarm' | 'goggle' | 'bossRise' | 'momAppear' | 'poriRun';
+  name: 'flash' | 'towerOn' | 'twist' | 'shadowPeek' | 'stageCrack' | 'winFlash' | 'bookGlow' | 'alarm' | 'goggle' | 'bossRise' | 'momAppear' | 'poriRun' | 'iceBridge' | 'poriCross';
 }
 
 export interface StageStepMission {
@@ -323,8 +323,12 @@ export const STAGES: StageDefinition[] = [
       { type: 'say', who: 'thermo', text: '삐빅! 공격마다 막을 수 있는 기술이 정해져 있어. 네가 고른 기술로 막을 수 없는 공격이 오면 🧱 버티기로 피해를 줄여!', mood: 'happy' },
       { type: 'mission', id: 'boss' },
       { type: 'say', who: 'narr', text: '탄소 대마왕이 빛 속에서 작은 그림자들로 흩어졌어요. 그림자들은 이제 텀블러와 자전거를 든 사람들의 모습이에요.' },
+      { type: 'fx', name: 'iceBridge' },
+      { type: 'say', who: 'narr', text: '그러자 포리와 엄마 사이에 얼음 다리가 반짝반짝 빛나며 하나씩 이어져요!' },
+      { type: 'fx', name: 'poriCross' },
+      { type: 'say', who: 'pori', text: '엄마~! 지금 가요!', mood: 'joy' },
       { type: 'bg', bg: 'reunion' },
-      { type: 'say', who: 'narr', text: '얼음 다리가 반짝이며 이어지고, 포리가 달려가 엄마 품에 꼭 안겨요.' },
+      { type: 'say', who: 'narr', text: '얼음 다리를 건넌 포리가 엄마 품에 꼭 안겨요.' },
       { type: 'fx', name: 'winFlash' },
       { type: 'say', who: 'pori', text: '엄마! 플래닛 가디언즈 수련생님들이 빙하를 지켜 주셨어요! {name} 수련생님, 정말 고마워요!', mood: 'joy' },
       { type: 'say', who: 'danbi', text: '잘했다. 혼자 싸운 게 아니야. 작은 실천을 함께한 모두의 힘이었어. 이제 임명식을 준비하자.', mood: 'smile' }
