@@ -347,6 +347,7 @@ export const STAGES: StageDefinition[] = [
       { type: 'mission', id: 'pledge' },
       { type: 'say', who: 'danbi', text: '{name} 수련생, 앞으로. 플래닛 가디언즈 대장으로서 너를 정식 지구레인저로 임명한다!', mood: 'smile' },
       { type: 'reward', gear: 'badge' },
+      { type: 'say', who: 'danbi', text: '이 배지는 그냥 장식이 아니야. 지구레인저의 **변신 장치**지. 가슴에 달고 꾹 누르면 너만의 레인저 슈트가 입혀질 거야. 자, 해 봐!', mood: 'smile' },
       { type: 'fx', name: 'winFlash' },
       { type: 'mission', id: 'ceremony' },
       { type: 'bg', bg: 'reunion' },

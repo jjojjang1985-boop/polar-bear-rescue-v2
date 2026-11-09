@@ -47,6 +47,49 @@ export function MissionCeremony({
     im.src = suitSrc;
   }, [suitSrc]);
 
+  // 배지를 꾹 누르는 동안 차오르는 변신 게이지 (0~1)
+  const [charge, setCharge] = useState(0);
+  const holding = useRef(false);
+  const chargeRef = useRef(0);
+  const HOLD_MS = 1000;
+  useEffect(() => {
+    if (phase !== 'intro') return;
+    let raf = 0;
+    let last = performance.now();
+    const loop = (now: number) => {
+      const dt = now - last;
+      last = now;
+      const prev = chargeRef.current;
+      const next = holding.current ? Math.min(1, prev + dt / HOLD_MS) : Math.max(0, prev - dt / 600);
+      if (next !== prev) {
+        chargeRef.current = next;
+        setCharge(next);
+      }
+      if (next >= 1) {
+        holding.current = false;
+        startTransform();
+        return;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
+  const pressBadge = () => {
+    if (phase !== 'intro' || holding.current) return;
+    holding.current = true;
+    try {
+      cue.charge();
+    } catch {
+      // 소리 없이 진행
+    }
+  };
+  const releaseBadge = () => {
+    holding.current = false;
+  };
+
   const startTransform = () => {
     if (phase !== 'intro') return;
     setPhase('transform');
@@ -305,11 +348,38 @@ export function MissionCeremony({
           {phase === 'intro' || phase === 'transform' ? (
             <div className="suitup-me">
               <img className="suitup-face" src={AVATAR_FACES[avatar] ?? AVATAR_FACES.a} alt={`${name} 수련생`} />
-              <img className="suitup-badge" src={BADGE_IMAGE} alt="지구레인저 배지" />
+              <button
+                type="button"
+                className={`suitup-badge-btn ${charge > 0 ? 'charging' : ''}`}
+                style={{ ['--p' as any]: charge.toFixed(3) }}
+                onPointerDown={e => {
+                  e.preventDefault();
+                  pressBadge();
+                }}
+                onPointerUp={releaseBadge}
+                onPointerLeave={releaseBadge}
+                onPointerCancel={releaseBadge}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    startTransform();
+                  }
+                }}
+                onContextMenu={e => e.preventDefault()}
+                disabled={phase !== 'intro'}
+                aria-label="지구레인저 배지를 꾹 눌러 변신하기"
+              >
+                <span className="suitup-ring" />
+                <img src={BADGE_IMAGE} alt="" draggable={false} />
+              </button>
             </div>
           ) : (
-            <img className="suitup-hero" src={suitSrc} alt={`${theme.title} 슈트를 입은 ${name}`} />
+            <div className="suitup-hero-wrap">
+              <img className="suitup-hero" src={suitSrc} alt={`${theme.title} 슈트를 입은 ${name}`} />
+              <span className="suitup-chest-shine" aria-hidden="true" />
+            </div>
           )}
+          {phase === 'transform' && <div className="suitup-shout">지구레인저, 변신!</div>}
           {phase === 'transform' && (
             <>
               <div className="suitup-swirl" />
@@ -322,10 +392,8 @@ export function MissionCeremony({
         </div>
         {phase === 'intro' && (
           <div className="suitup-text">
-            <p>가디언즈 대장 단비가 {name} 수련생에게 지구레인저 배지를 건넸어요.</p>
-            <button className="big" type="button" onClick={startTransform}>
-              ⭐ 배지 달기!
-            </button>
+            <p>가슴에 단 지구레인저 배지가 반짝이고 있어요.</p>
+            <div className="suitup-press-hint">{charge > 0 ? '조금만 더! 손을 떼지 마세요 ✨' : '👆 배지를 꾹 눌러 변신!'}</div>
           </div>
         )}
         {phase === 'suited' && (

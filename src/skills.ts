@@ -18,7 +18,7 @@ export interface SkillInfo {
 export const SKILLS: Record<string, SkillInfo> = {
   // ---- 장비 (선택 없이 받음)
   watch: { ic: '⌚', name: '수련생 손목 통신기', kind: 'item', desc: '대사 속 반짝이는 단어를 단서 수첩에 저장해요.' },
-  badge: { ic: '🏅', name: '지구레인저 배지', kind: 'item', desc: '플래닛 가디언즈가 인정한 정식 지구레인저의 증표예요.' },
+  badge: { ic: '🏅', name: '지구레인저 배지', kind: 'item', desc: '정식 지구레인저의 증표이자 변신 장치예요. 가슴에 달고 꾹 누르면 레인저 슈트로 변신해요.' },
 
   // ---- 작전 1: 보조 마법 (관측과 대비)
   goggle: { ic: '🥽', name: '간파의 고글', kind: 'utility', desc: '최종 결전에서 3번까지, 지금 공격을 막을 기술이 있는지 알려 줘요.' },
