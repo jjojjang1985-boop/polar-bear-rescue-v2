@@ -10,7 +10,7 @@ import {
   saveScoreToFirestore,
   deleteScoreFromFirestore
 } from './firebase';
-import { sfx, cue, setSoundEnabled, isSoundEnabled, getAudioContext, startMusic, stopMusic } from './audio';
+import { sfx, cue, setSoundEnabled, isSoundEnabled, getAudioContext, startMusic, stopMusic, unlockMusic } from './audio';
 import confetti from 'canvas-confetti';
 import { SceneFx, type SceneFxName, type SceneFxState } from './components/SceneFx';
 import { BACKGROUNDS } from './svgs';
@@ -1021,12 +1021,13 @@ export default function App() {
   }, [musicTrack]);
   // 브라우저는 사용자가 한 번 누르기 전에는 소리를 막으므로, 첫 터치 때 다시 시도한다
   useEffect(() => {
+    const evs = ['click', 'touchend', 'keydown'] as const;
     const unlock = () => {
-      getAudioContext();
-      if (musicTrack) startMusic(musicTrack);
+      unlockMusic(musicTrack);
+      evs.forEach(ev => window.removeEventListener(ev, unlock));
     };
-    window.addEventListener('pointerdown', unlock, { once: true });
-    return () => window.removeEventListener('pointerdown', unlock);
+    evs.forEach(ev => window.addEventListener(ev, unlock));
+    return () => evs.forEach(ev => window.removeEventListener(ev, unlock));
   }, [musicTrack]);
 
   const showDialogue = viewScreen === 'game' && !stageIntroActive && (!!reaction || curStep?.type === 'say');

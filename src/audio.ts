@@ -523,6 +523,26 @@ export function startMusic(name: 'title' | 'ending') {
   musicTimer = window.setInterval(tick, 500);
 }
 
+/**
+ * 브라우저가 소리를 막아 둔 상태(첫 터치 전)에서 시작한 음악을 터치 뒤에 다시 시작한다.
+ * 휴대폰·태블릿은 pointerdown이 아니라 click/touchend에서만 소리를 허락한다.
+ */
+export function unlockMusic(name: 'title' | 'ending' | null) {
+  const a = getAudioContext();
+  if (!a) return;
+  const restart = () => {
+    if (name && soundEnabled) {
+      musicName = null; // 같은 곡이어도 시간 맞춰 새로 시작
+      startMusic(name);
+    }
+  };
+  if (a.state === 'running') {
+    if (name && musicName !== name) restart();
+    return;
+  }
+  a.resume().then(restart).catch(() => {});
+}
+
 /** 배경음악 멈춤 (fade 초 동안 서서히 줄인다) */
 export function stopMusic(fade = 0.8) {
   if (musicTimer !== null) window.clearInterval(musicTimer);
