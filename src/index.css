@@ -4682,3 +4682,4 @@ h1, h2, h3, h4 {
 @keyframes tcFade{0%{opacity:0}10%{opacity:1}75%{opacity:1}100%{opacity:0}}
 @keyframes tcPop{0%{transform:scale(2.2) rotate(-6deg);opacity:0}100%{transform:none;opacity:1}}
 .emerg-note{color:#1d4f8a;font-weight:700}
+.teacher-badge{display:inline-block;margin-right:8px;padding:1px 10px;border-radius:999px;background:#ffe2a8;border:2px solid #a0522d;color:#7a3a10;font-size:.85em}

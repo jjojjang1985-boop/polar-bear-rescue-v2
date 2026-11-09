@@ -702,6 +702,16 @@ export default function App() {
     if (practice) endPractice();
   };
 
+  /**
+   * 명예의 전당에 올리지 않는 경우:
+   * - 선생님용 '모든 작전 열기'를 쓴 경우
+   * - 앞 작전(프롤로그~최종 결전)을 다 끝내지 않고 에필로그에 온 경우
+   * - 에필로그를 다시 하는 경우(연습)
+   */
+  const allPlayed = STAGES.slice(0, -1).every((_, i) => !!game.done[i]);
+  const skipReason: 'teacher' | 'practice' | undefined =
+    game.teacher || !allPlayed ? 'teacher' : game.done[STAGES.length - 1] ? 'practice' : undefined;
+
   // Render current mission inside stage
   const renderCurrentMission = () => {
     if (!curStep || curStep.type !== 'mission') return null;
@@ -948,7 +958,7 @@ export default function App() {
             totalScore={totalScore}
             pledges={game.pledge}
             rank={myRank > 0 ? myRank : 1}
-            recordable={!game.teacher && !game.done[game.cur]}
+            recordable={!skipReason}
             onShowLeaderboard={() => setShowLeaderboard(true)}
             onGoMap={() => setViewScreen('map')}
             onComplete={async () => {
@@ -957,8 +967,8 @@ export default function App() {
               const finalTotal =
                 Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) + epi;
               // 선생님 모드나 다시 하기(연습)에서는 명예의 전당에 올리지 않는다
-              if (game.teacher || game.done[game.cur]) {
-                setEndResult({ rank: 0, online: false, skipped: game.teacher ? 'teacher' : 'practice' });
+              if (skipReason) {
+                setEndResult({ rank: 0, online: false, skipped: skipReason });
               } else {
                 const r = await saveToLeaderboard(finalTotal);
                 setEndResult(r);
@@ -1069,6 +1079,7 @@ export default function App() {
           onSelectStage={idx => startStage(idx)}
           onShowLeaderboard={() => setShowLeaderboard(true)}
           onGoTitle={() => setViewScreen('title')}
+          teacher={!!game.teacher}
           onUnlockAll={() => {
             setGame(g => ({ ...g, unlocked: STAGES.length - 1, teacher: true }));
             triggerToast('모든 작전이 열렸습니다! (선생님 모드: 명예의 전당에는 기록되지 않아요)');

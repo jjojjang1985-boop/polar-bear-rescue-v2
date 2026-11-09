@@ -13,6 +13,7 @@ interface MapScreenProps {
   onShowLeaderboard: () => void;
   onGoTitle: () => void;
   onUnlockAll: () => void;
+  teacher?: boolean;
 }
 
 const STAGE_INFOS = [
@@ -48,7 +49,8 @@ export function MapScreen({
   onSelectStage,
   onShowLeaderboard,
   onGoTitle,
-  onUnlockAll
+  onUnlockAll,
+  teacher = false
 }: MapScreenProps) {
   const handleNodeClick = (i: number) => {
     if (i > unlocked) {
@@ -84,6 +86,7 @@ export function MapScreen({
       <header className="map-head">
         <h1 className="logo map-logo">작전 지도</h1>
         <div className="pill map-pill">
+          {teacher && <b className="teacher-badge">👩‍🏫 선생님 모드 · 기록 안 됨</b>}
           {name} {done[STAGE_INFOS.length - 1] ? '레인저' : '수련생'} · {code} · 총점 {totalScore.toLocaleString()}점
         </div>
       </header>
