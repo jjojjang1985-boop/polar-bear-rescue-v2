@@ -25,7 +25,7 @@ service cloud.firestore {
         data.code is string && data.code.size() >= 1 && data.code.size() <= 20 &&
         data.score is int && data.score >= 0 && data.score <= 100000 &&
         data.stars is int && data.stars >= 0 && data.stars <= 30 &&
-        data.avatar is string && (data.avatar == 'a' || data.avatar == 'b' || data.avatar == 'c') &&
+        data.avatar is string && (data.avatar == 'a' || data.avatar == 'b' || data.avatar == 'c' || data.avatar == 'd') &&
         data.createdAt is timestamp && data.createdAt == request.time;
     }
 

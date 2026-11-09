@@ -1,7 +1,8 @@
 import React from 'react';
 import type { LeaderboardEntry } from '../types';
 import { GEAR_INFO } from '../stagesData';
-import { BADGE_IMAGE } from '../assets';
+import { AVATAR_FACES, BADGE_IMAGE } from '../assets';
+import type { AvatarType } from '../types';
 
 export function NotesModal({
   clues,
@@ -176,6 +177,7 @@ export function StageResultModal({
   mistakes,
   cluesCount,
   hasNext,
+  practice,
   onNext,
   onMap
 }: {
@@ -186,6 +188,7 @@ export function StageResultModal({
   mistakes: number;
   cluesCount: number;
   hasNext: boolean;
+  practice?: boolean;
   onNext: () => void;
   onMap: () => void;
 }) {
@@ -195,7 +198,10 @@ export function StageResultModal({
   return (
     <div className="fixed inset-0 z-50 bg-[rgba(4,12,30,0.66)] flex items-center justify-center p-4">
       <div className="panel max-w-lg text-center">
-        <h2 className="justify-center">{stageTitle} 완료!</h2>
+        <h2 className="justify-center">{stageTitle} {practice ? '연습 완료!' : '완료!'}</h2>
+        {practice && (
+          <p className="practice-note">🔁 연습 모드였어요. 이번 점수는 기록되지 않고, 첫 도전 점수가 그대로 남아요.</p>
+        )}
         <div className="stars my-2">
           {[1, 2, 3].map(i => (
             <span key={i} className={i <= stars ? '' : 'e'}>
@@ -397,12 +403,7 @@ export function LeaderboardModal({
                       </td>
                       <td className="py-2 px-2">
                         <div className="flex items-center gap-2">
-                          <div
-                            className="w-7 h-7 rounded-full overflow-hidden border border-amber-900 bg-amber-100 flex-shrink-0"
-                            dangerouslySetInnerHTML={{
-                              __html: heroSVG('smile', x.avatar || 'a')
-                            }}
-                          />
+                          <img src={AVATAR_FACES[(x.avatar || 'a') as AvatarType] || AVATAR_FACES.a} alt="" className="w-full h-full object-cover" draggable={false} />
                           <div>
                             <span className="font-bold text-amber-950 text-sm">
                               {x.name}

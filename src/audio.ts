@@ -313,6 +313,16 @@ export const cue = {
     for (let i = 0; i < 12; i++) tone(1000 + Math.random() * 1500, 0.08, 'triangle', 0.03, 0.4 + i * 0.07);
     cue.fanfare();
   },
+  /** 지구레인저 변신: 차오르는 빛 + 반짝임 + 팡파르 */
+  transform() {
+    sweep(180, 1400, 1.6, 'triangle', 0.045);
+    sweep(90, 700, 1.6, 'sawtooth', 0.02);
+    noise(1.6, 0.03, 300, 7000, 'bandpass', 0, 0.2);
+    for (let i = 0; i < 14; i++) tone(900 + i * 90, 0.07, 'triangle', 0.025, 0.3 + i * 0.09);
+    tone(60, 0.6, 'sine', 0.14, 1.65);
+    noise(0.8, 0.07, 6000, 400, 'lowpass', 1.65, 0.05);
+    setTimeout(() => cue.fanfare(), 1750);
+  },
   /** 성공: 팡파르 */
   fanfare() {
     const n: [number, number, number][] = [

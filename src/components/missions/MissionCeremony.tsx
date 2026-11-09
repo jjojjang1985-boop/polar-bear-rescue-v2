@@ -2,7 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { jsPDF } from 'jspdf';
 import type { AvatarType } from '../../types';
-import { BADGE_IMAGE, CERT_BG_IMAGE } from '../../assets';
+import { AVATAR_FACES, BADGE_IMAGE, CERT_BG_IMAGE, SUIT_IMAGES, SUIT_THEMES } from '../../assets';
+import { cue } from '../../audio';
 
 interface MissionCeremonyProps {
   name: string;
@@ -33,9 +34,36 @@ export function MissionCeremony({
   const [downloadMsg, setDownloadMsg] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // 변신 연출: intro(배지 달기 전) → transform(빛 소용돌이) → suited(슈트 공개) → cert(임명장)
+  const [phase, setPhase] = useState<'intro' | 'transform' | 'suited' | 'cert'>('intro');
+  const theme = SUIT_THEMES[avatar] ?? SUIT_THEMES.a;
+  const suitSrc = SUIT_IMAGES[avatar] ?? SUIT_IMAGES.a;
 
   useEffect(() => {
-    // Launch celebratory confetti!
+    const im = new Image();
+    im.src = suitSrc;
+  }, [suitSrc]);
+
+  const startTransform = () => {
+    if (phase !== 'intro') return;
+    setPhase('transform');
+    try {
+      cue.transform();
+    } catch {
+      // 소리 없이 진행
+    }
+    window.setTimeout(() => {
+      setPhase('suited');
+      try {
+        confetti({ particleCount: 140, spread: 90, origin: { y: 0.55 }, colors: [theme.color, theme.glow, '#ffd84d', '#ffffff'] });
+      } catch {
+        // Confetti fallback
+      }
+    }, 1750);
+  };
+
+  useEffect(() => {
+    if (phase !== 'cert') return;
     try {
       confetti({
         particleCount: 100,
@@ -63,7 +91,7 @@ export function MissionCeremony({
           im.onerror = () => res(null);
           im.src = src;
         });
-      const [bg, badge] = await Promise.all([loadImg(CERT_BG_IMAGE), loadImg(BADGE_IMAGE)]);
+      const [bg, badge, suit] = await Promise.all([loadImg(CERT_BG_IMAGE), loadImg(BADGE_IMAGE), loadImg(suitSrc)]);
 
       const W = 1754;
       const H = 1177; // cert-bg 그림과 같은 비율
@@ -201,12 +229,36 @@ export function MissionCeremony({
         ctx.restore();
       }
 
+      // 슈트를 입은 내 모습 (오른쪽, 빙산 아래 빈자리)
+      if (suit) {
+        const sh = 470;
+        const sw = (suit.width / suit.height) * sh;
+        const cx = 1500;
+        const sy = 470;
+        ctx.save();
+        ctx.globalAlpha = 0.45;
+        ctx.fillStyle = theme.glow;
+        ctx.beginPath();
+        ctx.ellipse(cx, sy + sh * 0.5, sw * 0.62, sh * 0.48, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        ctx.drawImage(suit, cx - sw / 2, sy, sw, sh);
+        ctx.font = `30px ${D}`;
+        ctx.textAlign = 'center';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 7;
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeText(`${theme.icon} ${theme.title}`, cx, sy - 14);
+        ctx.fillStyle = theme.color;
+        ctx.fillText(`${theme.icon} ${theme.title}`, cx, sy - 14);
+      }
+
       const dataUrl = canvas.toDataURL('image/png');
       setCertUrl(dataUrl);
     };
 
     renderCertificate();
-  }, [name, code, avatar, stars, totalScore, pledges]);
+  }, [phase, name, code, avatar, stars, totalScore, pledges, suitSrc, theme]);
 
   const handleDownloadPNG = () => {
     if (!canvasRef.current) return;
@@ -241,6 +293,52 @@ export function MissionCeremony({
       setDownloadMsg('PDF 생성 오류가 발생했습니다. PNG 저장을 이용해 주세요.');
     }
   };
+
+  if (phase !== 'cert') {
+    return (
+      <div className={`suitup suitup-${phase}`} style={{ '--suit': theme.color, '--glow': theme.glow } as React.CSSProperties}>
+        <div className="suitup-rays" />
+        <div className="suitup-stage">
+          {phase === 'intro' || phase === 'transform' ? (
+            <div className="suitup-me">
+              <img className="suitup-face" src={AVATAR_FACES[avatar] ?? AVATAR_FACES.a} alt={`${name} 대원`} />
+              <img className="suitup-badge" src={BADGE_IMAGE} alt="지구레인저 배지" />
+            </div>
+          ) : (
+            <img className="suitup-hero" src={suitSrc} alt={`${theme.title} 슈트를 입은 ${name}`} />
+          )}
+          {phase === 'transform' && (
+            <>
+              <div className="suitup-swirl" />
+              <div className="suitup-flash" />
+              {Array.from({ length: 18 }).map((_, i) => (
+                <span key={i} className="suitup-spark" style={{ '--a': `${i * 20}deg`, '--d': `${(i % 6) * 0.08}s` } as React.CSSProperties} />
+              ))}
+            </>
+          )}
+        </div>
+        {phase === 'intro' && (
+          <div className="suitup-text">
+            <p>지구수비대장 단비가 {name} 대원에게 지구레인저 배지를 건넸어요.</p>
+            <button className="big" type="button" onClick={startTransform}>
+              ⭐ 배지 달기!
+            </button>
+          </div>
+        )}
+        {phase === 'suited' && (
+          <div className="suitup-text">
+            <div className="suitup-title">
+              {theme.icon} {theme.title}
+            </div>
+            <p className="suitup-caption">{name} 레인저, 출동 준비 완료!</p>
+            <button className="big green" type="button" onClick={() => setPhase('cert')}>
+              📜 임명장 받기
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="panel max-w-4xl text-center">

@@ -7,6 +7,13 @@ interface RegisterScreenProps {
   onRegister: (name: string, code: string, avatar: AvatarType) => void;
 }
 
+const AVATAR_CHOICES: [AvatarType, string][] = [
+  ['a', '단발 대원'],
+  ['b', '소년 대원'],
+  ['c', '친구 대원'],
+  ['d', '안경 대원']
+];
+
 const CODENAMES = ['얼음별', '빙하수호자', '오로라', '눈보라', '북극성', '펭귄킥'];
 
 export function RegisterScreen({ onRegister }: RegisterScreenProps) {
@@ -83,49 +90,23 @@ export function RegisterScreen({ onRegister }: RegisterScreenProps) {
           <label className="font-display text-lg text-amber-950 block mb-1">
             내 모습 선택
           </label>
-          <div className="flex gap-3 justify-center mb-6 flex-wrap">
-            <div className="flex flex-col items-center gap-1">
-              <button
-                type="button"
-                className={`av ${avatar === 'a' ? 'sel' : ''}`}
-                onClick={() => {
-                  setAvatar('a');
-                  sfx.tick();
-                }}
-                aria-label="단발머리 대원"
-              >
-                <img src={AVATAR_FACES.a} alt="" className="av-img" draggable={false} />
-              </button>
-              <span className="text-xs font-bold text-amber-950">단발 대원</span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <button
-                type="button"
-                className={`av ${avatar === 'b' ? 'sel' : ''}`}
-                onClick={() => {
-                  setAvatar('b');
-                  sfx.tick();
-                }}
-                aria-label="짧은 머리 대원"
-              >
-                <img src={AVATAR_FACES.b} alt="" className="av-img" draggable={false} />
-              </button>
-              <span className="text-xs font-bold text-amber-950">소년 대원</span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <button
-                type="button"
-                className={`av ${avatar === 'c' ? 'sel' : ''}`}
-                onClick={() => {
-                  setAvatar('c');
-                  sfx.tick();
-                }}
-                aria-label="친구 대원"
-              >
-                <img src={AVATAR_FACES.c} alt="" className="av-img" draggable={false} />
-              </button>
-              <span className="text-xs font-bold text-amber-950">친구 대원</span>
-            </div>
+          <div className="av-grid mb-6">
+            {AVATAR_CHOICES.map(([id, label]) => (
+              <div key={id} className="flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  className={`av ${avatar === id ? 'sel' : ''}`}
+                  onClick={() => {
+                    setAvatar(id);
+                    sfx.tick();
+                  }}
+                  aria-label={label}
+                >
+                  <img src={AVATAR_FACES[id]} alt="" className="av-img" draggable={false} />
+                </button>
+                <span className="text-xs font-bold text-amber-950">{label}</span>
+              </div>
+            ))}
           </div>
 
           <div className="flex justify-center">

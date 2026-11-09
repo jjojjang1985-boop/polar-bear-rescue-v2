@@ -170,6 +170,7 @@ export default function App() {
     mist: number;
     clues: number;
     hasNext: boolean;
+    practice?: boolean;
   } | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
@@ -356,8 +357,27 @@ export default function App() {
   };
 
   // Start a stage
+  // 이미 끝낸 작전을 다시 하는 중인지 (연습 모드). 연습 시작 때의 빙하 블록 수를 기억해 두었다가 되돌린다.
+  const practiceRef = useRef<{ blocks: number } | null>(null);
+  const isPractice = viewScreen === 'game' && !!game.done[game.cur];
+
+  const endPractice = () => {
+    if (practiceRef.current) {
+      const b = practiceRef.current.blocks;
+      practiceRef.current = null;
+      setGame(g => ({ ...g, blocks: b }));
+    }
+  };
+
+  // 연습 도중 지도나 처음 화면으로 나가도 블록을 되돌린다
+  useEffect(() => {
+    if (viewScreen !== 'game') endPractice();
+  }, [viewScreen]);
+
   const startStage = (idx: number) => {
     const stageDef = STAGES[idx];
+    endPractice();
+    if (game.done[idx]) practiceRef.current = { blocks: game.blocks };
     setGame(g => ({
       ...g,
       cur: idx,
@@ -577,6 +597,13 @@ export default function App() {
         continue;
       }
       if (step.type === 'pick') {
+        // 연습 모드(이미 끝낸 작전)에서는 처음 고른 기술을 그대로 두고 넘어간다
+        const already = (STAGE_PICKS[step.stage] || []).find(id => game.gear.includes(id));
+        if (game.done[game.cur] && already) {
+          triggerToast(`🔁 연습 모드라 기술은 처음 고른 ${SKILLS[already].ic} ${SKILLS[already].name} 그대로예요`);
+          idx++;
+          continue;
+        }
         // 후보 기술 중 하나를 고르면 handlePickSkill → advanceStep 으로 이어진다
         cue.tower();
         setShowPick(step.stage);
@@ -623,8 +650,10 @@ export default function App() {
     const bonus = game.blocks * 10;
     const finalStageScore = game.pts + bonus;
 
-    const newStars = { ...game.stars, [stageIdx]: Math.max(game.stars[stageIdx] || 0, st) };
-    const newScores = { ...game.scores, [stageIdx]: Math.max(game.scores[stageIdx] || 0, finalStageScore) };
+    // 첫 도전 점수만 인정: 이미 끝낸 작전을 다시 한 경우(연습) 기록은 그대로 둔다
+    const practice = !!game.done[stageIdx];
+    const newStars = practice ? game.stars : { ...game.stars, [stageIdx]: st };
+    const newScores = practice ? game.scores : { ...game.scores, [stageIdx]: finalStageScore };
     const nextUnlocked = Math.max(game.unlocked, stageIdx + 1);
 
     setGame(g => ({
@@ -647,8 +676,10 @@ export default function App() {
       blocks: game.blocks,
       mist: game.mist,
       clues: Object.keys(game.clues).length,
-      hasNext: stageIdx < STAGES.length - 1
+      hasNext: stageIdx < STAGES.length - 1,
+      practice
     });
+    if (practice) endPractice();
   };
 
   // Render current mission inside stage
@@ -900,7 +931,7 @@ export default function App() {
             onGoMap={() => setViewScreen('map')}
             onComplete={async () => {
               // 에필로그 점수까지 더한 최종 총점으로 기록한다 (finishStage와 같은 계산)
-              const epi = Math.max(game.scores[game.cur] || 0, game.pts + game.blocks * 10);
+              const epi = game.done[game.cur] ? game.scores[game.cur] || 0 : game.pts + game.blocks * 10;
               const finalTotal =
                 Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) + epi;
               const r = await saveToLeaderboard(finalTotal);
@@ -933,9 +964,10 @@ export default function App() {
 
   const sceneImage = SCENE_IMAGES[currentBg];
   // 지금까지 얻은 점수: 끝낸 작전 점수 + 지금 하는 작전에서 얻고 있는 점수
-  const liveScore =
-    Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) +
-    Math.max(game.scores[game.cur] || 0, game.pts);
+  const liveScore = isPractice
+    ? totalScore
+    : Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) +
+      Math.max(game.scores[game.cur] || 0, game.pts);
   const hudSkills = game.gear.filter(id => SKILLS[id] && SKILLS[id].kind !== 'item');
   const showDialogue = viewScreen === 'game' && !stageIntroActive && (!!reaction || curStep?.type === 'say');
   const STAGE_LABELS = ['프롤로그', '작전 1', '작전 2', '작전 3', '작전 4', '최종 결전', '에필로그'];
@@ -1123,6 +1155,9 @@ export default function App() {
             {stageIntroActive ? (
               <div className="panel intro-card">
                 <span className="tag">{curStage.label}</span>
+                {isPractice && (
+                  <span className="practice-tag">🔁 연습 모드 · 점수는 첫 도전 기록이 그대로 남아요</span>
+                )}
                 <h2>{curStage.title}</h2>
                 <p className="guide">{curStage.goal}</p>
                 <button
@@ -1235,6 +1270,7 @@ export default function App() {
           mistakes={showStageResult.mist}
           cluesCount={showStageResult.clues}
           hasNext={showStageResult.hasNext}
+          practice={showStageResult.practice}
           onNext={() => {
             setShowStageResult(null);
             startStage(game.cur + 1);

@@ -105,7 +105,7 @@ export interface FirebaseLeaderboardItem {
   code: string;
   score: number;
   stars: number;
-  avatar: 'a' | 'b' | 'c';
+  avatar: 'a' | 'b' | 'c' | 'd';
   createdAt?: Timestamp | null;
   dateStr?: string;
 }
@@ -143,7 +143,7 @@ export function subscribeToLeaderboard(
           code: data.code || '얼음별',
           score: typeof data.score === 'number' ? data.score : 0,
           stars: typeof data.stars === 'number' ? data.stars : 0,
-          avatar: data.avatar === 'b' || data.avatar === 'c' ? data.avatar : 'a',
+          avatar: ['b', 'c', 'd'].includes(data.avatar) ? data.avatar : 'a',
           createdAt: data.createdAt || null,
           dateStr,
         });
@@ -170,15 +170,15 @@ export async function saveScoreToFirestore(entry: {
   code: string;
   score: number;
   stars: number;
-  avatar: 'a' | 'b' | 'c';
+  avatar: 'a' | 'b' | 'c' | 'd';
 }): Promise<string> {
   // Defensive input sanitization
   const cleanName = (entry.name || '북극대원').trim().slice(0, 20);
   const cleanCode = (entry.code || '얼음별').trim().slice(0, 20);
   const cleanScore = Math.max(0, Math.min(100000, Math.round(entry.score)));
   const cleanStars = Math.max(0, Math.min(30, Math.round(entry.stars)));
-  const cleanAvatar: 'a' | 'b' | 'c' =
-    entry.avatar === 'b' || entry.avatar === 'c' ? entry.avatar : 'a';
+  const cleanAvatar: 'a' | 'b' | 'c' | 'd' =
+    entry.avatar === 'b' || entry.avatar === 'c' || entry.avatar === 'd' ? entry.avatar : 'a';
 
   const docId = `rec_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const docRef = doc(db, 'leaderboard', docId);

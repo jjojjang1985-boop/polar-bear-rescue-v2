@@ -55,11 +55,27 @@ const FACE_IMAGES: Partial<Record<SpeakerId, string>> = {
 export const PORI_FACE = img('face-pori');
 export const ME_FACE = img('face-me');
 
-/** 등록 화면에서 고르는 신입 대원 얼굴 (a: 단발, b: 소년, c: 친구) */
+/** 등록 화면에서 고르는 신입 대원 얼굴 (a: 단발, b: 소년, c: 친구, d: 안경) */
 export const AVATAR_FACES: Record<AvatarType, string> = {
   a: ME_FACE,
   b: img('face-boy'),
-  c: img('face-friend')
+  c: img('face-friend'),
+  d: img('face-glasses')
+};
+
+/** 임명식 뒤 변신하는 지구레인저 슈트 (캐릭터마다 테마가 다르다) */
+export const SUIT_IMAGES: Record<AvatarType, string> = {
+  a: img('suit-a'),
+  b: img('suit-b'),
+  c: img('suit-c'),
+  d: img('suit-d')
+};
+
+export const SUIT_THEMES: Record<AvatarType, { title: string; icon: string; color: string; glow: string }> = {
+  a: { title: '빙하 레인저', icon: '❄️', color: '#5aa9e6', glow: '#bfe6ff' },
+  b: { title: '태양 레인저', icon: '☀️', color: '#e5533d', glow: '#ffd36b' },
+  c: { title: '숲 레인저', icon: '🌿', color: '#3f9a4f', glow: '#c9f29b' },
+  d: { title: '바다 레인저', icon: '🌊', color: '#1f5fa8', glow: '#8ee6e0' }
 };
 
 /**

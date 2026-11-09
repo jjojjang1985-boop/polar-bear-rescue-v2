@@ -1,4 +1,4 @@
-export type AvatarType = 'a' | 'b' | 'c';
+export type AvatarType = 'a' | 'b' | 'c' | 'd';
 
 export type SpeakerId =
   | 'pori'
@@ -30,7 +30,7 @@ export interface LeaderboardEntry {
   score: number;
   stars: number;
   date: string;
-  avatar?: 'a' | 'b' | 'c';
+  avatar?: AvatarType;
   isFirebase?: boolean;
 }
 
