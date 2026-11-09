@@ -36,7 +36,7 @@ export const SKILLS: Record<string, SkillInfo> = {
   solar: { ic: '☀️', name: '태양광 캐논', kind: 'battle', desc: '햇빛으로 만든 깨끗한 에너지를 쏘아요.', blocks: '석탄 태우는 발전소 매연 · 공장 굴뚝 이산화 탄소 구름' },
 
   // ---- 작전 4: 생활 속 실천 기술
-  recycle: { ic: '♻️', name: '분리배출 부메랑', kind: 'battle', desc: '쓰레기를 나눠 담아 다시 자원으로 되돌려요.', blocks: '마구 섞어 버린 쓰레기 산사태 · 라벨 안 뗀 페트병 미사일' },
+  recycle: { ic: '♻️', name: '분리배출 부메랑', kind: 'battle', desc: '쓰레기를 나눠 담아 다시 자원으로 되돌려요.', blocks: '마구 섞어 버린 쓰레기 산사태 · 라벨 안 뗀 페트병 미사일 · 일회용 컵 소나기' },
   bag: { ic: '🛍️', name: '장바구니 방패', kind: 'battle', desc: '장바구니와 텀블러로 일회용품을 막아요.', blocks: '일회용 컵 소나기 · 비닐봉지 회오리' },
   plate: { ic: '🍽️', name: '남김없이 접시', kind: 'battle', desc: '먹을 만큼만 담아 음식물 쓰레기를 없애요.', blocks: '먹다 남긴 음식물 쓰레기 폭탄 · 남긴 급식 폭탄' }
 };
@@ -76,7 +76,7 @@ export const ATTACKS: Attack[] = [
   { id: 'moto', em: '🏍️', name: '코앞 편의점도 오토바이 매연탄', counters: ['bike'], why: '편의점처럼 가까운 곳은 걸어가면 돼. 루카도 이제 알지?' },
   { id: 'trash', em: '🗑️', name: '마구 섞어 버린 쓰레기 산사태', counters: ['recycle'], why: '분리배출하면 쓰레기가 다시 자원이 돼.' },
   { id: 'pet', em: '🧴', name: '라벨 안 뗀 페트병 미사일', counters: ['recycle'], why: '라벨을 떼고 분리배출하면 다시 쓸 수 있는 자원이 돼.' },
-  { id: 'cup', em: '🥤', name: '한 번 쓰고 버린 일회용 컵 소나기', counters: ['bag'], why: '텀블러를 쓰면 일회용 컵을 만들고 버릴 때 드는 에너지가 줄어.' },
+  { id: 'cup', em: '🥤', name: '한 번 쓰고 버린 일회용 컵 소나기', counters: ['bag', 'recycle'], why: '텀블러를 쓰면 일회용 컵을 덜 쓰고, 이미 쓴 컵은 씻어서 분리배출하면 다시 자원이 돼.' },
   { id: 'vinyl', em: '🌪️', name: '장 볼 때마다 받은 비닐봉지 회오리', counters: ['bag'], why: '장바구니를 쓰면 비닐 사용을 줄일 수 있어.' },
   { id: 'lunch', em: '🍚', name: '욕심껏 담고 남긴 급식 폭탄', counters: ['plate'], why: '급식은 먹을 만큼만 받고 다 먹으면 버려지는 음식이 줄어.' },
   { id: 'food', em: '🍱', name: '먹다 남긴 음식물 쓰레기 폭탄', counters: ['plate'], why: '먹을 만큼만 받아 남기지 않으면 음식물 쓰레기를 처리하는 에너지가 줄어.' }
