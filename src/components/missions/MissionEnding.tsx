@@ -19,7 +19,7 @@ export function MissionEnding({
   pledges: string[];
   totalScore: number;
   stars: Record<number, number>;
-  result: { rank: number; online: boolean } | null;
+  result: { rank: number; online: boolean; skipped?: 'teacher' | 'practice' } | null;
   onMount: () => void;
   onShowLeaderboard: () => void;
   onGoTitle: () => void;
@@ -72,7 +72,14 @@ export function MissionEnding({
         <span>★ 별 {starTotal}개</span>
         {result && result.rank > 0 && <span>🏆 이 기기 {result.rank}위</span>}
       </div>
-      {result && (
+      {result?.skipped && (
+        <p className="ending-save warn">
+          {result.skipped === 'teacher'
+            ? '👩‍🏫 선생님 모드로 진행해서 명예의 전당에는 기록하지 않았어요.'
+            : '🔁 다시 하기(연습)라서 명예의 전당에는 첫 도전 기록이 그대로 남아 있어요.'}
+        </p>
+      )}
+      {result && !result.skipped && (
         <p className={`ending-save ${result.online ? 'ok' : 'warn'}`}>
           {result.online
             ? '✅ 실시간 명예의 전당에 기록했어요.'

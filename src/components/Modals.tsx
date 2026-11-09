@@ -175,6 +175,7 @@ export function StageResultModal({
   pts,
   blocks,
   mistakes,
+  emergencies = 0,
   cluesCount,
   hasNext,
   practice,
@@ -186,6 +187,7 @@ export function StageResultModal({
   pts: number;
   blocks: number;
   mistakes: number;
+  emergencies?: number;
   cluesCount: number;
   hasNext: boolean;
   practice?: boolean;
@@ -214,6 +216,12 @@ export function StageResultModal({
           미션 점수 {pts.toLocaleString()} + 빙하 블록 보너스 {bonus} (블록 {blocks}개)
           <br />
           실수 {mistakes}번 · 모은 단서 {cluesCount}개
+          {emergencies > 0 && (
+            <>
+              <br />
+              <span className="emerg-note">🧊 비상 얼음 {emergencies}번 사용 (-{emergencies * 100}점)</span>
+            </>
+          )}
         </p>
         <div className="flex justify-center gap-3 mt-4 flex-wrap">
           <button className="big ghost" type="button" onClick={onMap}>

@@ -25,6 +25,8 @@ const DEF_IMPACT = { c1: '#ffffff', c2: '#7fd3ff', bits: ['✦', '✨'] };
 const BOSS_HP = 6;
 /** 기술을 쓰기 전 내 캐릭터가 힘을 모으는 시간 */
 const CHARGE_MS = 900;
+/** 버티기 횟수 (2연속 명중마다 1회 충전) */
+const BRACE_MAX = 3;
 
 type Phase = 'incoming' | 'choose' | 'hit' | 'brace' | 'miss' | 'dying' | 'won' | 'victory';
 
@@ -72,6 +74,8 @@ export function MissionBoss({
   const [picked, setPicked] = useState<string | null>(null);
   const [turn, setTurn] = useState(0);
   const [combo, setCombo] = useState(0);
+  const [braces, setBraces] = useState(BRACE_MAX);
+  const [braceGain, setBraceGain] = useState(0);
   const [stats, setStats] = useState({ blocked: 0, bestCombo: 0, damage: 0, used: {} as Record<string, number> });
   const timers = useRef<number[]>([]);
 
@@ -145,6 +149,10 @@ export function MissionBoss({
       setHp(nextHp);
       const nextCombo = combo + 1;
       setCombo(nextCombo);
+      if (nextCombo % 2 === 0 && braces < BRACE_MAX) {
+        setBraces(b => Math.min(BRACE_MAX, b + 1));
+        later(() => setBraceGain(g => g + 1), CHARGE_MS + 600);
+      }
       setStats(st => ({
         ...st,
         blocked: st.blocked + 1,
@@ -180,7 +188,9 @@ export function MissionBoss({
     }
 
     // 2) 막을 기술이 없는 공격에 버티기: 피해 1
-    if (choice === 'brace' && !blockable) {
+    const braceOk = choice === 'brace' && braces > 0;
+    if (choice === 'brace' && braces > 0) setBraces(b => b - 1);
+    if (braceOk && !blockable) {
       setPhase('brace');
       cue.bossHurtsYou();
       takeDamage(1);
@@ -214,7 +224,7 @@ export function MissionBoss({
     takeDamage(2);
     onReact(
       'luka',
-      `크윽, 큰 피해야! 이 공격을 막을 기술은 없었어. 그럴 땐 🧱 버티기! (${counterText(attack)}로 막을 수 있어)`,
+      `크윽, 큰 피해야! 이 공격을 막을 기술은 없었어. ${braces > 0 ? '그럴 땐 🧱 버티기!' : '버티기를 다 써서 막을 수 없었어. 2연속 명중으로 버티기를 충전해!'} (${counterText(attack)}로 막을 수 있어)`,
       'o'
     );
     later(() => nextTurn(rest), 2100);
@@ -227,12 +237,14 @@ export function MissionBoss({
     setHintMsg(
       canBlock(attack)
         ? '🥽 간파! 이 공격은 막을 수 있어. 반짝이는 기술을 써!'
-        : '🥽 간파! 이 공격을 막을 기술이 없어. 🧱 버티기를 골라!'
+        : braces > 0
+          ? '🥽 간파! 이 공격을 막을 기술이 없어. 🧱 버티기를 골라!'
+          : '🥽 간파! 이 공격은 막을 수 없어… 버티기도 다 썼으니 이번엔 견뎌야 해!'
     );
   };
 
   const hintTarget = (id: string) =>
-    !!hintMsg && !!attack && (id === 'brace' ? !canBlock(attack) : attack.counters.includes(id));
+    !!hintMsg && !!attack && (id === 'brace' ? !canBlock(attack) && braces > 0 : attack.counters.includes(id));
 
   return (
     <div className="panel boss-panel max-w-3xl">
@@ -353,8 +365,8 @@ export function MissionBoss({
             })}
             <button
               type="button"
-              className={`skill-card brace ${hintTarget('brace') ? 'hint' : ''} ${picked === 'brace' ? 'ok' : ''}`}
-              disabled={phase !== 'choose'}
+              className={`skill-card brace ${hintTarget('brace') ? 'hint' : ''} ${picked === 'brace' ? 'ok' : ''} ${braces <= 0 ? 'empty' : ''}`}
+              disabled={phase !== 'choose' || braces <= 0}
               onClick={() => resolve('brace')}
             >
               <span className="skill-art">
@@ -362,8 +374,18 @@ export function MissionBoss({
               </span>
               <span className="nm">
                 버티기
-                <small>막을 기술이 없을 때</small>
+                <span className="brace-count" aria-label={`버티기 ${braces}번 남음`}>
+                  {Array.from({ length: BRACE_MAX }, (_, i) => (
+                    <i key={i} className={i < braces ? 'on' : ''} />
+                  ))}
+                </span>
+                <small>{braces > 0 ? '막을 기술이 없을 때' : '2연속 명중하면 충전!'}</small>
               </span>
+              {braceGain > 0 && (
+                <b key={braceGain} className="brace-gain">
+                  🧱 +1 충전!
+                </b>
+              )}
             </button>
           </div>
 

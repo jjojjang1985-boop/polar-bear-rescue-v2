@@ -4663,3 +4663,22 @@ h1, h2, h3, h4 {
 @keyframes poriCross{0%{left:8%;bottom:22%}25%{bottom:calc(22% + 30px)}50%{bottom:calc(22% + 46px)}75%{bottom:calc(22% + 30px)}100%{left:52%;bottom:22%}}
 @media (max-width:780px){.ice-bridge{--k:22px;height:4.5%;left:26%;right:42%;bottom:26%}
   @keyframes poriCross{0%{left:2%;bottom:26%}50%{bottom:calc(26% + 22px)}100%{left:44%;bottom:26%}}}
+
+/* 버티기 횟수 */
+.skill-card.brace{position:relative}
+.brace-count{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}
+.brace-count i{width:12px;height:9px;border-radius:2px;background:#d6cfc6;border:1.5px solid #8a6a55}
+.brace-count i.on{background:#e0794f;border-color:#7a3a20}
+.skill-card.brace.empty{opacity:.55;filter:grayscale(.7)}
+.brace-gain{position:absolute;left:50%;top:-6px;transform:translate(-50%,-100%);white-space:nowrap;font-family:var(--font-display);font-size:15px;color:#fff;
+  background:#e0794f;border:2px solid #7a3a20;border-radius:999px;padding:2px 10px;pointer-events:none;animation:braceGain 1.6s ease-out forwards}
+@keyframes braceGain{0%{opacity:0;transform:translate(-50%,-60%) scale(.5)}20%{opacity:1;transform:translate(-50%,-100%) scale(1.15)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-160%)}}
+
+/* 빙하 탑 붕괴 (비상 얼음) */
+.tower-collapse{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:none;
+  background:radial-gradient(circle,rgba(120,200,255,.0) 20%,rgba(30,80,150,.55) 100%);animation:tcFade 1.8s ease-out forwards}
+.tower-collapse b{font-family:var(--font-display);font-size:clamp(34px,8vw,72px);color:#fff;-webkit-text-stroke:8px #1d4f8a;paint-order:stroke fill;animation:tcPop .5s cubic-bezier(.2,1.6,.4,1) both}
+.tower-collapse span{font-family:var(--font-display);font-size:clamp(16px,3.5vw,26px);color:#1d4f8a;background:#fff;border:3px solid #1d4f8a;border-radius:999px;padding:2px 16px;animation:tcPop .5s .15s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes tcFade{0%{opacity:0}10%{opacity:1}75%{opacity:1}100%{opacity:0}}
+@keyframes tcPop{0%{transform:scale(2.2) rotate(-6deg);opacity:0}100%{transform:none;opacity:1}}
+.emerg-note{color:#1d4f8a;font-weight:700}

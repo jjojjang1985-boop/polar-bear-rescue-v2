@@ -96,7 +96,8 @@ export default function App() {
           towerOn: parsed.towerOn || false,
           campaign: parsed.campaign || null,
           poster: parsed.poster || null,
-          evid: parsed.evid || []
+          evid: parsed.evid || [],
+          teacher: !!parsed.teacher
         };
       }
     } catch {
@@ -123,7 +124,8 @@ export default function App() {
       towerOn: false,
       campaign: null,
       poster: null,
-      evid: []
+      evid: [],
+      teacher: false
     };
   });
 
@@ -168,11 +170,14 @@ export default function App() {
     pts: number;
     blocks: number;
     mist: number;
+    emerg: number;
     clues: number;
     hasNext: boolean;
     practice?: boolean;
   } | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  // 빙하 탑이 무너질 때마다 1씩 올라 무너짐 연출을 다시 보여 준다
+  const [towerCollapse, setTowerCollapse] = useState(0);
 
   // Firebase Real-time Leaderboard & Auth states
   const [firebaseLeaderboard, setFirebaseLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -242,7 +247,8 @@ export default function App() {
         towerOn: game.towerOn,
         campaign: game.campaign,
         poster: game.poster,
-        evid: game.evid
+        evid: game.evid,
+        teacher: !!game.teacher
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
     } catch {
@@ -282,11 +288,15 @@ export default function App() {
     setGame(g => {
       const next = Math.max(0, g.blocks - 1);
       if (next === 0) {
+        // 비상 얼음: 다시 3개를 채워 주는 대신 100점을 잃는다
         sfx.splash();
-        triggerToast('빙하가 다 녹을 뻔했어요! 써모가 비상 얼음 3개를 보냈어요.');
+        triggerShake();
+        setTowerCollapse(c => c + 1);
+        triggerToast('💥 빙하가 무너졌어요! 써모가 비상 얼음 3개를 보냈어요. (-100점)');
         setTimeout(() => {
           setGame(prev => ({ ...prev, blocks: 3 }));
         }, 900);
+        return { ...g, blocks: 0, pts: Math.max(0, g.pts - 100), emerg: (g.emerg || 0) + 1 };
       }
       return { ...g, blocks: next };
     });
@@ -382,6 +392,7 @@ export default function App() {
       ...g,
       cur: idx,
       mist: 0,
+      emerg: 0,
       pts: 0,
       combo: 0
     }));
@@ -459,7 +470,7 @@ export default function App() {
       return { rank, online: false };
     }
   };
-  const [endResult, setEndResult] = useState<{ rank: number; online: boolean } | null>(null);
+  const [endResult, setEndResult] = useState<{ rank: number; online: boolean; skipped?: 'teacher' | 'practice' } | null>(null);
 
   const handleSignInGoogle = async () => {
     try {
@@ -683,6 +694,7 @@ export default function App() {
       pts: game.pts,
       blocks: game.blocks,
       mist: game.mist,
+      emerg: game.emerg || 0,
       clues: Object.keys(game.clues).length,
       hasNext: stageIdx < STAGES.length - 1,
       practice
@@ -936,6 +948,7 @@ export default function App() {
             totalScore={totalScore}
             pledges={game.pledge}
             rank={myRank > 0 ? myRank : 1}
+            recordable={!game.teacher && !game.done[game.cur]}
             onShowLeaderboard={() => setShowLeaderboard(true)}
             onGoMap={() => setViewScreen('map')}
             onComplete={async () => {
@@ -943,8 +956,13 @@ export default function App() {
               const epi = game.done[game.cur] ? game.scores[game.cur] || 0 : game.pts + game.blocks * 10;
               const finalTotal =
                 Object.entries(game.scores).reduce((a, [k, v]) => (Number(k) === game.cur ? a : a + v), 0) + epi;
-              const r = await saveToLeaderboard(finalTotal);
-              setEndResult(r);
+              // 선생님 모드나 다시 하기(연습)에서는 명예의 전당에 올리지 않는다
+              if (game.teacher || game.done[game.cur]) {
+                setEndResult({ rank: 0, online: false, skipped: game.teacher ? 'teacher' : 'practice' });
+              } else {
+                const r = await saveToLeaderboard(finalTotal);
+                setEndResult(r);
+              }
               advanceStep();
             }}
           />
@@ -1024,6 +1042,7 @@ export default function App() {
               code,
               avatar,
               unlocked: 0,
+              teacher: false,
               done: {},
               blocks: 6,
               clues: {},
@@ -1051,8 +1070,8 @@ export default function App() {
           onShowLeaderboard={() => setShowLeaderboard(true)}
           onGoTitle={() => setViewScreen('title')}
           onUnlockAll={() => {
-            setGame(g => ({ ...g, unlocked: STAGES.length - 1 }));
-            triggerToast('모든 작전이 열렸습니다! (선생님 모드)');
+            setGame(g => ({ ...g, unlocked: STAGES.length - 1, teacher: true }));
+            triggerToast('모든 작전이 열렸습니다! (선생님 모드: 명예의 전당에는 기록되지 않아요)');
           }}
         />
       )}
@@ -1095,6 +1114,12 @@ export default function App() {
         )}
         <SceneFx fx={sceneFx} />
         {isFlashing && <div className="flash" />}
+        {towerCollapse > 0 && (
+          <div key={towerCollapse} className="tower-collapse" aria-hidden="true">
+            <b>💥 빙하가 무너졌어요!</b>
+            <span>비상 얼음 3개 · -100점</span>
+          </div>
+        )}
       </div>
 
       {/* Top Header Bar */}
@@ -1232,7 +1257,6 @@ export default function App() {
               mood={reaction.mood || 'happy'}
               avatar={game.avatar}
               playerName={game.name}
-          isRanger={!!game.done[STAGES.length - 1]}
               playerCode={game.code}
               clues={game.clues}
               onKeywordClick={handleCollectClue}
@@ -1245,7 +1269,6 @@ export default function App() {
               mood={curStep.mood}
               avatar={game.avatar}
               playerName={game.name}
-          isRanger={!!game.done[STAGES.length - 1]}
               playerCode={game.code}
               clues={game.clues}
               mustClue={curStep.must}
@@ -1297,6 +1320,7 @@ export default function App() {
           pts={showStageResult.pts}
           blocks={showStageResult.blocks}
           mistakes={showStageResult.mist}
+          emergencies={showStageResult.emerg}
           cluesCount={showStageResult.clues}
           hasNext={showStageResult.hasNext}
           practice={showStageResult.practice}

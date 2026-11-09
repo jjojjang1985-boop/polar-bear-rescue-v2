@@ -56,12 +56,16 @@ export interface GameState {
   sound: boolean;
   cur: number;
   mist: number;
+  /** 이번 작전에서 비상 얼음을 받은 횟수 */
+  emerg?: number;
   pts: number;
   combo: number;
   towerOn: boolean;
   campaign: string | null;
   poster: PosterData | null;
   evid: string[];
+  /** 선생님용 '모든 작전 열기'를 쓴 기록 (명예의 전당에 올리지 않음) */
+  teacher?: boolean;
 }
 
 export type ViewScreen = 'title' | 'register' | 'map' | 'game';

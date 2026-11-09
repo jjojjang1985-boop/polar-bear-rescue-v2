@@ -13,6 +13,8 @@ interface MissionCeremonyProps {
   totalScore: number;
   pledges: string[];
   rank: number;
+  /** false면 명예의 전당에 기록하지 않음 (선생님 모드·다시 하기) */
+  recordable?: boolean;
   onShowLeaderboard: () => void;
   onGoMap: () => void;
   onComplete: () => void;
@@ -26,6 +28,7 @@ export function MissionCeremony({
   totalScore,
   pledges,
   rank,
+  recordable = true,
   onShowLeaderboard,
   onGoMap,
   onComplete
@@ -347,7 +350,13 @@ export function MissionCeremony({
         지구레인저 임명식
       </h2>
       <p className="guide">
-        {name} 레인저의 총점은 <b>{totalScore.toLocaleString()}점</b>! 임명장을 저장한 뒤 <b>임무 완료</b>를 눌러 명예의 전당에 기록하세요.
+        {name} 레인저의 총점은 <b>{totalScore.toLocaleString()}점</b>! {recordable ? (
+          <>
+            임명장을 저장한 뒤 <b>임무 완료</b>를 눌러 명예의 전당에 기록하세요.
+          </>
+        ) : (
+          <>임명장을 저장한 뒤 <b>임무 완료</b>를 누르세요. (선생님 모드·다시 하기는 명예의 전당에 기록되지 않아요)</>
+        )}
       </p>
 
       {certUrl ? (
@@ -387,7 +396,7 @@ export function MissionCeremony({
             onComplete();
           }}
         >
-          {saving ? '명예의 전당에 기록하는 중…' : '🌏 임무 완료!'}
+          {saving ? (recordable ? '명예의 전당에 기록하는 중…' : '마무리하는 중…') : '🌏 임무 완료!'}
         </button>
       </div>
     </div>
