@@ -28,7 +28,7 @@ const CHARGE_MS = 900;
 /** 버티기 횟수 (2연속 명중마다 1회 충전) */
 const BRACE_MAX = 3;
 
-type Phase = 'incoming' | 'choose' | 'hit' | 'brace' | 'miss' | 'dying' | 'won' | 'victory';
+type Phase = 'incoming' | 'strike' | 'choose' | 'hit' | 'brace' | 'miss' | 'dying' | 'won' | 'victory';
 
 /** 어느 작전에서 고를 수 있었던 기술인지 */
 const stageOf = (id: string) =>
@@ -102,6 +102,27 @@ export function MissionBoss({
     setPicked(null);
     setHintMsg(null);
     setTimeLeft(turnSeconds);
+    // 막을 기술도 버티기도 없으면 기다리지 않고 대마왕이 바로 공격한다
+    if (attack && !canBlock(attack) && braces <= 0) {
+      const a = attack;
+      const rest = queue.slice(1);
+      later(() => {
+        setPhase('strike');
+        cue.bossRise();
+      }, 900);
+      later(() => {
+        setPhase('miss');
+        cue.bossHurtsYou();
+        takeDamage(2);
+        onReact(
+          'luka',
+          `으악, 막을 기술도 버티기도 없어서 그대로 맞았어! 2연속 명중으로 버티기를 충전해 둬. (${a.name}은 ${counterText(a)}로 막을 수 있어)`,
+          'o'
+        );
+      }, 2200);
+      later(() => nextTurn(rest), 3600);
+      return;
+    }
     later(() => setPhase('choose'), 1100);
   }, [phase, turn]);
 
@@ -325,6 +346,18 @@ export function MissionBoss({
         )}
         {(phase === 'won' || phase === 'victory') && <div className="boss-whiteout" />}
         {phase === 'brace' && <div className="brace-shield">🧱</div>}
+        {phase === 'strike' && attack && (
+          <>
+            <div className="boss-strike-banner">막을 방법이 없어!</div>
+            <div className="boss-strike-shot" aria-hidden="true">
+              {Array.from({ length: 5 }, (_, i) => (
+                <span key={i} style={{ ['--i' as any]: i }}>
+                  {attack.em}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
         {(phase === 'miss' || phase === 'brace') && <div className={`attack-hit ${phase === 'brace' ? 'soft' : ''}`} />}
 
       </div>
@@ -342,7 +375,11 @@ export function MissionBoss({
           </div>
           <p className="guide boss-guide">
             {hintMsg ??
-              (phase === 'incoming' ? '공격이 날아온다…!' : `내 기술로 막을 수 있을까? (${timeLeft}초)`)}
+              (phase === 'incoming'
+                ? '공격이 날아온다…!'
+                : phase === 'strike' || (phase === 'miss' && braces <= 0 && attack && !canBlock(attack))
+                  ? '막을 기술도, 버티기도 없어! 탄소 대마왕의 공격!'
+                  : `내 기술로 막을 수 있을까? (${timeLeft}초)`)}
           </p>
 
           <div className="skill-grid">
